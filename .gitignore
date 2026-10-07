@@ -1,0 +1,4 @@
+node_modules/
+runtimes/
+release/
+*.log

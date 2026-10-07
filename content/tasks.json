@@ -1,0 +1,672 @@
+[
+  {
+    "id": "zbir",
+    "title": "Zbir dva cijela broja",
+    "description": "Učitaj dva cijela broja a i b sa standardnog ulaza, iz istog ili različitih redova. Ispiši jedan cijeli broj: njihov zbir. Ograničenje: −10⁹ ≤ a,b ≤ 10⁹. Ne ispisuj poruke za unos.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "7 5\n",
+        "output": "12\n"
+      },
+      {
+        "input": "0 0\n",
+        "output": "0\n"
+      },
+      {
+        "input": "-7 5\n",
+        "output": "-2\n"
+      },
+      {
+        "input": "1000000000 1000000000\n",
+        "output": "2000000000\n"
+      },
+      {
+        "input": "-1000000000 -1000000000\n",
+        "output": "-2000000000\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "U C i C++ zbir može zahtijevati long long. U Javi koristi long."
+    ]
+  },
+  {
+    "id": "parnost",
+    "title": "Paran ili neparan",
+    "description": "Učitaj cijeli broj n, −10⁹ ≤ n ≤ 10⁹. Ispiši PARAN ako je djeljiv sa 2, inače NEPARAN. Nula je paran broj. Izlaz koristi velika slova bez dodatnog teksta.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "0\n",
+        "output": "PARAN\n"
+      },
+      {
+        "input": "8\n",
+        "output": "PARAN\n"
+      },
+      {
+        "input": "7\n",
+        "output": "NEPARAN\n"
+      },
+      {
+        "input": "-14\n",
+        "output": "PARAN\n"
+      },
+      {
+        "input": "-11\n",
+        "output": "NEPARAN\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Dovoljno je provjeriti ostatak pri dijeljenju sa 2."
+    ]
+  },
+  {
+    "id": "najveci-tri",
+    "title": "Najveći od tri broja",
+    "description": "Učitaj tri cijela broja a, b i c, svaki u rasponu −10⁹ do 10⁹. Ispiši najveću vrijednost. Vrijednosti mogu biti jednake i mogu biti negativne.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "3 8 5\n",
+        "output": "8\n"
+      },
+      {
+        "input": "-3 -8 -5\n",
+        "output": "-3\n"
+      },
+      {
+        "input": "7 7 2\n",
+        "output": "7\n"
+      },
+      {
+        "input": "0 -1 -2\n",
+        "output": "0\n"
+      },
+      {
+        "input": "4 4 4\n",
+        "output": "4\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Početni maksimum postavi na prvi podatak, ne na nulu."
+    ]
+  },
+  {
+    "id": "zbir-do-n",
+    "title": "Zbir od 1 do n",
+    "description": "Učitaj cijeli broj n, 0 ≤ n ≤ 10⁶. Ispiši 1+2+…+n; za n=0 ispiši 0. Rješenje može koristiti petlju ili formulu n(n+1)/2. Izlaz je jedan cijeli broj.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "0\n",
+        "output": "0\n"
+      },
+      {
+        "input": "1\n",
+        "output": "1\n"
+      },
+      {
+        "input": "5\n",
+        "output": "15\n"
+      },
+      {
+        "input": "100\n",
+        "output": "5050\n"
+      },
+      {
+        "input": "1000000\n",
+        "output": "500000500000\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Najveći rezultat prelazi 32-bitni signed int; koristi long long ili long."
+    ]
+  },
+  {
+    "id": "zbir-cifara",
+    "title": "Zbir cifara",
+    "description": "Učitaj nenegativan cijeli broj n, 0 ≤ n ≤ 10¹². Ispiši zbir njegovih dekadnih cifara. Za n=0 rezultat je 0. Ulaz ne sadrži znak predznaka.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "0\n",
+        "output": "0\n"
+      },
+      {
+        "input": "507\n",
+        "output": "12\n"
+      },
+      {
+        "input": "99999\n",
+        "output": "45\n"
+      },
+      {
+        "input": "1000000000000\n",
+        "output": "1\n"
+      },
+      {
+        "input": "123456789\n",
+        "output": "45\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Posljednju cifru dobijaš sa n % 10, zatim ukloniš cifru cjelobrojnim dijeljenjem sa 10."
+    ]
+  },
+  {
+    "id": "faktorijel",
+    "title": "Faktorijel",
+    "description": "Učitaj cijeli broj n, 0 ≤ n ≤ 20. Ispiši n!, proizvod brojeva od 1 do n. Vrijedi 0!=1. Rezultat do 20! staje u signed 64-bitni cijeli tip.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "0\n",
+        "output": "1\n"
+      },
+      {
+        "input": "1\n",
+        "output": "1\n"
+      },
+      {
+        "input": "5\n",
+        "output": "120\n"
+      },
+      {
+        "input": "10\n",
+        "output": "3628800\n"
+      },
+      {
+        "input": "20\n",
+        "output": "2432902008176640000\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Proizvod inicijalizuj na 1. Koristi long long u C/C++ ili long u Javi."
+    ]
+  },
+  {
+    "id": "nzd",
+    "title": "Euklidov algoritam",
+    "description": "Učitaj nenegativne cijele brojeve a i b, ne oba nula, svaki do 10⁹. Ispiši njihov najveći zajednički djelilac. NZD(a,0)=a za a>0. Koristi Euklidov algoritam.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "18 24\n",
+        "output": "6\n"
+      },
+      {
+        "input": "48 18\n",
+        "output": "6\n"
+      },
+      {
+        "input": "17 13\n",
+        "output": "1\n"
+      },
+      {
+        "input": "0 99\n",
+        "output": "99\n"
+      },
+      {
+        "input": "1000000000 1000000000\n",
+        "output": "1000000000\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Dok b nije 0, zamijeni a,b vrijednostima b,a%b."
+    ]
+  },
+  {
+    "id": "nzs",
+    "title": "Najmanji zajednički sadržalac",
+    "description": "Učitaj dva pozitivna cijela broja a i b, 1 ≤ a,b ≤ 10⁶. Ispiši NZS(a,b). Rezultat računaj kao (a/NZD(a,b))·b da smanjiš međukorak. Potreban je 64-bitni tip u C, C++ i Javi.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "12 18\n",
+        "output": "36\n"
+      },
+      {
+        "input": "8 12\n",
+        "output": "24\n"
+      },
+      {
+        "input": "7 11\n",
+        "output": "77\n"
+      },
+      {
+        "input": "1 37\n",
+        "output": "37\n"
+      },
+      {
+        "input": "999999 1000000\n",
+        "output": "999999000000\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Prvo izračunaj NZD Euklidovim algoritmom."
+    ]
+  },
+  {
+    "id": "prost",
+    "title": "Provjera prostog broja",
+    "description": "Učitaj cijeli broj n, 0 ≤ n ≤ 10⁶. Ispiši PROST ako je n prost, inače NIJE PROST. Brojevi 0 i 1 nisu prosti. Dovoljno je provjeriti djelioce d za koje je d·d ≤ n.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "0\n",
+        "output": "NIJE PROST\n"
+      },
+      {
+        "input": "1\n",
+        "output": "NIJE PROST\n"
+      },
+      {
+        "input": "2\n",
+        "output": "PROST\n"
+      },
+      {
+        "input": "29\n",
+        "output": "PROST\n"
+      },
+      {
+        "input": "49\n",
+        "output": "NIJE PROST\n"
+      },
+      {
+        "input": "999983\n",
+        "output": "PROST\n"
+      },
+      {
+        "input": "1000000\n",
+        "output": "NIJE PROST\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Ako pronađeš djelilac, broj je složen. Provjeri 0 i 1 prije petlje."
+    ]
+  },
+  {
+    "id": "djeljivost",
+    "title": "Pravila djeljivosti",
+    "description": "Učitaj jedan pozitivan cijeli broj n do 10⁹. Redom za djelioce 2, 4, 5, 6, 9, 10, 15 i 25 ispiši 1 ako je n djeljivo datim brojem ili 0 ako nije. Izlaz ima osam brojeva odvojenih razmakom, navedenim redom.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "225\n",
+        "output": "0 0 1 0 1 0 1 1\n"
+      },
+      {
+        "input": "150\n",
+        "output": "1 0 1 1 0 1 1 1\n"
+      },
+      {
+        "input": "1328\n",
+        "output": "1 1 0 0 0 0 0 0\n"
+      },
+      {
+        "input": "1\n",
+        "output": "0 0 0 0 0 0 0 0\n"
+      },
+      {
+        "input": "900\n",
+        "output": "1 1 1 1 1 1 1 1\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "U programu modulo daje istu provjeru kao pravila naučena na matematici."
+    ]
+  },
+  {
+    "id": "razlomci-zbir",
+    "title": "Saberi i skrati razlomke",
+    "description": "Učitaj četiri cijela broja a b c d, koji predstavljaju a/b+c/d. Nazivnici su pozitivni, 1 ≤ b,d ≤ 1 000, a −1 000 ≤ a,c ≤ 1 000. Ispiši brojnik i nazivnik potpuno skraćenog zbira, razdvojene razmakom. Nazivnik rezultata mora biti pozitivan; nulti rezultat ispiši kao 0 1.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "2 3 1 4\n",
+        "output": "11 12\n"
+      },
+      {
+        "input": "3 4 -1 6\n",
+        "output": "7 12\n"
+      },
+      {
+        "input": "-1 2 1 2\n",
+        "output": "0 1\n"
+      },
+      {
+        "input": "1 6 1 3\n",
+        "output": "1 2\n"
+      },
+      {
+        "input": "-2 3 -3 4\n",
+        "output": "-17 12\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Prije skraćivanja brojnik je ad+bc, a nazivnik bd. NZD računaj s apsolutnom vrijednošću brojnika."
+    ]
+  },
+  {
+    "id": "binarni",
+    "title": "Dekadni broj u binarni",
+    "description": "Učitaj nenegativan cijeli broj n do 10⁹. Ispiši njegov binarni zapis bez prefiksa 0b i bez vodećih nula. Za n=0 ispiši 0.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "0\n",
+        "output": "0\n"
+      },
+      {
+        "input": "1\n",
+        "output": "1\n"
+      },
+      {
+        "input": "13\n",
+        "output": "1101\n"
+      },
+      {
+        "input": "255\n",
+        "output": "11111111\n"
+      },
+      {
+        "input": "1024\n",
+        "output": "10000000000\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Ponavljaj dijeljenje sa 2 i zapisuj ostatke obrnutim redom."
+    ]
+  },
+  {
+    "id": "baza-u-dekadni",
+    "title": "Binarni, oktalni i heksadecimalni u dekadni",
+    "description": "Prvi podatak je baza b, koja je 2, 8 ili 16. Drugi podatak je ispravan nenegativan zapis broja u toj bazi. Heksadecimalne cifre A–F su velike. Ispiši dekadnu vrijednost, najviše 10⁹. Ulazni broj nema prefiks.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "2 1101\n",
+        "output": "13\n"
+      },
+      {
+        "input": "8 17\n",
+        "output": "15\n"
+      },
+      {
+        "input": "16 FF\n",
+        "output": "255\n"
+      },
+      {
+        "input": "16 A0\n",
+        "output": "160\n"
+      },
+      {
+        "input": "2 0\n",
+        "output": "0\n"
+      },
+      {
+        "input": "8 100\n",
+        "output": "64\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Obradi cifre slijeva nadesno formulom vrijednost=vrijednost·b+cifra."
+    ]
+  },
+  {
+    "id": "pozitivni-niz",
+    "title": "Broj pozitivnih elemenata",
+    "description": "Prvi red sadrži n, 1 ≤ n ≤ 100. Sljedećih n cijelih brojeva, odvojenih bilo kojim bjelinama, jesu elementi niza u rasponu −10⁶ do 10⁶. Ispiši broj strogo pozitivnih elemenata. Nula nije pozitivna.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "5\n-2 0 3 4 -1\n",
+        "output": "2\n"
+      },
+      {
+        "input": "1\n0\n",
+        "output": "0\n"
+      },
+      {
+        "input": "4\n1 2 3 4\n",
+        "output": "4\n"
+      },
+      {
+        "input": "3\n-1 -2 -3\n",
+        "output": "0\n"
+      },
+      {
+        "input": "6\n2\n0\n-4\n9\n1\n-1\n",
+        "output": "3\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Uneseni n govori koliko narednih brojeva treba pročitati."
+    ]
+  },
+  {
+    "id": "sortiranje",
+    "title": "Poredaj niz",
+    "description": "Prvi podatak je n, 1 ≤ n ≤ 100. Slijedi n cijelih brojeva iz raspona −10⁶ do 10⁶. Ispiši ih neopadajuće, od najmanjeg do najvećeg, u jednom redu odvojene razmacima. Sačuvaj ponovljene vrijednosti.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "5\n3 1 4 1 2\n",
+        "output": "1 1 2 3 4\n"
+      },
+      {
+        "input": "1\n-7\n",
+        "output": "-7\n"
+      },
+      {
+        "input": "4\n9 -1 0 -9\n",
+        "output": "-9 -1 0 9\n"
+      },
+      {
+        "input": "6\n5 5 5 2 2 1\n",
+        "output": "1 2 2 5 5 5\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "U C možeš koristiti jednostavno sortiranje zamjenama; C++ ima sort, Python sorted, Java Arrays.sort."
+    ]
+  },
+  {
+    "id": "palindrom",
+    "title": "Palindrom riječ",
+    "description": "Učitaj jednu nepraznu riječ dužine najviše 100 znakova. Riječ sadrži samo mala slova engleske abecede a–z, bez razmaka. Ispiši DA ako se čita jednako s oba kraja, inače NE. Ovo ograničenje izbjegava razlike u obradi Unicode znakova među jezicima.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "ana\n",
+        "output": "DA\n"
+      },
+      {
+        "input": "radar\n",
+        "output": "DA\n"
+      },
+      {
+        "input": "python\n",
+        "output": "NE\n"
+      },
+      {
+        "input": "a\n",
+        "output": "DA\n"
+      },
+      {
+        "input": "abba\n",
+        "output": "DA\n"
+      },
+      {
+        "input": "abc\n",
+        "output": "NE\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Uporedi znak na indeksu i sa znakom na indeksu dužina−1−i."
+    ]
+  },
+  {
+    "id": "fibonacci",
+    "title": "Fibonaccijev niz",
+    "description": "Učitaj cijeli broj n, 0 ≤ n ≤ 90. Definiši F₀=0, F₁=1 i Fₙ=Fₙ₋₁+Fₙ₋₂ za n≥2. Ispiši Fₙ. Koristi iteraciju; rezultat do F₉₀ staje u signed 64-bitni tip.",
+    "grade": 9,
+    "tests": [
+      {
+        "input": "0\n",
+        "output": "0\n"
+      },
+      {
+        "input": "1\n",
+        "output": "1\n"
+      },
+      {
+        "input": "2\n",
+        "output": "1\n"
+      },
+      {
+        "input": "10\n",
+        "output": "55\n"
+      },
+      {
+        "input": "90\n",
+        "output": "2880067194370816120\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Čuvaj samo dvije prethodne vrijednosti."
+    ]
+  },
+  {
+    "id": "tablica",
+    "title": "Tablica množenja",
+    "description": "Učitaj cijeli broj n, 1 ≤ n ≤ 20. Ispiši tačno 10 redova. U i-tom redu, za i od 1 do 10, ispiši samo proizvod n·i, bez izraza i oznaka.",
+    "grade": 8,
+    "tests": [
+      {
+        "input": "1\n",
+        "output": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n"
+      },
+      {
+        "input": "3\n",
+        "output": "3\n6\n9\n12\n15\n18\n21\n24\n27\n30\n"
+      },
+      {
+        "input": "20\n",
+        "output": "20\n40\n60\n80\n100\n120\n140\n160\n180\n200\n"
+      }
+    ],
+    "starters": {
+      "python": "import sys\n\ndef solve():\n    tokens = sys.stdin.read().split()\n    # Pretvori ulaz u odgovarajuće tipove i ispiši samo traženi rezultat.\n    pass\n\nif __name__ == \"__main__\":\n    solve()\n",
+      "c": "#include <stdio.h>\n\nint main(void) {\n    /* Učitaj ulaz pomoću scanf, izračunaj i ispiši rezultat pomoću printf. */\n    /* Za velike cijele vrijednosti koristi long long i oznaku %lld. */\n    return 0;\n}\n",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    // Učitaj ulaz pomoću cin i ispiši samo traženi rezultat.\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner input = new Scanner(System.in);\n        // Učitaj ulaz i ispiši samo traženi rezultat.\n    }\n}\n"
+    },
+    "hints": [
+      "Petlja ide od 1 do 10 uključivo. Ispis svakog proizvoda je u novom redu."
+    ]
+  }
+]

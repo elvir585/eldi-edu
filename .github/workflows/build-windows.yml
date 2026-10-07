@@ -1,0 +1,107 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - name: Preuzmi izvorni kod
+        uses: actions/checkout@v7
+
+      - name: Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+
+      - name: Java JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: GCC i G++ (MSYS2 UCRT64)
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-gcc
+          cache: false
+
+      - name: Instaliraj zavisnosti
+        shell: pwsh
+        run: |
+          if (Test-Path package-lock.json) { npm ci } else { npm install }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Provjeri kod
+        run: npm run check
+
+      - name: Ugradi Python, GCC/G++ i JDK
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        run: npm run runtime:bundle
+
+      - name: Provjeri sva četiri ugrađena jezika
+        run: node scripts/check.cjs --bundled
+
+      - name: Provjeri desktop prozor
+        run: npm run smoke
+
+      - name: Izradi instalacijski i prenosivi EXE
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run build:win
+
+      - name: Provjeri zapakovanu aplikaciju
+        shell: pwsh
+        run: |
+          $application = Join-Path $PWD 'release/win-unpacked/ELDI EDU.exe'
+          $process = Start-Process -FilePath $application -ArgumentList '--smoke-test' -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
+          $executables = Get-ChildItem release -Filter '*.exe'
+          if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }
+          $executables | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content release/SHA256SUMS.txt
+
+      - name: Sačuvaj Windows EXE
+        uses: actions/upload-artifact@v7
+        with:
+          name: ELDI-EDU-Windows-x64
+          path: |
+            release/*.exe
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+      - name: Objavi izdanje na GitHubu
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.0.0' }}
+          target_commitish: ${{ github.sha }}
+          name: ELDI EDU 10.0 — Windows (build ${{ github.run_number }})
+          body: |
+            Preuzmite **ELDI-EDU-10.0.0-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.0.0-Setup-x64.exe** za instalaciju.
+
+            Windows 10/11 x64. Python, GCC/G++ i Java JDK ugrađeni su u aplikaciju. Internet nije potreban za nastavu i izvršavanje školskih programa.
+
+            Programi iz editora izvršavaju se lokalno s dozvolama vašeg Windows korisnika. Ovo izdanje nije digitalno potpisano.
+          files: |
+            release/*.exe
+            release/SHA256SUMS.txt
+          fail_on_unmatched_files: true
+          make_latest: true
