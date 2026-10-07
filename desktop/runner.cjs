@@ -51,6 +51,32 @@ function resolveTools(runtimeRoot, allowSystem) {
   return tools;
 }
 
+function bundledGccOptions(runtimeRoot, language) {
+  // MSYS2 GCC 16 uses a configured /ucrt64 sysroot. The copied compiler
+  // prefix is elsewhere; all paths must be based on the installed app.
+  const gccRoot = path.join(runtimeRoot, 'gcc');
+  const gccLibraryRoot = path.join(gccRoot, 'lib', 'gcc');
+  const directories = directory => {
+    try { return fs.readdirSync(directory, { withFileTypes: true }).filter(item => item.isDirectory()).map(item => item.name); } catch { return []; }
+  };
+  const triple = directories(gccLibraryRoot).find(name => name.includes('mingw'));
+  const version = triple && directories(path.join(gccLibraryRoot, triple)).filter(name => /^\d+(\.\d+)*$/.test(name)).sort((a,b) => b.localeCompare(a, undefined, { numeric: true }))[0];
+  if (!triple || !version || !fs.existsSync(path.join(gccRoot, 'include', 'stdio.h'))) throw new Error('Ugrađeni GCC paket nema kompletna zaglavlja i biblioteke. Preuzmite novo Windows izdanje.');
+  const internalRoot = path.join(gccLibraryRoot, triple, version);
+  const portablePath = file => file.replace(/\\/g, '/');
+  const args = [`--sysroot=${portablePath(gccRoot)}`, '-B', portablePath(internalRoot) + '/', '-B', portablePath(path.join(gccRoot, 'bin')) + '/'];
+  const includeDirs = [];
+  if (language === 'cpp') {
+    const cppRoot = [path.join(gccRoot, 'include', 'c++', version), path.join(internalRoot, 'include', 'c++')].find(directory => fs.existsSync(path.join(directory, 'iostream')));
+    if (!cppRoot) throw new Error('Ugrađeni G++ paket nema C++ standardnu biblioteku.');
+    includeDirs.push(cppRoot, path.join(cppRoot, triple), path.join(cppRoot, 'backward'));
+  }
+  includeDirs.push(path.join(internalRoot, 'include'), path.join(internalRoot, 'include-fixed'), path.join(gccRoot, 'include'));
+  for (const directory of includeDirs) if (fs.existsSync(directory)) args.push('-isystem', portablePath(directory));
+  for (const directory of [internalRoot, path.join(gccRoot, 'lib'), path.join(gccRoot, triple, 'lib')]) if (fs.existsSync(directory)) args.push('-L', portablePath(directory));
+  return args;
+}
+
 function killTree(child) {
   if (!child || !child.pid) return;
   if (process.platform === 'win32') {
@@ -147,8 +173,9 @@ function createRunner(options = {}) {
       let compile = null;
       const program = path.join(tempDir, process.platform === 'win32' ? 'program.exe' : 'program');
       if (language === 'c' || language === 'cpp') {
-        const compiler = language === 'c' ? tools.gcc.file : tools.gpp.file;
-        const args = [source, '-o', program, language === 'c' ? '-std=c17' : '-std=c++17', '-O0', '-Wall', '-Wextra', '-fdiagnostics-color=never'];
+        const tool = language === 'c' ? tools.gcc : tools.gpp;
+        const compiler = tool.file;
+        const args = [...(process.platform === 'win32' && tool.bundled ? bundledGccOptions(runtimeRoot, language) : []), source, '-o', program, language === 'c' ? '-std=c17' : '-std=c++17', '-O0', '-Wall', '-Wextra', '-fdiagnostics-color=never'];
         if (process.platform === 'win32') args.push('-static-libgcc', ...(language === 'cpp' ? ['-static-libstdc++'] : []));
         else if (language === 'c') args.push('-lm');
         compile = await execute(compiler, args, tempDir, '', compileTimeoutMs);
@@ -174,4 +201,4 @@ function createRunner(options = {}) {
   return { runCode, runtimeStatus, cancel };
 }
 
-module.exports = { createRunner, validateRequest, LANGUAGES, SOURCE_LIMIT, INPUT_LIMIT };
+module.exports = { createRunner, validateRequest, bundledGccOptions, LANGUAGES, SOURCE_LIMIT, INPUT_LIMIT };

@@ -42,13 +42,31 @@ async function main() {
   const javaBin = path.join(runtimeRoot, 'java', 'bin');
   const env = { ...process.env, PATH: [gccBin, javaBin, process.env.PATH || process.env.Path || ''].join(path.delimiter) };
   const version = (exe, args) => execFileSync(exe, args, { encoding: 'utf8', env, timeout: 15000, stdio: ['ignore', 'pipe', 'pipe'] }).trim().split(/\r?\n/)[0];
+  const gccExecutable = path.join(gccBin, 'gcc.exe');
+  const triple = version(gccExecutable, ['-dumpmachine']);
+  const gccVersion = version(gccExecutable, ['-dumpfullversion']);
+  for (const file of [path.join(runtimeRoot, 'gcc', 'include', 'stdio.h'), path.join(runtimeRoot, 'gcc', 'lib', 'gcc', triple, gccVersion, 'cc1.exe'), path.join(runtimeRoot, 'gcc', 'include', 'c++', gccVersion, 'iostream')]) await fs.access(file);
   const manifest = {
     createdAt: new Date().toISOString(), platform: 'win32', arch: 'x64',
     python: { version: PYTHON_VERSION, url: PYTHON_URL, sha256: PYTHON_SHA256 },
-    gcc: { source: 'MSYS2 UCRT64', version: version(path.join(gccBin, 'gcc.exe'), ['--version']) },
+    gcc: { source: 'MSYS2 UCRT64', version: version(gccExecutable, ['--version']), triple, fullVersion: gccVersion, sysroot: 'gcc' },
     java: { source: 'Eclipse Temurin JDK', version: version(path.join(javaBin, 'javac.exe'), ['-version']) }
   };
   await fs.writeFile(path.join(runtimeRoot, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  // Exercise the relocated prefix with the same stripped environment as the
+  // desktop runner, so the build cannot succeed by finding the original MSYS2.
+  const { createRunner } = require('../desktop/runner.cjs');
+  const runner = createRunner({ runtimeRoot, allowSystem: false });
+  const probes = {
+    c: '#include <stdio.h>\n#include <math.h>\nint main(void){double x=81;printf("%.0f\\n",sqrt(x));return 0;}\n',
+    cpp: '#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <numeric>\n#include <cmath>\nint main(){std::vector<int> v{3,1,2};std::sort(v.begin(),v.end());std::cout<<std::accumulate(v.begin(),v.end(),0)+std::sqrt(81)<<"\\n";}\n'
+  };
+  for (const [language, code] of Object.entries(probes)) {
+    const result = await runner.runCode({ language, code, input: '' });
+    const expected = language === 'c' ? '9' : '15';
+    if (!result.ok || result.stdout.trim() !== expected) throw new Error(`Provjera premještenog ${language} alata nije prošla:\n${result.stderr}\n${result.stdout}`);
+    console.log(`Premješteni ${language}: zaglavlja, biblioteke i izvršavanje OK.`);
+  }
   console.log('Python, GCC/G++ i JDK pripremljeni.');
   console.log(JSON.stringify(manifest, null, 2));
 }
