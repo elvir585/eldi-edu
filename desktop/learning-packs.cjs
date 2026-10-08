@@ -78,11 +78,28 @@ function packReport(pack) {
   const tasks = pack.books.flatMap(book => book.tasks);
   return {books: pack.books.length, tasks: tasks.length, solutions: tasks.reduce((total, task) => total + Object.keys(task.solutions || {}).length, 0)};
 }
+function parseManifest(bytes) {
+  let json; try { json = JSON.parse(UTF8.decode(bytes).trim()); } catch { fail('pack.json nije ispravan UTF-8 JSON dokument.'); }
+  return P.validatePack(json);
+}
 function readPack(bytes) {
-  const zip = readZip(bytes), manifest = zip.files.get('pack.json');
+  const input = buffer(bytes);
+  if (input.length > P.MAX_PACK_BYTES) fail('Paket smije imati do 30 MB.');
+  let offset = 0;
+  // Accept plain UTF-8 manifests as well as ZIPs. A BOM and surrounding JSON
+  // whitespace are permitted, while decoding stays strict for malformed UTF-8.
+  while (offset < input.length) {
+    if ([9, 10, 13, 32].includes(input[offset])) { offset++; continue; }
+    if (input[offset] === 0xef && input[offset + 1] === 0xbb && input[offset + 2] === 0xbf) { offset += 3; continue; }
+    break;
+  }
+  if (input[offset] === 0x7b || input[offset] === 0x5b) {
+    const pack = parseManifest(input);
+    return {pack, report: {...packReport(pack), files: 1, filePaths: ['pack.json'], expandedBytes: input.length}};
+  }
+  const zip = readZip(input), manifest = zip.files.get('pack.json');
   if (!manifest) fail('ZIP paket mora sadržavati pack.json u glavnom direktoriju.');
-  let json; try { json = JSON.parse(UTF8.decode(manifest)); } catch { fail('pack.json nije ispravan UTF-8 JSON dokument.'); }
-  const pack = P.validatePack(json);
+  const pack = parseManifest(manifest);
   return {pack, report: {...packReport(pack), files: zip.files.size, filePaths: [...zip.files.keys()], expandedBytes: zip.expandedBytes}};
 }
 function createZip(entries) {
@@ -102,7 +119,7 @@ function createZip(entries) {
 }
 function createPackZip(value, options = {}) {
   const pack = P.validatePack(value), entries = [{name: 'pack.json', bytes: JSON.stringify(pack, null, 2) + '\n'}];
-  const lines = ['ELDI EDU — paket zbirki i rješenja', '', 'U aplikaciji otvorite Zbirke i knjige, zatim Uvezi ZIP paket.', 'Svaki programski zadatak ima zaseban izvorni kod u direktoriju solutions.', 'Import čuva kod kao tekst; program se pokreće samo kada ga sami otvorite i pokrenete u editoru.', 'Priloženi status provjere opisuje provjere autora paketa; ne zamjenjuje službene skrivene testove.', 'Bilješke i napredak učenika nisu uključeni u paket. Sačuvajte ih izvozom profila.', '', 'Zbirke:'];
+  const lines = ['ELDI EDU — paket zbirki i rješenja', '', 'U aplikaciji otvorite Zbirke i rješenja, zatim Uvezi JSON / ZIP.', 'Svaki programski zadatak ima zaseban izvorni kod u direktoriju solutions.', 'Import čuva kod kao tekst; program se pokreće samo kada ga sami otvorite i pokrenete u editoru.', 'Priloženi status provjere opisuje provjere autora paketa; ne zamjenjuje službene skrivene testove.', 'Bilješke i napredak učenika nisu uključeni u paket. Sačuvajte ih izvozom profila.', '', 'Zbirke:'];
   const extensions = {python: 'py', cpp: 'cpp', c: 'c', java: 'java'};
   for (const book of pack.books) {
     lines.push(`- ${book.title} (${book.tasks.length} zadataka)`);

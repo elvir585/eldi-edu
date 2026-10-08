@@ -92,3 +92,20 @@ test('Imported mathematics answers require the exact value type used by the answ
   assert.throws(()=>validate({type:'tuple',value:[]}));assert.throws(()=>validate({type:'text',value:{}}));
   for(const answer of [{type:'number',value:42},{type:'number',value:'1,5'},{type:'fraction',value:'3/4'},{type:'tuple',value:[1,'2/3'],orderSensitive:false},{type:'set',value:[]},{type:'text',value:'da'},{type:'manual',value:'Dokaz'}]) assert.deepEqual(validate(answer).books[0].tasks[0].answer,answer);
 });
+
+test('Native learning-pack reader accepts bounded UTF-8 JSON with whitespace or BOM and preserves source text',()=>{
+  const pack=fixture(),json=JSON.stringify(pack),expected=P.validatePack(pack);
+  for(const source of [json,' \t\n'+json+'\r\n','\ufeff'+json,' \n\ufeff\t'+json+'\n']) {
+    const bytes=Buffer.from(source),result=Z.readPack(new Uint8Array(bytes));
+    assert.deepEqual(result.pack,expected);assert.equal(result.report.books,1);assert.equal(result.report.tasks,1);assert.equal(result.report.solutions,2);
+    assert.deepEqual(result.report.filePaths,['pack.json']);assert.equal(result.report.expandedBytes,bytes.length);
+    assert.equal(result.pack.books[0].tasks[0].solutions.python.code,pack.books[0].tasks[0].solutions.python.code);
+  }
+});
+
+test('Native JSON import rejects corrupt UTF-8, invalid manifests and oversized bytes without mutation',()=>{
+  for(const source of ['{bad','[]','{}','{"format":"ELDI-LEARNING-PACK","version":2,"books":[]}'])assert.throws(()=>Z.readPack(Buffer.from(source)));
+  const invalid=Buffer.from([0x7b,0x22,0xc3,0x28,0x22,0x3a,0x31,0x7d]),before=Buffer.from(invalid);
+  assert.throws(()=>Z.readPack(invalid),/UTF-8 JSON/);assert.deepEqual(invalid,before);
+  const oversized=Buffer.alloc(P.MAX_PACK_BYTES+1,32);oversized[0]=0x7b;assert.throws(()=>Z.readPack(oversized),/30 MB/);
+});
