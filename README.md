@@ -1,4 +1,4 @@
-# ELDI EDU 10.2 — 1000 tematskih cjelina, zadaci i postignuća
+# ELDI EDU 10.2.1 — 1000 tematskih cjelina, zadaci i postignuća
 
 **Matematika i informatika od 5. do 9. razreda kao Windows aplikacija koja radi bez interneta.**
 
@@ -8,8 +8,8 @@ Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanovi�
 
 Otvorite **[najnovije izdanje](https://github.com/elvir585/eldi-edu/releases/latest)**:
 
-- `ELDI-EDU-10.2.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
-- `ELDI-EDU-10.2.0-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
+- `ELDI-EDU-10.2.1-Portable-x64.exe` — direktno pokretanje bez instalacije.
+- `ELDI-EDU-10.2.1-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
 
 Windows 10/11 x64. Paket uključuje nastavni sadržaj, Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za učenje i izvršavanje programa. [GitHub Actions](https://github.com/elvir585/eldi-edu/actions/workflows/build-windows.yml) provjerava i gradi obje EXE datoteke prije objave.
 

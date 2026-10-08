@@ -35,7 +35,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 10.2 — Matematika i informatika', show: !smokeTest,
+      title: 'ELDI EDU 10.2.1 — Matematika i informatika', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, backgroundThrottling: !smokeTest }
     });
@@ -98,6 +98,7 @@ app.on('window-all-closed', () => app.quit());
 app.on('before-quit', () => runner.cancel());
 
 async function runDesktopSmoke(window) {
+  window.showInactive();
   const output = path.join(process.cwd(), 'smoke-previews', app.isPackaged ? 'packaged' : 'development');
   await fs.promises.mkdir(output, { recursive: true });
   const helpers = `
@@ -113,7 +114,7 @@ async function runDesktopSmoke(window) {
     return evaluate(code);
   }
   async function capture(name) {
-    await evaluate('window.scrollTo(0,0);await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));');
+    await evaluate('window.scrollTo(0,0);await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));await wait(200);');
     const screenshot = await window.webContents.capturePage();
     if (screenshot.isEmpty()) throw new Error('Prazna slika desktop prozora: ' + name);
     await fs.promises.writeFile(path.join(output, name + '.png'), screenshot.toPNG());
@@ -197,7 +198,13 @@ async function runDesktopSmoke(window) {
     ensure(actions.filter(a=>a.type==='move').length===4&&actions.filter(a=>a.type==='turn').length===4,'Crtanje kvadrata nije uspjelo.');
     $('challenge-free').click();ELDIBlocks.example('square');await ELDIBlocks.run({input:'',speed:0});
     ensure(document.querySelectorAll('.blocklyToolboxCategoryLabel').length>=14,'Kategorije blokova nisu vidljive.');
-    const rect=$('blocklyDiv').getBoundingClientRect();ensure(rect.width>350&&rect.height>500,'Radni prostor za blokove nema dovoljnu veličinu.');
+    $('block-challenge-panel').open=false;
+    const rect=$('blocklyDiv').getBoundingClientRect();ensure(rect.width>300&&rect.height>=360,'Radni prostor za blokove nema dovoljnu veličinu.');
+    ensure(rect.top<250,'Blokovski radni prostor potisnut je ispod uvodnih panela: '+rect.top);
+    for(const id of ['stage','blockcode','blockout']){
+      const box=$(id).getBoundingClientRect();ensure(box.top>=rect.top&&box.bottom<=innerHeight+100,'Pozornica, kod i konzola moraju biti u prvom prikazu: '+id+' '+box.bottom+'/'+innerHeight);
+      ensure(box.left>=rect.right,'Izvršavanje i kod moraju ostati desno od blokova: '+id);
+    }
   `);
   await capture('04-blocks');
   await stage('profile creation and all mathematics laboratories', `

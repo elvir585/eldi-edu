@@ -624,6 +624,67 @@ body[data-page='blocks'] #view > p { margin: 0 0 14px; font-size: 12px; }
   .certificate-preview { padding: 12px; }
   .exam-controls label { min-width: 130px; }
 }
+/* The native workbench must remain usable on a 1024px Windows display. */
+body[data-page='blocks'] .block-challenge-panel { padding: 9px 12px; margin: 0 0 9px; }
+body[data-page='blocks'] .block-challenge-panel > summary { font-size: 11px; line-height: 1.5; }
+body[data-page='blocks'] .block-challenge-panel[open] > summary { margin-bottom: 12px; }
+body[data-page='blocks'] #block-task-brief { max-height: 35px; overflow: auto; margin: 0 0 7px; color: var(--ink); font-size: 11px; line-height: 1.5; }
+body[data-page='blocks'] #blockcheck { margin: 0 0 7px; font-size: 11px; }
+body[data-page='blocks'] #blockcheck:empty { display: none; }
+@media screen and (min-width: 900px) {
+  body[data-page='blocks'] { --sidebar-width: 180px; --workbench-height: clamp(360px, calc(100vh - 218px), 850px); }
+  body[data-page='blocks'] > aside { padding: 16px 12px 12px; }
+  body[data-page='blocks'] .brand { padding-left: 43px; font-size: 32px; }
+  body[data-page='blocks'] .brand::before { width: 34px; height: 34px; }
+  body[data-page='blocks'] .brand span { font-size: 8px; letter-spacing: 1px; }
+  body[data-page='blocks'] .nav-label { display: none; }
+  body[data-page='blocks'] aside nav { gap: 4px; margin-top: 19px; }
+  body[data-page='blocks'] aside nav button { min-height: 35px; padding: 8px; font-size: 10px; }
+  body[data-page='blocks'] .aside-bottom { padding: 12px 5px 0; }
+  body[data-page='blocks'] .aside-bottom > p:first-child { display: none; }
+  body[data-page='blocks'] .aside-bottom button { min-height: 30px; padding: 5px 8px; }
+  body[data-page='blocks'] main { padding: 0 16px; }
+  body[data-page='blocks'] main > header { min-height: 42px; flex-wrap: nowrap; padding: 5px 0; font-size: 8px; }
+  body[data-page='blocks'] main > header .profile select { min-height: 30px; font-size: 11px; }
+  body[data-page='blocks'] main > header button { min-height: 30px; font-size: 10px; }
+  body[data-page='blocks'] #view { padding-top: 12px; }
+  body[data-page='blocks'] #view > .eyebrow, body[data-page='blocks'] .workspace-title + p { display: none; }
+  body[data-page='blocks'] #view > h1 { margin: 0 0 10px; font-size: 23px; line-height: 1.2; letter-spacing: -.6px; }
+  body[data-page='blocks'] .block-toolbar { position: static; gap: 6px; margin: 0 0 10px; padding: 8px; }
+  body[data-page='blocks'] .block-toolbar button { min-height: 29px; padding: 5px 8px; font-size: 10px; }
+  body[data-page='blocks'] .block-toolbar label { font-size: 9px; }
+  body[data-page='blocks'] .block-toolbar label select { min-height: 29px; font-size: 10px; }
+  body[data-page='blocks'] .block-toolbar input[type='file'] { min-height: 29px; padding: 2px; font-size: 9px; }
+  body[data-page='blocks'] .block-layout { grid-template-columns: minmax(0, 1fr) minmax(280px, .7fr); gap: 10px; }
+  body[data-page='blocks'] #blocklyDiv { height: var(--workbench-height); }
+  body[data-page='blocks'] #blocklyDiv .blocklyToolboxCategory { min-width: 143px; height: 34px; min-height: 34px; margin-bottom: 4px; }
+  body[data-page='blocks'] #blocklyDiv .blocklyToolboxCategoryLabel { font-size: 10px; }
+  body[data-page='blocks'] .block-side { height: var(--workbench-height); grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  body[data-page='blocks'] .block-side > div { padding: 8px; overflow: hidden; border-radius: 9px; }
+  body[data-page='blocks'] .block-side > .block-code-panel { display: flex; flex-direction: column; grid-column: 1/-1; grid-row: 1; padding: 8px !important; }
+  body[data-page='blocks'] .block-code-panel .row { flex-shrink: 0; gap: 5px; margin: 0 0 7px; }
+  body[data-page='blocks'] .block-code-panel .row button { min-height: 25px; padding: 4px 7px; font-size: 9px; }
+  body[data-page='blocks'] .block-code-panel .row select { min-height: 25px; font-size: 10px; }
+  body[data-page='blocks'] .block-code-panel .result { flex: 1; height: auto; min-height: 0; max-height: none; margin: 0; padding: 10px; font-size: 10px; line-height: 1.6; }
+  body[data-page='blocks'] .block-side > .workspace-panel { display: flex; flex-direction: column; grid-column: 1; grid-row: 2; }
+  body[data-page='blocks'] .workspace-panel .stage { flex: 1; min-height: 80px; height: auto; }
+  body[data-page='blocks'] .workspace-panel .row { flex-shrink: 0; margin-top: 5px; }
+  body[data-page='blocks'] .workspace-panel .row label { gap: 4px; font-size: 8px; }
+  body[data-page='blocks'] .workspace-panel .row select { min-height: 24px; width: 64px; padding: 2px 18px 2px 5px; font-size: 9px; }
+  body[data-page='blocks'] .workspace-panel h3 { display: none; }
+  body[data-page='blocks'] .workspace-panel .block-trace { flex-shrink: 0; height: 25px; min-height: 25px; max-height: 25px; margin-top: 5px; padding: 4px 5px; font-size: 8px; line-height: 1.4; }
+  body[data-page='blocks'] .block-side > .block-notebook { display: flex; flex-direction: column; grid-column: 2; grid-row: 2; }
+  body[data-page='blocks'] .block-notebook > label { flex-shrink: 0; font-size: 8px; line-height: 1.4; }
+  body[data-page='blocks'] .block-notebook textarea { height: 36px; min-height: 36px; margin-top: 4px; padding: 4px 5px; font-size: 9px; line-height: 1.5; }
+  body[data-page='blocks'] .block-notebook h3 { flex-shrink: 0; margin: 5px 0; font-size: 8px; }
+  body[data-page='blocks'] .block-notebook .terminal { flex: 1; height: auto; min-height: 50px; max-height: none; padding: 7px; font-size: 9px; line-height: 1.55; }
+}
+@media screen and (min-width: 1440px) {
+  body[data-page='blocks'] .block-layout { grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1fr); }
+  body[data-page='blocks'] .block-code-panel .result { font-size: 12px; }
+  body[data-page='blocks'] .block-notebook > label, body[data-page='blocks'] .block-notebook h3 { font-size: 10px; }
+  body[data-page='blocks'] .block-notebook .terminal { font-size: 11px; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 @page certificate { size: A4 landscape; margin: 10mm; }
 @media print {
