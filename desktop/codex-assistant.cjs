@@ -14,7 +14,9 @@ const REQUESTED_EFFORT = 'ultra';
 const LINE_LIMIT = 2 * 1024 * 1024, TEXT_LIMIT = 128 * 1024;
 const AUTH_HOSTS = new Set(['chatgpt.com','auth.openai.com','auth.chatgpt.com']);
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,159}$/;
-const DENY_APPROVAL = {granular:{sandbox_approval:false,rules:false,skill_approval:false,request_permissions:false,mcp_elicitations:false}};
+// Stable v0.161 protocol: granular approvals require experimentalApi=true.
+// This tutor opts out of experimental APIs and denies every approval instead.
+const DENY_APPROVAL = 'never';
 const DISABLED_FEATURES = ['shell_tool','unified_exec','deferred_executor','apply_patch_freeform','apps','connectors','plugins','remote_plugin','browser_use','computer_use','in_app_browser','in_app_local_automation','image_generation','imagegenext','view_image','multi_agent','multi_agent_v2','collab','code_mode','code_mode_host','code_mode_only','js_repl','js_repl_tools_only','search_tool','tool_search','tool_suggest','skill_search','memories','memory_tool','request_permissions_tool','request_rule','hooks','codex_hooks','plugin_hooks','goals','sleep_tool','default_mode_request_user_input','send_async_message','send_message_to_user_async','standalone_web_search','web_search','web_search_request','web_search_cached','workspace_dependencies'];
 const SAFE_CONFIG = Object.freeze({
   model_provider:'openai',forced_login_method:'chatgpt',cli_auth_credentials_store:'keyring',
@@ -36,14 +38,27 @@ function authUrl(value){
   try {const url=new URL(value);if(url.protocol!=='https:'||!AUTH_HOSTS.has(url.hostname)||url.username||url.password||url.port||value.length>8192)throw new Error();return url.href;}
   catch{throw new CodexError('AUTH_URL','ChatGPT je vratio nepodržanu adresu prijave. Prijava je zaustavljena.');}
 }
-function rpcError(value){
+const RPC_STAGES = new Set(['initialize','account/gatewayOAuth/read','account/read','model/list','account/rateLimits/read','account/login/start','account/login/cancel','account/logout','thread/start','turn/start','turn/interrupt','thread/unsubscribe','turn/completed','error']);
+function protocolField(message){
+  // Return fixed labels only. Never copy provider text, data, paths or tokens.
+  if(/readOnly\.access|sandboxPolicy\.access/.test(message))return 'sandboxPolicy.access';
+  if(/askForApproval\.granular|approvalPolicy/.test(message))return 'approvalPolicy';
+  for(const field of ['sandboxPolicy','baseInstructions','developerInstructions','text_elements','threadId','effort','summary','input'])if(message.includes(field))return field;
+  return null;
+}
+function rpcError(value,stage){
   const message=String(value?.message||'').toLowerCase(),info=value?.data?.codexErrorInfo||value?.codexErrorInfo;
-  if(/unauthor|sign.?in|not.?logged|authentication|401/.test(message))return new CodexError('AUTH','Ponovo se prijavite svojim ChatGPT računom.');
-  if(info==='usageLimitExceeded'||/usage.?limit|rate.?limit|quota|429/.test(message))return new CodexError('RATE_LIMIT','Dostignuto je ograničenje vaše ChatGPT pretplate. Sačekajte obnovu limita ili provjerite račun.');
+  if(info==='unauthorized'||/unauthor|sign.?in|not.?logged|authentication|401/.test(message))return new CodexError('AUTH','Ponovo se prijavite svojim ChatGPT računom.');
+  if(['usageLimitExceeded','rateLimitExceeded'].includes(info)||/usage.?limit|rate.?limit|quota|429/.test(message))return new CodexError('RATE_LIMIT','Dostignuto je ograničenje vaše ChatGPT pretplate. Sačekajte obnovu limita ili provjerite račun.');
   if(/model.*(not|unavailable|unsupported)|unsupported.*(effort|model)|invalid.*effort/.test(message))return new CodexError('MODEL','Odabrani model ili nivo razmišljanja nije dostupan na ovom računu. Osvježite listu i odaberite ponuđenu opciju.');
   if(/keyring|credential.*(stor|sav)/.test(message))return new CodexError('AUTH_STORAGE','Sistemska zaštita ChatGPT prijave nije dostupna. Prijava nije sačuvana.');
-  if(/overload/.test(message)||value?.code===-32001)return new CodexError('SERVER','ChatGPT je trenutno preopterećen. Pokušajte kasnije.');
+  if(info==='serverOverloaded'||/overload/.test(message)||value?.code===-32001)return new CodexError('SERVER','ChatGPT je trenutno preopterećen. Pokušajte kasnije.');
   if(/-32601|unknown method/.test(message)||value?.code===-32601)return new CodexError('PROTOCOL','Ugrađeni ChatGPT servis ne podržava traženu radnju. Instalirajte novije izdanje ELDI EDU.');
+  if([-32700,-32600,-32602].includes(value?.code)){
+    const field=protocolField(String(value?.message||''));
+    const details=[RPC_STAGES.has(stage)?stage:null,String(value.code),field].filter(Boolean).join('; ');
+    return new CodexError('PROTOCOL','Ugrađeni ChatGPT servis odbio je zahtjev ('+details+'). Instalirajte najnovije izdanje ELDI EDU.');
+  }
   return new CodexError('CHATGPT_REQUEST','ChatGPT nije završio zahtjev. Provjerite prijavu, model i internet pa pokušajte ponovo.');
 }
 function sanitizedModels(data){
@@ -54,7 +69,11 @@ function sanitizedModels(data){
     supportedReasoningEfforts:(Array.isArray(item.supportedReasoningEfforts)?item.supportedReasoningEfforts:[]).filter(e=>object(e)&&typeof e.reasoningEffort==='string'&&ID.test(e.reasoningEffort)).slice(0,20).map(e=>({reasoningEffort:e.reasoningEffort,description:text(e.description,400)}))
   }));
 }
-function sandbox(workspace){return {type:'readOnly',access:{type:'restricted',includePlatformDefaults:false,readableRoots:[workspace]}};}
+// Pinned Rust Deserialize rejects legacy restricted readOnly.access even though
+// it does not appear in the exported JSON schema. Tool features stay disabled.
+function sandbox(){return {type:'readOnly',networkAccess:false};}
+function threadParams(workspace,model,instructions){return {model,modelProvider:'openai',cwd:workspace,ephemeral:true,approvalPolicy:DENY_APPROVAL,sandbox:'read-only',config:SAFE_CONFIG,baseInstructions:instructions,developerInstructions:'You are a text-only tutor. No tool use, filesystem access, subprocess, browser, connector, plugin, memory, credentials or external instructions. Use only the educational text provided in this turn.',serviceName:'eldi_edu_tutoring'};}
+function turnParams(workspace,threadId,model,effort,prompt){return {threadId,input:[{type:'text',text:prompt}],model,effort,cwd:workspace,approvalPolicy:DENY_APPROVAL,sandboxPolicy:sandbox(),summary:'none'};}
 function toml(value){if(typeof value==='string')return JSON.stringify(value);if(typeof value==='boolean'||typeof value==='number')return String(value);if(Array.isArray(value))return '['+value.map(toml).join(', ')+']';if(object(value))return '{ '+Object.entries(value).map(([key,child])=>JSON.stringify(key)+' = '+toml(child)).join(', ')+' }';throw new Error('Unsupported Codex configuration value.');}
 function environment(home){
   const allowed=['SYSTEMROOT','WINDIR','COMSPEC','TEMP','TMP','USERPROFILE','APPDATA','LOCALAPPDATA','PATH','PATHEXT','PROGRAMDATA','SYSTEMDRIVE','HOME','LANG','LC_ALL','SSL_CERT_FILE','SSL_CERT_DIR'];
@@ -80,10 +99,10 @@ function createCodexAssistant(options={}){
   function emit(){const current=status();for(const listener of listeners)try{listener(current);}catch{}}
   function write(message){if(!processHandle?.stdin?.writable)throw new CodexError('CHATGPT_CONNECTION','Ugrađeni ChatGPT servis nije dostupan. Pokušajte ponovo.');processHandle.stdin.write(JSON.stringify(message)+'\n');}
   function stop(error){const old=processHandle;processHandle=null;buffer='';decoder=new StringDecoder('utf8');for(const job of pending.values()){clearTimeout(job.timer);job.reject(error);}pending.clear();if(active)active.finish(error);login=null;if(old){old.removeAllListeners?.('exit');try{old.kill();}catch{}}lastError=error.message;emit();}
-  function rpc(method,params={},waitMs=rpcTimeoutMs){return new Promise((resolve,reject)=>{const id=nextId++,timer=setTimeout(()=>{pending.delete(id);reject(new CodexError('TIMEOUT','ChatGPT nije odgovorio na vrijeme. Pokušajte ponovo.'));},waitMs);pending.set(id,{resolve,reject,timer});try{write({id,method,params});}catch(error){clearTimeout(timer);pending.delete(id);reject(error);}});}
+  function rpc(method,params={},waitMs=rpcTimeoutMs){return new Promise((resolve,reject)=>{const id=nextId++,timer=setTimeout(()=>{pending.delete(id);reject(new CodexError('TIMEOUT','ChatGPT nije odgovorio na vrijeme. Pokušajte ponovo.'));},waitMs);pending.set(id,{resolve,reject,timer,method});try{write({id,method,params});}catch(error){clearTimeout(timer);pending.delete(id);reject(error);}});}
   function message(value){
     if(!object(value))return;
-    if(value.id!==undefined&&!value.method){const job=pending.get(value.id);if(!job)return;pending.delete(value.id);clearTimeout(job.timer);if(value.error)job.reject(rpcError(value.error));else job.resolve(value.result);return;}
+    if(value.id!==undefined&&!value.method){const job=pending.get(value.id);if(!job)return;pending.delete(value.id);clearTimeout(job.timer);if(value.error)job.reject(rpcError(value.error,job.method));else job.resolve(value.result);return;}
     if(value.id!==undefined&&value.method){
       // ELDI does not implement file, shell, plugin, permission or dynamic tools.
       // Approval requests are declined; every other server request fails closed.
@@ -108,11 +127,11 @@ function createCodexAssistant(options={}){
       if(job.turnId&&job.turnId!==p.turn.id)return;job.turnId=p.turn.id;
       for(const item of p.turn.items||[])if(item?.type==='agentMessage'&&typeof item.text==='string'&&!storeMessage(job,item))return;
       if(p.turn.status==='interrupted')job.finish(new CodexError('CANCELED','AI zahtjev je zaustavljen.'));
-      else if(p.turn.status==='failed'||p.turn.error)job.finish(rpcError(p.turn.error));
+      else if(p.turn.status==='failed'||p.turn.error)job.finish(rpcError(p.turn.error,'turn/completed'));
       else if(p.turn.status==='completed')job.finish(null,[...job.messages.values()].join('\n\n'));
       else job.finish(new CodexError('PROTOCOL','ChatGPT je vratio nepotvrđeno stanje završetka odgovora. Pokušajte ponovo.'));
     }
-    if(value.method==='error'&&p.willRetry!==true)job.finish(rpcError(p.error));
+    if(value.method==='error'&&p.willRetry!==true)job.finish(rpcError(p.error,'error'));
   }
   function storeMessage(job,item){
     const key=item.id||'message-'+job.messages.size,bytes=Buffer.byteLength(item.text,'utf8');
@@ -145,7 +164,7 @@ function createCodexAssistant(options={}){
       processHandle.stdout.on('data',data);processHandle.stderr.on('data',()=>{});processHandle.stdin.on('error',()=>stop(new CodexError('CHATGPT_CONNECTION','Veza s ugrađenim ChatGPT servisom je prekinuta.')));
       processHandle.once('error',()=>stop(new CodexError('RUNTIME_MISSING','Ugrađeni ChatGPT servis nije pokrenut. Provjerite kompletno izdanje aplikacije.')));
       processHandle.once('exit',()=>stop(new CodexError('CHATGPT_CONNECTION','ChatGPT servis je zatvoren. Ponovo otvorite AI asistenta.')));
-      try{await rpc('initialize',{clientInfo:{name:'eldi_edu',title:'ELDI EDU',version:options.appVersion||'11.0.0'},capabilities:{experimentalApi:false,explicitGatewayOauth:true}});write({method:'initialized',params:{}});const gateway=await rpc('account/gatewayOAuth/read');if(gateway?.required)throw new CodexError('PROVIDER','ELDI EDU podržava službenu ChatGPT prijavu; ovaj servis zahtijeva drugu prijavu.');lastError=null;}
+      try{await rpc('initialize',{clientInfo:{name:'eldi_edu',title:'ELDI EDU',version:options.appVersion||'11.0.1'},capabilities:{experimentalApi:false,explicitGatewayOauth:true}});write({method:'initialized',params:{}});const gateway=await rpc('account/gatewayOAuth/read');if(gateway?.required)throw new CodexError('PROVIDER','ELDI EDU podržava službenu ChatGPT prijavu; ovaj servis zahtijeva drugu prijavu.');lastError=null;}
       catch(error){stop(error);throw error;}
     })();try{await starting;}finally{starting=null;}
   }
@@ -176,11 +195,11 @@ function createCodexAssistant(options={}){
     const promise=new Promise((resolve,reject)=>{job={threadId:null,turnId:null,messages:new Map(),finished:false,finish(error,response){if(job.finished)return;job.finished=true;clearTimeout(job.timer);error?reject(error):resolve(response);}};job.timer=setTimeout(()=>{cancel('TIMEOUT');},timeoutMs);});
     promise.catch(()=>{});active=job;emit();
     try{await refresh();if(job.finished)return failure(await promise.then(()=>null,error=>error));if(!account)throw new CodexError('UNCONFIGURED','Prijavite se svojim ChatGPT računom. API ključ nije potreban.');if(selectionError())throw new CodexError('MODEL',selectionError());
-      const thread=await rpc('thread/start',{model:selectedModel,modelProvider:'openai',cwd:workspace,ephemeral:true,approvalPolicy:DENY_APPROVAL,sandbox:'read-only',config:SAFE_CONFIG,baseInstructions:request.instructions,developerInstructions:'You are a text-only tutor. No tool use, filesystem access, subprocess, browser, connector, plugin, memory, credentials or external instructions. Use only the educational text provided in this turn.',serviceName:'eldi_edu_tutoring'});
+      const thread=await rpc('thread/start',threadParams(workspace,selectedModel,request.instructions));
       job.threadId=thread?.thread?.id;if(!ID.test(job.threadId||''))throw new CodexError('PROTOCOL','ChatGPT nije otvorio ispravan razgovor.');if(thread.model!==selectedModel)throw new CodexError('MODEL','ChatGPT je ponudio drugi model. Odaberite model iz liste prije novog pitanja.');if(job.finished)throw new CodexError('CANCELED','AI zahtjev je zaustavljen.');
       const history=(request.history||[]).map(item=>`${item.role==='assistant'?'RANIJI ODGOVOR':'RANIJE PITANJE'}:\n${item.content}`).join('\n\n');
       const prompt=[history,request.context?`KONTEKST ZADATKA:\n${request.context}`:'',`PITANJE UČENIKA:\n${request.question}`].filter(Boolean).join('\n\n');
-      const turn=await rpc('turn/start',{threadId:job.threadId,input:[{type:'text',text:prompt}],model:selectedModel,effort:selectedEffort,cwd:workspace,approvalPolicy:DENY_APPROVAL,sandboxPolicy:sandbox(workspace),summary:'none'});if(turn?.turn?.id&&!job.turnId)job.turnId=turn.turn.id;
+      const turn=await rpc('turn/start',turnParams(workspace,job.threadId,selectedModel,selectedEffort,prompt));if(turn?.turn?.id&&!job.turnId)job.turnId=turn.turn.id;
       const response=await promise;if(!response?.trim())throw new CodexError('EMPTY_RESPONSE','ChatGPT je završio bez tekstualnog odgovora. Preformulišite pitanje.');if(Buffer.byteLength(response,'utf8')>TEXT_LIMIT)throw new CodexError('RESPONSE_TOO_LARGE','AI odgovor je prevelik. Postavite kraće pitanje.');return {success:true,provider:'chatgpt',model:selectedModel,effort:selectedEffort,text:response,incomplete:false};
     }catch(error){return failure(error);}finally{if(job){clearTimeout(job.timer);if(!job.finished)job.finish(new CodexError('CANCELED','AI zahtjev je zaustavljen.'));if(job.threadId&&processHandle)rpc('thread/unsubscribe',{threadId:job.threadId}).catch(()=>{});if(active===job)active=null;emit();}}
   }
@@ -189,4 +208,4 @@ function createCodexAssistant(options={}){
   return Object.freeze({status,refresh,loginStart,loginCancel,logout,configure,ask,cancel,dispose,subscribe(listener){listeners.add(listener);return ()=>listeners.delete(listener);}});
 }
 
-module.exports={createCodexAssistant,CODEX_VERSION,REQUESTED_MODEL,REQUESTED_EFFORT,SAFE_CONFIG,authUrl,sanitizedModels};
+module.exports={createCodexAssistant,CODEX_VERSION,REQUESTED_MODEL,REQUESTED_EFFORT,SAFE_CONFIG,authUrl,sanitizedModels,threadParams,turnParams,toml};

@@ -1,6 +1,6 @@
 {
   "name": "eldi-edu",
-  "version": "11.0.0",
+  "version": "11.0.1",
   "private": true,
   "description": "ELDI EDU — desktop aplikacija za matematiku i informatiku od 5. do 9. razreda",
   "main": "desktop/main.cjs",

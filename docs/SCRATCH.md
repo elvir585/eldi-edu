@@ -33,7 +33,7 @@ Prvi korak koristi priloženi `package-lock.json` i integritet svakog npm paketa
 
 Skripta pravi `renderer/vendor/scratch/`, preuzima materijale sa službenog Scratch asset servera uz provjeru MD5, gradi originalne `.sb3` primjere i zapisuje `SOURCE.json` sa SHA-256 manifestom. Za pouzdan rad lokalne biblioteke svakom materijalu pripada lokalna slika/zvuk i mali skript koji vraća njegove bajtove Scratch Storage komponenti bez mrežnog zahtjeva.
 
-Skripta takođe pravi `content/packs/ELDI-EDU-11.0.0-Scratch-izvori.zip`. Taj paket treba objaviti **uz EXE izdanje**. Sadrži puni arhiv službenog monorepozitorija na tačnoj reviziji, ELDI adapter, zaključane zavisnosti, licencu, skriptu za izgradnju i ove upute. Zaseban `ELDI-EDU-11.0.0-Scratch-primjeri.zip` sadrži svih šest `.sb3` primjera i upute.
+Skripta takođe pravi `content/packs/ELDI-EDU-11.0.1-Scratch-izvori.zip`. Taj paket treba objaviti **uz EXE izdanje**. Sadrži puni arhiv službenog monorepozitorija na tačnoj reviziji, ELDI adapter, zaključane zavisnosti, licencu, skriptu za izgradnju i ove upute. Zaseban `ELDI-EDU-11.0.1-Scratch-primjeri.zip` sadrži svih šest `.sb3` primjera i upute.
 
 Službeni izvor:
 

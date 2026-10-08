@@ -3,7 +3,7 @@ ELDI EDU 11.0 — KOMPLETAN WINDOWS PAKET
 Autori: Dino Isanović, Elvir Čajić, Damir Bajrić i Jasmin Suljkanović.
 
 1. Raspakujte cijeli ZIP u svoju mapu.
-2. Pokrenite ELDI-EDU-11.0.0-Portable-x64.exe.
+2. Pokrenite ELDI-EDU-11.0.1-Portable-x64.exe.
    Windows 10/11 x64; instalacija i terminal nisu potrebni.
 3. Izaberite profil učenika ili otvorite Nastavnički centar.
 4. Za ChatGPT otvorite Pitaj AI asistenta → Prijavi se ChatGPT računom.

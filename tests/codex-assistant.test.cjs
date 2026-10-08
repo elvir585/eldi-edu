@@ -3,12 +3,12 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {EventEmitter}=require('node:events');
 const {PassThrough,Writable}=require('node:stream');
-const {createCodexAssistant,SAFE_CONFIG,authUrl}=require('../desktop/codex-assistant.cjs');
+const {createCodexAssistant,SAFE_CONFIG,authUrl,threadParams,turnParams}=require('../desktop/codex-assistant.cjs');
 const {createAssistant}=require('../desktop/ai-assistant.cjs');
 // Simulated stdio protocol, never a real sign-in or inference request.
 function fixture(t,options={}){
   const home=fs.mkdtempSync(path.join(os.tmpdir(),'eldi-chatgpt-test-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
-  let handle,spawnCalls=0,account=options.signedIn===false?null:{type:'chatgpt',email:'teacher@example.test',planType:'pro'};
+  let handle,spawnCalls=0,experimentalApi=false,account=options.signedIn===false?null:{type:'chatgpt',email:'teacher@example.test',planType:'pro'};
   const requests=[],opened=[];
   const models=options.models||[{id:'gpt-6.1-sol',model:'gpt-6.1-sol',displayName:'GPT-6.1 Sol',defaultReasoningEffort:'medium',supportedReasoningEfforts:[{reasoningEffort:'medium',description:'Standard'},{reasoningEffort:'ultra',description:'Deep reasoning'}],isDefault:true}];
   const send=value=>handle.stdout.write(JSON.stringify(value)+'\n');
@@ -19,8 +19,12 @@ function fixture(t,options={}){
       if(request.id===undefined)return;
       const respond=result=>send({id:request.id,result});
       if(!request.method)return;
+      // Pinned Rust custom deserialization and nested ExperimentalApi gating.
+      // JSON schema alone does not describe either of these real rejections.
+      if(['thread/start','turn/start'].includes(request.method)&&request.params.approvalPolicy?.granular&&!experimentalApi){send({id:request.id,error:{code:-32600,message:'askForApproval.granular requires experimentalApi capability'}});return;}
+      if(request.method==='turn/start'&&request.params.sandboxPolicy?.type==='readOnly'&&request.params.sandboxPolicy.access?.type==='restricted'){send({id:request.id,error:{code:-32600,message:'Invalid request: readOnly.access is no longer supported; use permissionProfile for restricted reads'}});return;}
       switch(request.method){
-        case 'initialize':respond({userAgent:'fixture'});break;
+        case 'initialize':experimentalApi=request.params.capabilities?.experimentalApi===true;respond({userAgent:'fixture'});break;
         case 'account/gatewayOAuth/read':respond({required:false,status:null});break;
         case 'account/read':respond({account,requiresOpenaiAuth:true,accessToken:'MUST_NOT_LEAK'});break;
         case 'account/rateLimits/read':respond({rateLimits:{primary:{usedPercent:23,windowDurationMins:300,resetsAt:1800000000},secret:'MUST_NOT_LEAK'}});break;
@@ -70,7 +74,7 @@ test('Auth URLs reject unsafe schemes, credentials, unknown hosts, ports and imp
 });
 test('Tutor creates ephemeral thread, sends only explicit text, declines tool approvals and rejects tool requests',async t=>{
   const f=fixture(t);const response=await f.service.ask(request());assert.equal(response.success,true);assert.match(response.text,/12/);assert.equal(response.model,'gpt-6.1-sol');assert.equal(response.effort,'ultra');
-  const thread=f.requests.find(r=>r.method==='thread/start'),turn=f.requests.find(r=>r.method==='turn/start');assert.equal(thread.params.ephemeral,true);assert.equal(thread.params.config.features.shell_tool,false);assert.equal(thread.params.approvalPolicy.granular.request_permissions,false);assert.equal(turn.params.sandboxPolicy.type,'readOnly');assert.equal(turn.params.sandboxPolicy.access.readableRoots.length,1);assert.equal(turn.params.effort,'ultra');assert.match(turn.params.input[0].text,/Prvi pokušaj/);assert.match(turn.params.input[0].text,/Zbir 7 i 5/);assert.equal(turn.params.input.length,1);
+  const thread=f.requests.find(r=>r.method==='thread/start'),turn=f.requests.find(r=>r.method==='turn/start');assert.equal(thread.params.ephemeral,true);assert.equal(thread.params.config.features.shell_tool,false);assert.equal(thread.params.approvalPolicy,'never');assert.equal(thread.params.config.approval_policy,'never');assert.equal(turn.params.approvalPolicy,'never');assert.deepEqual(turn.params.sandboxPolicy,{type:'readOnly',networkAccess:false});assert.equal(f.requests[0].params.capabilities.experimentalApi,false);assert.equal(turn.params.effort,'ultra');assert.match(turn.params.input[0].text,/Prvi pokušaj/);assert.match(turn.params.input[0].text,/Zbir 7 i 5/);assert.equal(turn.params.input.length,1);
   f.send({id:800,method:'item/commandExecution/requestApproval',params:{command:'cat auth.json'}});f.send({id:801,method:'item/fileChange/requestApproval',params:{}});f.send({id:802,method:'item/tool/call',params:{name:'shell'}});await new Promise(resolve=>setImmediate(resolve));
   assert.equal(f.requests.find(r=>r.id===800).result.decision,'decline');assert.equal(f.requests.find(r=>r.id===801).result.decision,'decline');assert.equal(f.requests.find(r=>r.id===802).error.code,-32601);
 });
@@ -87,6 +91,35 @@ test('Model substitution, malformed stdout, stream overflow and process exit fai
 });
 test('Provider rate limit errors are redacted and no raw backend error/token enters UI',async t=>{
   const f=fixture(t,{intercept(r,{send}){if(r.method==='turn/start'){send({id:r.id,error:{code:429,message:'usage limit MUST_NOT_LEAK access_token abc'}});return true;}}});const result=await f.service.ask(request());assert.equal(result.error.code,'RATE_LIMIT');assert.equal(JSON.stringify(result).includes('MUST_NOT_LEAK'),false);assert.equal(f.service.status().busy,false);
+});
+test('Pinned production request shapes use only stable approval and sandbox fields',()=>{
+  const thread=threadParams('/isolated/tutor','gpt-6.1-sol','Tutor instructions');
+  assert.equal(thread.approvalPolicy,'never');assert.equal(thread.config.approval_policy,'never');assert.equal(thread.sandbox,'read-only');assert.equal(thread.ephemeral,true);
+  const turn=turnParams('/isolated/tutor','thread-123','gpt-6.1-sol','ultra','Educational text');
+  assert.equal(turn.approvalPolicy,'never');assert.deepEqual(turn.sandboxPolicy,{type:'readOnly',networkAccess:false});assert.equal(turn.sandboxPolicy.access,undefined);
+  // text_elements has #[serde(default)] in pinned UserInput::Text and is optional.
+  assert.deepEqual(turn.input,[{type:'text',text:'Educational text'}]);
+});
+test('Invalid params and experimental-gate errors show only allowlisted stage/code/field diagnostics',async t=>{
+  const cases=[
+    {method:'turn/start',code:-32602,message:'readOnly.access is no longer supported; use permissionProfile for restricted reads access_token MUST_NOT_LEAK',field:'sandboxPolicy.access'},
+    {method:'thread/start',code:-32600,message:'askForApproval.granular requires experimentalApi capability Bearer MUST_NOT_LEAK',field:'approvalPolicy'},
+    {method:'turn/start',code:-32602,message:'private account path /secret/MUST_NOT_LEAK',field:null}
+  ];
+  for(const example of cases){
+    const f=fixture(t,{intercept(r,{send}){if(r.method===example.method){send({id:r.id,error:{code:example.code,message:example.message,data:{token:'MUST_NOT_LEAK'}}});return true;}}});
+    const result=await f.service.ask(request());assert.equal(result.success,false);assert.equal(result.error.code,'PROTOCOL');assert.ok(result.error.message.includes(example.method));assert.ok(result.error.message.includes(String(example.code)));if(example.field)assert.ok(result.error.message.includes(example.field));assert.equal(JSON.stringify(result).includes('MUST_NOT_LEAK'),false);assert.equal(f.service.status().busy,false);
+  }
+});
+test('Known account, quota and model failures remain actionable when wrapped in invalid-request RPC codes',async t=>{
+  const cases=[
+    {message:'MUST_NOT_LEAK',data:{codexErrorInfo:'usageLimitExceeded'},expected:'RATE_LIMIT'},
+    {message:'MUST_NOT_LEAK',data:{codexErrorInfo:'rateLimitExceeded'},expected:'RATE_LIMIT'},
+    {message:'MUST_NOT_LEAK',data:{codexErrorInfo:'unauthorized'},expected:'AUTH'},
+    {message:'MUST_NOT_LEAK',data:{codexErrorInfo:'serverOverloaded'},expected:'SERVER'},
+    {message:'model not supported MUST_NOT_LEAK',expected:'MODEL'}
+  ];
+  for(const example of cases){const f=fixture(t,{intercept(r,{send}){if(r.method==='turn/start'){send({id:r.id,error:{code:-32600,message:example.message,data:example.data}});return true;}}});const result=await f.service.ask(request());assert.equal(result.error.code,example.expected);assert.equal(JSON.stringify(result).includes('MUST_NOT_LEAK'),false);}
 });
 test('Completion status and total output bounds are enforced before returning an answer',async t=>{
   const unknown=fixture(t,{holdTurn:true}),pending=unknown.service.ask(request());await new Promise(resolve=>setImmediate(resolve));unknown.send({method:'turn/completed',params:{threadId:'thread-123',turn:{id:'turn-123',status:'mystery',items:[{id:'msg',type:'agentMessage',text:'Unconfirmed'}]}}});assert.equal((await pending).error.code,'PROTOCOL');

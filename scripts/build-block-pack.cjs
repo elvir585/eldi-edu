@@ -9,7 +9,7 @@ function buildBlockPack() {
   if (catalog.projects.length !== 1000) throw new Error('Ugradjena biblioteka mora imati 1000 rijesenih projekata.');
   const bytes = createBlockPack(catalog), roundtrip = readBlockPack(bytes);
   const verified = verifyProjectFiles(bytes,roundtrip.catalog);
-  const filename = 'ELDI-EDU-11.0.0-1000-Blokovskih-projekata.zip';
+  const filename = 'ELDI-EDU-11.0.1-1000-Blokovskih-projekata.zip';
   const folder = path.join(root,'content','packs');fs.mkdirSync(folder,{recursive:true});
   fs.writeFileSync(path.join(folder,filename),bytes);
   fs.writeFileSync(path.join(root,'content','block-projects-data.js'),'window.ELDI_BLOCK_PROJECTS='+JSON.stringify(catalog)+';\n');

@@ -6,6 +6,8 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const {execFileSync} = require('node:child_process');
 const {createCodexAssistant,CODEX_VERSION} = require('../desktop/codex-assistant.cjs');
+const {probeCodexProtocol} = require('../desktop/codex-protocol-probe.cjs');
+const APP_VERSION = require('../package.json').version;
 const RELEASE = 'rust-v'+CODEX_VERSION;
 const URL = `https://github.com/openai/codex/releases/download/${RELEASE}/codex-x86_64-pc-windows-msvc.exe`;
 const SHA256 = 'a0f89acca07a511734cac7fddee26b2106fab68918717bc90df16104a0760a30';
@@ -30,11 +32,15 @@ async function main(){
   // Real binary handshake and account/schema read, using a newly isolated home.
   // No sign-in, token copying, model inference or paid request is performed.
   const probeHome=path.join(destination,'build-probe-home');
-  const assistant=createCodexAssistant({executablePath:target,homePath:probeHome,rpcTimeoutMs:30000,appVersion:'11.0.0'});
+  const assistant=createCodexAssistant({executablePath:target,homePath:probeHome,rpcTimeoutMs:30000,appVersion:APP_VERSION});
   try{const state=await assistant.refresh();if(state.error)throw new Error(state.error);if(state.signedIn)throw new Error('Build probe unexpectedly has a ChatGPT account.');}
   finally{assistant.dispose();await fs.rm(probeHome,{recursive:true,force:true,maxRetries:5,retryDelay:200});}
-  await fs.writeFile(path.join(destination,'manifest.json'),JSON.stringify({source:'https://github.com/openai/codex',release:RELEASE,version:CODEX_VERSION,url:URL,sha256:SHA256,bytes:size,platform:'win32',arch:'x64',protocol:'app-server stdio',credentials:'isolated OS keyring',liveInferenceVerified:false},null,2)+'\n');
-  console.log('Bundled official Codex '+CODEX_VERSION+': SHA-256, version and stdio handshake verified.');
+  // Validate exact production thread/turn parameters against the real pinned
+  // Rust parser, including legacy-field rejection and experimental API gates.
+  // The probe submits turns only to an absent thread, never to a created thread.
+  const protocolValidation=await probeCodexProtocol({binaryPath:target,timeoutMs:30000});
+  await fs.writeFile(path.join(destination,'manifest.json'),JSON.stringify({source:'https://github.com/openai/codex',release:RELEASE,version:CODEX_VERSION,url:URL,sha256:SHA256,bytes:size,platform:'win32',arch:'x64',protocol:'app-server stdio',credentials:'isolated OS keyring',protocolValidation,liveInferenceVerified:false},null,2)+'\n');
+  console.log('Bundled official Codex '+CODEX_VERSION+': SHA-256, version, stdio handshake and native protocol parameter validation verified (no login or inference).');
 }
 if(require.main===module)main().catch(error=>{console.error(error.message);process.exitCode=1;});
 module.exports={main,URL,SHA256,EXPECTED_BYTES};

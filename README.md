@@ -1,4 +1,4 @@
-# ELDI EDU 11.0 — digitalna učionica / Dark Edition
+# ELDI EDU 11.0.1 — digitalna učionica / Dark Edition
 
 **Matematika i informatika od 5. do 9. razreda kao Windows aplikacija.**
 
@@ -10,18 +10,20 @@ Otvorite **[najnovije GitHub izdanje](https://github.com/elvir585/eldi-edu/relea
 
 | Datoteka | Namjena |
 |---|---|
-| `ELDI-EDU-11.0.0-Kompletan-paket.zip` | Portable EXE, svih pet ZIP paketa i upute zajedno |
-| `ELDI-EDU-11.0.0-Portable-x64.exe` | Direktno pokretanje bez instalacije |
-| `ELDI-EDU-11.0.0-Setup-x64.exe` | Instalacija s prečicom |
-| `ELDI-EDU-11.0.0-1000-Blokovskih-projekata.zip` | 1000 riješenih Blockly projekata |
-| `ELDI-EDU-11.0.0-Zbirke-i-rjesenja.zip` | Obje originalne knjige i digitalna rješenja |
-| `ELDI-EDU-11.0.0-Programerski-izazovi.zip` | 55 zadataka, Python/C++ rješenja i početni kodovi |
-| `ELDI-EDU-11.0.0-Scratch-primjeri.zip` | Šest originalnih Scratch `.sb3` projekata |
-| `ELDI-EDU-11.0.0-Scratch-izvori.zip` | Odgovarajući izvori i licenca Scratch komponente |
+| `ELDI-EDU-11.0.1-Kompletan-paket.zip` | Portable EXE, svih pet ZIP paketa i upute zajedno |
+| `ELDI-EDU-11.0.1-Portable-x64.exe` | Direktno pokretanje bez instalacije |
+| `ELDI-EDU-11.0.1-Setup-x64.exe` | Instalacija s prečicom |
+| `ELDI-EDU-11.0.1-1000-Blokovskih-projekata.zip` | 1000 riješenih Blockly projekata |
+| `ELDI-EDU-11.0.1-Zbirke-i-rjesenja.zip` | Obje originalne knjige i digitalna rješenja |
+| `ELDI-EDU-11.0.1-Programerski-izazovi.zip` | 55 zadataka, Python/C++ rješenja i početni kodovi |
+| `ELDI-EDU-11.0.1-Scratch-primjeri.zip` | Šest originalnih Scratch `.sb3` projekata |
+| `ELDI-EDU-11.0.1-Scratch-izvori.zip` | Odgovarajući izvori i licenca Scratch komponente |
 
 Windows 10/11 x64. Ugrađeni su nastavni sadržaj, Scratch/Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za nastavu i školske programe. ChatGPT i API odgovori trebaju internet. Aplikacija nije digitalno potpisana.
 
 ## ChatGPT bez API ključa
+
+**Ispravka 11.0.1:** povezani račun u 11.0.0 mogao je završiti prijavu, ali slanje pitanja je odbijeno zbog eksperimentalne `granular` politike odobravanja i zastarjelog `readOnly.access` parametra. Za ugrađeni Codex 0.161.0 sada se koristi stabilna politika `never` i podržani read-only format. Alati ostaju isključeni. Windows provjera uključuje stvarno parsiranje zahtjeva u službenom servisu bez prijave i bez inferencije. Nije potreban novi API ključ ni druga pretplata.
 
 1. Otvorite **Pitaj AI asistenta**.
 2. Kliknite **Prijavi se ChatGPT računom** i dovršite službenu prijavu u pregledniku. Dostupna je i prijava kodom uređaja.

@@ -1,6 +1,6 @@
 {
   "name": "eldi-scratch-offline-editor",
-  "version": "11.0.0",
+  "version": "11.0.1",
   "private": true,
   "description": "Pinned official Scratch editor distribution for ELDI EDU",
   "license": "AGPL-3.0-only",
