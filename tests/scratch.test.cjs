@@ -57,6 +57,10 @@ async function main(){
     const bootstrap=fs.readFileSync(path.join(root,'scratch-editor','bootstrap.js'),'utf8');assert.match(bootstrap,/vm\.loadProject\(bytes\)/);assert.match(bootstrap,/vm\.saveProjectSb3\(\)/);assert.match(bootstrap,/vm\.stopAll\(\)/);assert.match(bootstrap,/event\.source!==parent/);assert.match(bootstrap,/message\.token!==token/);assert.doesNotMatch(bootstrap,/https?:\/\//);
     const html=fs.readFileSync(path.join(dir,'index.html'),'utf8');assert.match(html,/connect-src 'self' data: blob:/);assert.doesNotMatch(html,/https?:\/\//);
   });
+  await test('native QA evaluirani programi se ispravno kompajliraju',()=>{
+    const source=fs.readFileSync(path.join(root,'desktop','scratch-smoke.cjs'),'utf8'),AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+    const frames=[...source.matchAll(/await inFrame\(`([\s\S]*?)`\);/g)].map(match=>match[1]),stages=[...source.matchAll(/await stage\('[^']*',`([\s\S]*?)`\);/g)].map(match=>match[1]);assert.ok(frames.length>=4&&stages.length>=4);for(const program of [...frames,...stages])assert.doesNotThrow(()=>new AsyncFunction(program));
+  });
   await test('objavljivi paket izvora sadrži tačan upstream i adapter',async()=>{
     const zip=await JSZip.loadAsync(fs.readFileSync(path.join(root,'content','packs','ELDI-EDU-11.0.0-Scratch-izvori.zip')),{checkCRC32:true});assert.ok(zip.file('upstream-scratch-editor-'+manifest.sourceCommit+'.zip'));for(const name of ['index.html','bootstrap.js','offline.css','package.json','package-lock.json','SOURCE.json','LICENSE','TRADEMARK'])assert.ok(zip.file('scratch-editor/'+name));assert.ok(zip.file('README.md'));assert.ok(zip.file('scripts/build-scratch.cjs'));assert.ok(zip.file('app/scratch-projects.js'));assert.equal(await zip.file('scratch-editor/bootstrap.js').async('string'),fs.readFileSync(path.join(root,'scratch-editor','bootstrap.js'),'utf8'));
   });

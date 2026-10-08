@@ -8,7 +8,8 @@ const root=path.resolve(__dirname,'..');
 const {readZip,readPack}=require('../desktop/learning-packs.cjs');
 
 test('Downloadable learning ZIP includes both unchanged books and every runnable source',()=>{
-  const zip=fs.readFileSync(path.join(root,'content/packs/ELDI-EDU-10.5.1-Zbirke-i-rjesenja.zip'));
+  const version=require('../package.json').version;
+  const zip=fs.readFileSync(path.join(root,`content/packs/ELDI-EDU-${version}-Zbirke-i-rjesenja.zip`));
   const {files}=readZip(zip),{pack}=readPack(zip);
   const file=name=>files.get(name);
   assert.equal(pack.books.length,2);

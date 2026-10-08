@@ -36,7 +36,21 @@ async function runScratchSmoke({stage,capture,evaluate,window}){
   await inFrame(`
     const vm=window.ELDI_SCRATCH_VM;vm.greenFlag();await wait(150);const stage=vm.runtime.getTargetForStage(),sprite=vm.runtime.targets.find(target=>!target.isStage);ensure(stage.variables.bodovi.value===0,'Bodovi nisu vraćeni na nulu.');vm.runtime.startHats('event_whenthisspriteclicked',null,sprite);await wait(180);ensure(stage.variables.bodovi.value===1,'Klik na lik nije izvršio Scratch brojač.');vm.stopAll();
   `);
+  await stage('Scratch current VM material for contextual assistant',`
+    const context=await ELDIScratchStudio.getContext();ensure(context.kind==='scratch'&&context.language==='Scratch 3 (.sb3)','Scratch nije izložio svoj materijal za asistenta.');ensure(context.code.length<=50000,'Scratch materijal prelazi dozvoljenu dužinu.');
+    const actual=JSON.parse(context.code),actualStage=actual.targets.find(target=>target.isStage);ensure(actualStage.variables.bodovi[1]===1,'Materijal asistenta nije trenutno stanje pravog VM-a.');ensure(actual.targets.some(target=>Object.values(target.blocks).some(block=>block.opcode==='event_whenthisspriteclicked')),'Materijalu asistenta nedostaju stvarni Scratch blokovi.');
+    await $('ask-ai').onclick();ensure($('ai-dialog')?.open,'Glavno dugme nije otvorilo kontekstualnog asistenta za Scratch.');const headerCode=$('ai-context-preview').querySelector('pre')?.textContent;ensure(headerCode&&JSON.parse(headerCode).targets.find(target=>target.isStage).variables.bodovi[1]===1,'Glavno dugme nije sačekalo aktuelni Scratch materijal.');$('ai-close').click();
+    await $('scratch-ai').onclick();ensure($('ai-dialog')?.open,'Scratch Pomoć nije otvorila asistenta.');const helpCode=$('ai-context-preview').querySelector('pre')?.textContent;ensure(helpCode&&JSON.parse(helpCode).targets.find(target=>target.isStage).variables.bodovi[1]===1,'Scratch Pomoć nije koristila isti aktuelni materijal.');$('ai-close').click();
+  `);
+  await stage('Scratch flush before global search opens selected course',`
+    const lesson=ELDI_MATH_CATALOG[0];globalSearch();fill($('global-search-input'),lesson.title);const result=$('global-search-results').querySelector('[data-result="0"]');ensure(result,'Globalna pretraga nije pronašla traženu cjelinu.');await result.onclick();
+    ensure(page==='courses'&&$('course-check'),'Globalna pretraga nije sačekala Scratch čuvanje prije otvaranja cjeline.');ensure($('view').querySelector('h1').textContent===lesson.title,'Pretraga nije otvorila odabranu cjelinu.');ensure(state().scratchWork.exampleId==='klikovi','Pretraga je izgubila sačuvani Scratch projekat.');
+  `);
+  await stage('Scratch flush before opening Python code',`
+    await go('scratch');const deadline=Date.now()+60000;while((!ELDIScratchStudio.ready()||$('scratch-status').textContent.includes('Otvaranje'))&&Date.now()<deadline)await wait(100);ensure(ELDIScratchStudio.ready(),'Scratch nije ponovo otvoren za provjeru programiranja.');await wait(200);
+    await openCode('python','print(3)','');ensure(page==='code','Otvaranje koda nije sačekalo Scratch čuvanje.');ensure($('lang').value==='python'&&$('editor').value==='print(3)'&&$('input').value==='','Python editor nije prikazao odabrani jezik, program i ulaz.');ensure(state().scratchWork.exampleId==='klikovi','Otvaranje koda je izgubilo sačuvani Scratch projekat.');
+  `);
   await stage('Scratch save and safe close',`await ELDIScratchStudio.flush();await ELDIStorage.flush();await go('home');ensure((window.__eldiErrors||[]).length===0,'Scratch roditeljske greške: '+JSON.stringify(window.__eldiErrors));`);
-  return{officialScratch:true,version:'15.2.0',keyboard:true,sb3Roundtrip:true,costumes:true,sounds:true,profileRestore:true,solvedExamples:6};
+  return{officialScratch:true,version:'15.2.0',keyboard:true,sb3Roundtrip:true,costumes:true,sounds:true,profileRestore:true,solvedExamples:6,contextualAssistant:true,globalSearch:true,openCode:true};
 }
 module.exports={runScratchSmoke};
