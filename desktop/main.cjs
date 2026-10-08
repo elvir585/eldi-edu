@@ -177,7 +177,12 @@ async function runDesktopSmoke(window) {
   const evaluate = code => window.webContents.executeJavaScript(`(async()=>{${helpers}${code}})()`);
   async function stage(name, code) {
     console.log('Desktop smoke stage:', name);
-    return evaluate(code);
+    try { return await evaluate(code); }
+    catch (error) {
+      try { await capture('FAILED-'+name.replace(/[^a-z0-9]+/gi,'-')); }
+      catch (captureError) { console.error('Failure screenshot:',captureError.message); }
+      throw error;
+    }
   }
   async function capture(name) {
     await evaluate('window.scrollTo(0,0);await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));await wait(200);');
@@ -272,7 +277,7 @@ async function runDesktopSmoke(window) {
     ensure(document.querySelectorAll('.blocklyToolboxCategoryLabel').length>=14,'Kategorije blokova nisu vidljive.');
     $('block-challenge-panel').open=false;
     const rect=$('blocklyDiv').getBoundingClientRect();ensure(rect.width>300&&rect.height>=360,'Radni prostor za blokove nema dovoljnu veličinu.');
-    ensure(rect.top<250,'Blokovski radni prostor potisnut je ispod uvodnih panela: '+rect.top);
+    ensure(rect.top>=0&&rect.bottom<=innerHeight+2,'Cijeli blokovski radni prostor mora biti vidljiv u prozoru: '+rect.top+'–'+rect.bottom+'/'+innerHeight);
     for(const id of ['stage','blockcode','blockout']){
       const box=$(id).getBoundingClientRect();ensure(box.top>=rect.top&&box.bottom<=innerHeight+100,'Pozornica, kod i konzola moraju biti u prvom prikazu: '+id+' '+box.bottom+'/'+innerHeight);
       ensure(box.left>=rect.right,'Izvršavanje i kod moraju ostati desno od blokova: '+id);
