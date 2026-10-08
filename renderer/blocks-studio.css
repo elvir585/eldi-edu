@@ -119,6 +119,12 @@ body.dark .bl-art-c strong { background: #182f4d; }
   body[data-page='blocks'] .bst-mode-note { font-size: 9px; }
   body[data-page='blocks'] #block-task-brief { max-height: 18px; margin-bottom: 5px; }
   body[data-page='blocks'] #blockcheck { margin-bottom: 5px; font-size: 10px; }
+  body[data-page='blocks'] .block-toolbar { padding: 6px; gap: 5px; }
+  body[data-page='blocks'] .block-toolbar button { min-height: 27px; padding: 4px 7px; }
+  body[data-page='blocks'] .block-toolbar label select { min-height: 27px; }
+  body[data-page='blocks'] .block-toolbar input[type='file'] { min-height: 27px; }
+  body[data-page='blocks'] .block-notebook textarea { height: 30px; min-height: 30px; }
+  body[data-page='blocks'] .block-notebook .terminal { min-height: 40px; }
   body[data-page='blocks'] .bst-input-example { font-size: 8px; }
   body[data-page='blocks'] .bst-input-example select { width: 88px; min-height: 20px; padding: 1px 15px 1px 3px; font-size: 8px; }
 }

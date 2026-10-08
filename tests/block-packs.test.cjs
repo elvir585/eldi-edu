@@ -14,7 +14,7 @@ function singleProject() {
   return validateCatalog(raw);
 }
 test('Full built-in ZIP contains all 1000 individually usable Blockly solutions and matching SHA256 files', () => {
-  const bytes = fs.readFileSync(path.join(__dirname,'../content/packs/ELDI-EDU-10.5.0-1000-Blokovskih-projekata.zip'));
+  const bytes = fs.readFileSync(path.join(__dirname,'../content/packs/ELDI-EDU-10.5.1-1000-Blokovskih-projekata.zip'));
   const {catalog,report} = B.readBlockPack(bytes), zip = readZip(bytes);
   assert.equal(catalog.projects.length,1000);assert.equal(report.projects,1000);assert.equal(report.files,5003);
   assert.equal(B.verifyProjectFiles(bytes,catalog).checksums,true);

@@ -86,8 +86,8 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
           $executables = Get-ChildItem release -Filter '*.exe'
           if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }
-          Copy-Item 'content/packs/ELDI-EDU-10.5.0-Zbirke-i-rjesenja.zip' 'release/'
-          Copy-Item 'content/packs/ELDI-EDU-10.5.0-1000-Blokovskih-projekata.zip' 'release/'
+          Copy-Item 'content/packs/ELDI-EDU-10.5.1-Zbirke-i-rjesenja.zip' 'release/'
+          Copy-Item 'content/packs/ELDI-EDU-10.5.1-1000-Blokovskih-projekata.zip' 'release/'
           $packs = Get-ChildItem release -Filter '*.zip'
           if ($packs.Count -ne 2) { throw 'Očekivana su dva ZIP paketa: zbirke i 1000 blokovskih projekata.' }
           @($executables) + @($packs) | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content release/SHA256SUMS.txt
@@ -96,7 +96,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-10.5.0-Visual-QA
+          name: ELDI-EDU-10.5.1-Visual-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
@@ -116,15 +116,17 @@ jobs:
       - name: Objavi izdanje na GitHubu
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.5.0' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.5.1' }}
           target_commitish: ${{ github.sha }}
-          name: ELDI EDU 10.5.0 — 1000 blokovskih projekata i AI asistent (Windows, build ${{ github.run_number }})
+          name: ELDI EDU 10.5.1 — 1000 blokovskih projekata i AI asistent (Windows, build ${{ github.run_number }})
           body: |
-            Preuzmite **ELDI-EDU-10.5.0-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.5.0-Setup-x64.exe** za instalaciju.
+            Preuzmite **ELDI-EDU-10.5.1-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.5.1-Setup-x64.exe** za instalaciju.
+
+            Verzija **10.5.1** poboljšava prikaz otvorenih blokovskih rješenja na manjim prozorima: visina radnog prostora prilagođava se dostupnom prostoru uz pozornicu, kod i konzolu. AI dijalog zadržava polje za pitanje i dugme za slanje u vidljivom dijelu prozora i dok su otvorene postavke.
 
             Nova sekcija **Zbirke i rješenja** povezuje obje priložene PDF knjige s pretragom zadataka, postupnim objašnjenjima, bilješkama učenika i Python/C++ editorom. Knjige se čitaju unutar aplikacije.
 
-            **ELDI-EDU-10.5.0-Zbirke-i-rjesenja.zip** sadrži obje PDF knjige (203 i 464 stranice), 162 programerska zadatka s Python/C++ rješenjima i 53 odabrana matematička zadatka s postupkom. Svih 324 programerskih rješenja provjereno je izvršavanjem na dostupnim primjerima iz knjige. Matematička rješenja ne obuhvataju sve zadatke PDF knjige.
+            **ELDI-EDU-10.5.1-Zbirke-i-rjesenja.zip** sadrži obje PDF knjige (203 i 464 stranice), 162 programerska zadatka s Python/C++ rješenjima i 53 odabrana matematička zadatka s postupkom. Svih 324 programerskih rješenja provjereno je izvršavanjem na dostupnim primjerima iz knjige. Matematička rješenja ne obuhvataju sve zadatke PDF knjige.
 
             Možete dodavati svoje sekcije i zadatke, uvoziti ELDI EDU JSON/ZIP pakete i izvoziti svoje zbirke u ZIP. Uvezeni kod izvršava se tek na vaš zahtjev u editoru.
 
@@ -138,7 +140,7 @@ jobs:
 
             Blokovi, kod, konzola i pozornica ostaju zajedno i na manjim Windows ekranima, a izbor izazova otvara se prema potrebi. Diplome zadržavaju svijetli papir za štampu i izvoz u PDF.
 
-            **ELDI-EDU-10.5.0-1000-Blokovskih-projekata.zip** donosi 1000 riješenih projekata u blokovima za različite teme: programski obrasci, matematika, tekst, liste i crtanje. Projekti su grupisani po algoritamskim porodicama i varijantama ulaza. Biblioteka omogućava pretragu, filtre, postupnu pomoć, otvaranje rješenja u studiju, stvarno izvršavanje i uvoz ZIP/JSON paketa. Broj projekata ne znači 1000 zasebnih algoritama.
+            **ELDI-EDU-10.5.1-1000-Blokovskih-projekata.zip** donosi 1000 riješenih projekata u blokovima za različite teme: programski obrasci, matematika, tekst, liste i crtanje. Projekti su grupisani po algoritamskim porodicama i varijantama ulaza. Biblioteka omogućava pretragu, filtre, postupnu pomoć, otvaranje rješenja u studiju, stvarno izvršavanje i uvoz ZIP/JSON paketa. Broj projekata ne znači 1000 zasebnih algoritama.
 
             Dugme **Pitaj AI asistenta** otvara stvarnu integraciju s OpenAI API ili lokalnim Ollama serverom. OpenAI zahtijeva vaš API ključ i internet; API usluga može se naplaćivati. ChatGPT pretplata ne uključuje API kredit. Ollama radi s vlastitim lokalnim serverom i preuzetim modelom. AI odgovor nije službena provjera tačnosti. Primjeri se lokalno provjeravaju u studiju.
 

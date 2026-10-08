@@ -24,6 +24,25 @@ window.ELDIBlockStudio = (() => {
     return {projects:all.projects.length,builtinProjects:(builtins().projects || []).length,customProjects:all.projects.length-(builtins().projects || []).length,families:all.families.length,solved:all.projects.filter(project => results[project.id]?.correct).length,independent:all.projects.filter(project => results[project.id]?.independent).length};
   }
   function save() { current.options.save?.(); }
+  function fitWorkbench() {
+    const root = current?.options.root;
+    const layout = root?.querySelector('.block-layout');
+    if (!layout || current.mode !== 'studio') return;
+    if (window.innerWidth >= 900) {
+      const top = Math.ceil(layout.getBoundingClientRect().top + window.scrollY);
+      const available = Math.floor(window.innerHeight - top - 12);
+      root.style.setProperty('--workbench-height',Math.max(300,Math.min(850,available))+'px');
+    } else root.style.removeProperty('--workbench-height');
+    window.ELDIBlocks.resize?.();
+  }
+  function scheduleWorkbenchFit() {
+    if (!current || current.fitFrame) return;
+    const session = current;
+    session.fitFrame = requestAnimationFrame(() => {
+      session.fitFrame = null;
+      if (current === session) fitWorkbench();
+    });
+  }
   function setStatus(message, isError = false) {
     if (!$('blpack-status')) return;
     $('blpack-status').textContent = message;
@@ -40,7 +59,7 @@ window.ELDIBlockStudio = (() => {
       $(id).classList.toggle('selected',active); $(id).setAttribute('aria-selected',String(active));
     }
     if (library) renderLibrary();
-    else requestAnimationFrame(() => window.ELDIBlocks.resize?.());
+    else scheduleWorkbenchFit();
   }
   function chosenDescription() { return current.chosen?.statement || current.chosen?.description || ''; }
   function projectTests(project) {
@@ -62,6 +81,7 @@ window.ELDIBlockStudio = (() => {
     $('block-test-label').hidden = !chosen;
     selectInputExample();
     $('block-ai').textContent = chosen ? '✦ Pitaj AI asistenta' : '✦ AI pomoć';
+    scheduleWorkbenchFit();
   }
   function selectInputExample() {
     if (!current || !$('block-test-case')) return;
@@ -129,6 +149,7 @@ window.ELDIBlockStudio = (() => {
     store[result.challenge.id] = {...old,correct:!!(old.correct || result.challenge.correct),lastCorrect:!!result.challenge.correct,attempts:(old.attempts || 0)+1,assisted:!!(old.assisted || assisted),grade:(project || legacy).grade,date:new Date().toISOString()};
     if (project) store[result.challenge.id].independent = !!(old.independent || (result.challenge.correct && !assisted));
     if (project && result.challenge.correct && assisted) $('blockcheck').textContent += ' Rad uz pomoć; samostalno rješenje se bilježi zasebno.';
+    scheduleWorkbenchFit();
     save();
   }
   function run(options = {}) {
@@ -257,12 +278,16 @@ window.ELDIBlockStudio = (() => {
     finally { button.disabled = custom && work().packs.length === 0; }
   }
   function mount(options) {
+    current?.layoutObserver?.disconnect();
     const p = typeof options.profile === 'function' ? options.profile() : options.profile;
     current = {options,challenges:window.ELDI_BLOCK_CHALLENGES || [],chosen:null,mode:'studio',libraryPage:0};
     work();
     current.chosen = catalog().projects.find(project => project.id === work().selectedId) || current.challenges.find(challenge => challenge.id === p.blockChallengeId) || null;
     options.root.innerHTML = `<div class="block-studio-header"><div><span class="bst-eyebrow">DARK EDITION / STVARAJ I ISTRAŽUJ</span><h1>Blokovski studio<span class="bst-title-dot">.</span></h1></div><button id="block-ai" class="bst-ai-button">✦ Pitaj AI asistenta</button></div><div class="bst-mode-bar" role="tablist" aria-label="Blokovski studio i biblioteka"><button id="block-tab-studio" class="selected" role="tab" aria-selected="true" aria-controls="block-studio-section">◈ Radni prostor</button><button id="block-tab-library" role="tab" aria-selected="false" aria-controls="block-library-section">▦ Biblioteka <span id="block-library-count">${(builtins().projects || []).length}</span></button><span class="bst-mode-note">Uči kroz stvarne programe.</span></div><section id="block-studio-section" role="tabpanel" aria-labelledby="block-tab-studio"><details class="card block-challenge-panel" id="block-challenge-panel"><summary id="block-panel-summary">Izazovi i pomoć</summary><div class="row bst-legacy-filters"><label>Razred<select id="block-grade"><option value="all">Svi razredi</option>${[5,6,7,8,9].map(grade => `<option value="${grade}">${grade}. razred</option>`).join('')}</select></label><label>Oblast<select id="block-category"><option value="all">Sve oblasti</option>${[...new Set(current.challenges.map(challenge => challenge.category))].map(category => `<option value="${esc(category)}">${esc(category)}</option>`).join('')}</select></label><label>Početni izazovi · ${current.challenges.length}<select id="block-challenge"></select></label></div><div id="block-objective"></div><div class="row"><button id="challenge-starter">Učitaj početne blokove</button><button id="challenge-hint">Pokaži pomoć</button><button id="challenge-solution">Učitaj riješen primjer</button><button id="challenge-free">Slobodan projekat</button></div><div id="challenge-hints" class="block-hints" hidden></div></details><p id="block-task-brief" class="block-task-brief" hidden></p><p id="blockcheck" class="block-check-status" role="status" aria-live="polite"></p><div class="row tools block-toolbar"><button id="brun" class="primary">▶ Pokreni i provjeri</button><button id="bpause">Ⅱ Pauza / nastavi</button><button id="bstep">▸ Korak prikaza</button><button id="bstop">■ Zaustavi</button><label>Brzina<select id="blockspeed"><option value="20">Normalno</option><option value="150">Polako</option><option value="0">Odmah</option></select></label><button id="square">Kvadrat</button><button id="count">Brojanje</button><button id="bclear">Novi projekat</button><button id="bsave">Sačuvaj projekat</button><label>Uvezi JSON <input id="bimport" type="file" accept=".json" style="width:138px"></label></div><div class="block-layout"><div id="blocklyDiv"></div><div class="block-side"><div class="workspace-panel"><div class="stage"><canvas id="stage" width="480" height="360" aria-label="Pozornica likova i crteža"></canvas></div><div class="row"><label>Aktivni lik<select id="sprite"><option value="0">Lik 1</option><option value="1">Lik 2</option><option value="2">Lik 3</option></select></label></div><h3>Vrijednosti i trag</h3><pre id="blocktrace" class="block-trace">Pokreni program da pratiš vrijednosti.</pre></div><div class="block-notebook"><label id="block-test-label" class="bst-input-example" hidden>Primjer<select id="block-test-case"></select></label><label>Ulaz — jedan podatak po redu<textarea id="blockinput" maxlength="20000" aria-label="Ulaz za blokovski program"></textarea></label><h3>Konzola</h3><div id="blockout" class="terminal" role="status">Složi program i klikni Pokreni.</div></div><div class="block-code-panel"><div class="row"><label>Kod uživo<select id="blocklang"><option value="js">JavaScript</option><option value="py" selected>Python</option></select></label><button id="bcode">Izvezi kod</button><button id="bpython">Otvori Python u editoru</button></div><pre id="blockcode" class="result compact"></pre></div></div></div><details class="card block-guide"><summary>Kako raditi u studiju</summary><ol><li>Biblioteka sadrži 1000 riješenih projekata s jasno označenim algoritamskim porodicama i varijantama.</li><li>Otvori zadatak, prouči ulaz i izlaz pa učitaj početne blokove. Povuci naredbe iz kategorija i dovrši algoritam.</li><li>Pokreni svaki ponuđeni primjer. Za vlastiti ulaz program radi bez automatskog ocjenjivanja.</li><li>Riješen projekat otkriva cijeli postupak. Rezultati uz pomoć i samostalna rješenja bilježe se odvojeno.</li><li>Sačuvaj projekat kao JSON, preuzmi ZIP zbirku ili prenesi konzolni Python u ugrađeni editor.</li></ol></details><p class="notice">Scratch .sb3 nije podržan. Tipke se očitavaju pri pokretanju; pauza i korak upravljaju prikazom na pozornici. Grafički Python traži punu instalaciju s Tkinterom. AI pomoć se povezuje kroz zasebne postavke i internet.</p></section><section id="block-library-section" role="tabpanel" aria-labelledby="block-tab-library" hidden><div class="bl-library-hero"><div><span class="bl-hero-label">ZBIRKA KOJA SE MOŽE UČITATI</span><h2>Hiljadu projekata.<br>Od prve petlje do algoritma.</h2><p>Početni blokovi, riješen program, pomoć po koracima i primjeri za provjeru — za 5–9. razred.</p><div class="bl-hero-actions"><button id="blpack-download" class="primary">↓ ZIP · 1000 rješenja</button><label class="bl-import-button" for="bpackimport">↑ Uvezi ZIP / JSON<input id="bpackimport" type="file" accept=".zip,.json"></label><button id="blpack-export-custom">Izvezi vlastite zbirke</button></div></div><div class="bl-hero-art" aria-hidden="true"><div class="bl-art-block bl-art-a">ponovi <strong>10</strong> puta</div><div class="bl-art-block bl-art-b">ako <strong>ideja</strong> onda</div><div class="bl-art-block bl-art-c">napravi <strong>program ↗</strong></div><span>{ }</span></div></div><div class="bl-library-metrics"><div><strong id="bl-metric-projects">1000</strong><span>riješenih projekata</span></div><div><strong id="bl-metric-families">—</strong><span>algoritamskih porodica</span></div><div><strong id="bl-metric-solved">0</strong><span>uspješnih projekata</span></div><div><strong id="bl-metric-independent">0</strong><span>samostalnih rješenja</span></div></div><p id="blpack-status" class="bl-pack-status" role="status" aria-live="polite"></p><div id="bl-imported-packs" class="bl-imported-packs"></div><div class="bl-library-filters"><label class="bl-search-label">Pronađi projekat<input id="bl-search" type="search" placeholder="npr. razlomci, petlje, nizovi…" maxlength="200"></label><label>Razred<select id="bl-grade"><option value="all">Svi razredi</option>${[5,6,7,8,9].map(grade => `<option value="${grade}">${grade}. razred</option>`).join('')}</select></label><label>Tema<select id="bl-category"><option value="all">Sve teme</option></select></label><label>Nivo<select id="bl-difficulty"><option value="all">Svi nivoi</option><option value="1">1 · Uvodni</option><option value="2">2 · Početni</option><option value="3">3 · Srednji</option><option value="4">4 · Zahtjevni</option><option value="5">5 · Napredni</option></select></label></div><div class="bl-results-heading"><strong id="bl-total">1000 projekata</strong><label class="bl-source-filter">Prikaz<select id="bl-source"><option value="all">Sve zbirke</option><option value="builtin">Ugrađenih 1000</option><option value="custom">Vlastite zbirke</option></select></label><span>Varijante unutar porodice dijele osnovni algoritam.</span></div><div id="bl-list" class="bl-project-grid"></div><div class="bl-pagination"><button id="bl-prev">← Prethodni</button><span id="bl-page"></span><button id="bl-next">Sljedeći →</button></div></section>`;
     window.ELDIBlocks.init({initial:p.blocks,onSave:data => {p.blocks = data; save();},onRun});
+    current.layoutObserver = new MutationObserver(scheduleWorkbenchFit);
+    current.layoutObserver.observe($('blockcheck'),{childList:true,characterData:true,subtree:true});
+    $('block-challenge-panel').addEventListener('toggle',scheduleWorkbenchFit);
     $('block-tab-studio').onclick = () => showMode('studio'); $('block-tab-library').onclick = () => showMode('library');
     $('block-ai').onclick = () => askAI();
     $('block-grade').onchange = challengeList; $('block-category').onchange = challengeList;
@@ -295,7 +320,8 @@ window.ELDIBlockStudio = (() => {
     challengeList();
     $('blockinput').value = work().selectedId ? work().input : current.chosen?.input || '';
     describe(); renderLibrary();
-    return {openProject,showLibrary:() => showMode('library'),showStudio:() => showMode('studio'),run,importCatalog,catalog,summary,getContext,markAssisted};
+    return {openProject,showLibrary:() => showMode('library'),showStudio:() => showMode('studio'),run,importCatalog,catalog,summary,getContext,markAssisted,fitWorkbench};
   }
-  return {mount,openProject,showLibrary:() => showMode('library'),showStudio:() => showMode('studio'),run,importCatalog,catalog,summary,getContext,markAssisted};
+  window.addEventListener('resize',scheduleWorkbenchFit);
+  return {mount,openProject,showLibrary:() => showMode('library'),showStudio:() => showMode('studio'),run,importCatalog,catalog,summary,getContext,markAssisted,fitWorkbench};
 })();

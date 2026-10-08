@@ -15,9 +15,9 @@ const entry = path.join(rendererRoot, 'index.html');
 const entryURL = pathToFileURL(entry).href;
 const runtimeRoot = app.isPackaged ? path.join(process.resourcesPath, 'runtimes') : path.resolve(__dirname, '..', 'runtimes');
 const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
-const bundledPackFilename = 'ELDI-EDU-10.5.0-Zbirke-i-rjesenja.zip';
+const bundledPackFilename = 'ELDI-EDU-10.5.1-Zbirke-i-rjesenja.zip';
 const bundledPackPath = path.resolve(__dirname, '..', 'content', 'packs', bundledPackFilename);
-const bundledBlockFilename = 'ELDI-EDU-10.5.0-1000-Blokovskih-projekata.zip';
+const bundledBlockFilename = 'ELDI-EDU-10.5.1-1000-Blokovskih-projekata.zip';
 const bundledBlockPath = path.resolve(__dirname, '..', 'content', 'packs', bundledBlockFilename);
 let mainWindow, assistant;
 
@@ -47,7 +47,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 10.5.0 — Blokovski studio i AI asistent', show: !smokeTest,
+      title: 'ELDI EDU 10.5.1 — Blokovski studio i AI asistent', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
@@ -338,6 +338,14 @@ async function runDesktopSmoke(window) {
     ensure(state().blockLibrary.results[project.id]?.correct&&state().blockLibrary.results[project.id]?.assisted,'Rješenje otvoreno uz pomoć mora imati tačan rezultat označen uz pomoć.');
     ensure(!state().blockLibrary.results[project.id]?.independent,'Otvaranje gotovog rješenja ne smije dodijeliti samostalni rezultat.');
     ensure($('blockcode').textContent.length>5,'Otvoreno blokovsko rješenje nije generisalo stvarni kod.');
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const workspace=$('blocklyDiv').getBoundingClientRect();
+    ensure(workspace.width>300&&workspace.height>=300,'Odabrani projekat nema upotrebljiv radni prostor za blokove.');
+    ensure(workspace.top>=0&&workspace.bottom<=innerHeight+2,'Riješen projekat mora ostati cijeli u vidljivom prozoru: '+workspace.top+'–'+workspace.bottom+'/'+innerHeight);
+    for(const id of ['stage','blockcode','blockout']){
+      const box=$(id).getBoundingClientRect();
+      ensure(box.top>=workspace.top&&box.bottom<=innerHeight+2,'Pozornica, kod i konzola odabranog projekta moraju ostati u vidljivom prozoru: '+id+' '+box.top+'–'+box.bottom+'/'+innerHeight);
+    }
     await ELDIStorage.flush();
   `);
   await capture('11-block-project-solution');
@@ -429,6 +437,11 @@ async function runDesktopSmoke(window) {
     ensure($('ai-provider-badge').textContent.includes('nije podešena'),'AI dijalog ne prikazuje jasno da usluga nije podešena.');
     ensure($('ai-key').type==='password'&&$('ai-key').value==='','AI podešavanja ne smiju prikazati sačuvani ključ.');
     ensure($('ai-context-preview').textContent.includes('Zbir dva broja'),'AI kontekst se mora prikazati prije slanja.');
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    for(const id of ['ai-question','ai-send']){
+      const box=$(id).getBoundingClientRect();
+      ensure(box.width>50&&box.height>20&&box.top>=0&&box.bottom<=innerHeight+2,'Polje za pitanje i slanje AI asistenta moraju biti vidljivi pri otvaranju: '+id+' '+box.top+'–'+box.bottom+'/'+innerHeight);
+    }
   `);
   await capture('13-ai-assistant-setup');
   await stage('AI context choice and closed dialogue', `
