@@ -389,8 +389,14 @@ async function runDesktopSmoke(window) {
     fill($('books-task-input'),'7');fill($('books-task-output'),'14');fill($('books-task-python'),'n = int(input())\\nprint(2 * n)\\n');$('books-form-save').click();
     const saved=state().bookWork.customSections.find(book=>book.id===own.id);
     ensure(saved.tasks.length===1&&saved.tasks[0].solutions.python.status==='user-provided','Korisnički zadatak nije sačuvan ili je netačno označen kao provjeren.');
+    const extraSolutions={
+      c:{code:['#include <stdio.h>','int main(void) { long long n; if (scanf("%lld", &n) != 1) return 1; printf("%lld", 2 * n); return 0; }'].join(String.fromCharCode(10)),status:'user-provided'},
+      java:{code:'import java.util.Scanner; public class Main { public static void main(String[] args) { Scanner in = new Scanner(System.in); long n = in.nextLong(); System.out.println(2 * n); } }',status:'user-provided'}
+    };
+    const validated=ELDIContentPacks.validatePack({format:'ELDI-LEARNING-PACK',version:1,books:[{...saved,tasks:[{...saved.tasks[0],solutions:{...saved.tasks[0].solutions,...extraSolutions}}]}]}).books[0];
+    state().bookWork.customSections[state().bookWork.customSections.findIndex(book=>book.id===saved.id)]=validated;save();
     await ELDIStorage.flush();
-    window.__learningPackSmoke={format:'ELDI-LEARNING-PACK',version:1,books:[saved]};
+    window.__learningPackSmoke={format:'ELDI-LEARNING-PACK',version:1,books:[validated]};
     const parsed=await eldiDesktop.readLearningPack(new TextEncoder().encode(JSON.stringify(window.__learningPackSmoke)));
     ensure(parsed.report.books===1&&parsed.report.tasks===1&&parsed.pack.books[0].tasks[0].title===saved.tasks[0].title,'Nativna provjera JSON paketa nije sačuvala zadatak.');
     let rejected=false;try{await eldiDesktop.readLearningPack(new Uint8Array([80,75,0,0]));}catch{rejected=true;}ensure(rejected,'Neispravan ZIP nije odbijen.');
@@ -407,7 +413,7 @@ async function runDesktopSmoke(window) {
     `);
     const ownBytes = await fs.promises.readFile(ownExportPath);
     const ownRoundtrip = learningPacks.readPack(ownBytes);
-    if (ownRoundtrip.report.books !== 1 || ownRoundtrip.report.tasks !== 1 || ownRoundtrip.report.solutions !== 1) throw new Error('ZIP izvoz nije sačuvao korisnički zadatak i kod.');
+    if (ownRoundtrip.report.books !== 1 || ownRoundtrip.report.tasks !== 1 || ownRoundtrip.report.solutions !== 3) throw new Error('ZIP izvoz nije sačuvao korisnički zadatak i sva tri jezika koda.');
     await stage('native ZIP round trip imported through actual UI', `
       go('books');
       const bytes=new Uint8Array(${JSON.stringify([...ownBytes])}),transfer=new DataTransfer();
@@ -418,8 +424,22 @@ async function runDesktopSmoke(window) {
       ensure(state().bookWork.customSections.length===2,'ZIP nije uvezen kroz stvarnu formu.');
       const imported=state().bookWork.customSections[1],original=state().bookWork.customSections[0];
       ensure(imported.id!==original.id&&imported.tasks[0].id!==original.tasks[0].id,'Uvoz mora dobiti vlastite oznake i zadržati postojeći rad.');
-      ensure(imported.tasks[0].solutions.python.code===original.tasks[0].solutions.python.code,'ZIP povratni uvoz izmijenio je izvorni kod.');
+      for(const language of ['python','c','java'])ensure(imported.tasks[0].solutions[language].code===original.tasks[0].solutions[language].code,'ZIP povratni uvoz izmijenio je izvorni kod: '+language);
       await ELDIStorage.flush();
+    `);
+    await stage('imported C and Java solutions transfer and execute from books UI', `
+      const book=state().bookWork.customSections[1],task=book.tasks[0];
+      for(const language of ['c','java']){
+        go('books');ELDIBooks.open(book.id,task.id);$('books-solution').click();
+        $('books-code-language').value=language;ensure($('books-code-language').value===language,'Uvezeno rješenje nije ponuđeno u jezicima zbirke: '+language);
+        $('books-code-language').dispatchEvent(new Event('change',{bubbles:true}));$('books-open-editor').click();
+        ensure(document.body.dataset.page==='code'&&$('lang').value===language,'Uvezeni '+language+' kod nije prebačen iz zbirke u odgovarajući editor.');
+        ensure($('editor').value===task.solutions[language].code&&$('input').value===task.examples[0].input,'Prenos uvezenog '+language+' rješenja izmijenio je kod ili primjer ulaza.');
+        $('run').click();
+        const deadline=Date.now()+25000;while($('output').textContent==='Pokretanje…'&&Date.now()<deadline)await wait(50);
+        const actual=$('output').textContent.replace(/\\s+/g,' ').trim();
+        ensure(actual.includes('Program završen.')&&actual.includes('14'),'Uvezeni '+language+' program nije izvršen tačno: '+actual);
+      }
     `);
     dialog.showSaveDialog = async () => { dialogsOpened++; return { canceled: true }; };
     await stage('canceled ZIP export and invalid data do not write', `
@@ -529,5 +549,5 @@ async function runDesktopSmoke(window) {
     ensure(document.body.classList.contains('dark')&&localStorage.getItem('eldi-theme-v2')==='dark','Tamna tema nije sačuvana nakon povratka.');
     ensure((window.__eldiErrors||[]).length===0,'Greške prikaza nakon promjene teme: '+JSON.stringify(window.__eldiErrors));
   `);
-  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, books: 2, workedMath: 53, workedProgramming: 162, programmingTheory: 109, bookEditorExecutions: 4, zipRoundtrip: true, pdfReader: { loaded: true, pages: pdfReader.pages }, screenshotDirectory: output };
+  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, books: 2, workedMath: 53, workedProgramming: 162, programmingTheory: 109, bookEditorExecutions: 6, importedBookLanguages: ['c', 'java'], zipRoundtrip: true, pdfReader: { loaded: true, pages: pdfReader.pages }, screenshotDirectory: output };
 }
