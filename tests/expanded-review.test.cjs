@@ -3,8 +3,27 @@
 // operands rather than trusting the generator's own answer or worked steps.
 const test=require('node:test');
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
 const E=require('../app/exercise-engine.js');
 const P=require('../content/math-projects.js');
+
+function blockReview(){
+  const root=path.resolve(__dirname,'..'),read=file=>fs.readFileSync(path.join(root,file),'utf8');
+  const context=vm.createContext({console,setTimeout,clearTimeout,navigator:{}});context.window=context;
+  for(const file of ['blockly_compressed.js','blocks_compressed.js','javascript_compressed.js','python_compressed.js','bs.js'])vm.runInContext(read('renderer/vendor/'+file),context,{filename:file});
+  vm.runInContext(read('renderer/blocks.js'),context,{filename:'blocks.js'});
+  vm.runInContext(read('content/block-challenges.js'),context,{filename:'block-challenges.js'});
+  return {blocks:context.ELDIBlocks,challenges:context.ELDI_BLOCK_CHALLENGES,execute(code,input=''){
+    const messages=[],worker=vm.createContext({console,Date,self:{postMessage:message=>messages.push(message)}});
+    worker.importScripts=file=>vm.runInContext(read('renderer/'+file),worker,{filename:file});
+    vm.runInContext(read('renderer/block-worker.js'),worker,{filename:'block-worker.js'});
+    worker.self.onmessage({data:{code,input,sprite:0}});
+    const last=messages.at(-1);assert.equal(last.type,'done',JSON.stringify(last));
+    return {...last.result,actions:messages.flatMap(message=>message.actions||[])};
+  }};
+}
 
 function gcd(a,b){a=a<0n?-a:a;b=b<0n?-b:b;while(b){const r=a%b;a=b;b=r;}return a;}
 class Q{
@@ -213,4 +232,32 @@ test('Remaining applied projects independently verify percentages, linear models
     assert.equal(E.checkField(field,value.toFixed(3)).correct,true,`${id}/${key}`);
     assert.equal(E.checkField(field,(value+0.002).toFixed(3)).correct,false,`${id}/${key}`);
   }
+});
+
+test('Drawing checks independently verify real segment lengths and directions instead of only endpoints',()=>{
+  const {blocks,challenges,execute}=blockReview();
+  const cases=[
+    ['blocks-5-kvadrat','for(var i=0;i<4;i++){move(80);turn(90);}'],
+    ['blocks-5-pravougaonik','for(var i=0;i<2;i++){move(120);turn(90);move(60);turn(90);}'],
+    ['blocks-5-trougao','for(var i=0;i<3;i++){move(80);turn(120);}'],
+    ['blocks-5-olovka','pen(0);move(80);pen(1);turn(90);move(40);'],
+    ['blocks-5-stepenice','for(var i=0;i<4;i++){move(30);turn(-90);move(20);turn(90);}'],
+    ['blocks-6-sestougao','for(var i=0;i<6;i++){move(50);turn(60);}'],
+    ['blocks-7-spirala','var korak=40;for(var i=0;i<6;i++){move(korak);turn(90);korak+=10;}']
+  ];
+  for(const[id,code]of cases){
+    const challenge=challenges.find(c=>c.id===id);assert.ok(challenge,id);
+    assert.ok(challenge.check.segmentLengths?.length,id+' needs explicit lengths');
+    assert.ok(challenge.check.segmentAngles?.length,id+' needs explicit directions');
+    const actual=execute(code);assert.equal(blocks.matchCheck(challenge.check,actual).correct,true,id);
+    const wrong=structuredClone(actual);wrong.stage.trail.find(line=>line.kind==='line').x2+=5;
+    assert.equal(blocks.matchCheck(challenge.check,wrong).correct,false,id+' altered segment');
+  }
+  const degenerate=execute('for(var i=0;i<4;i++){move(0);turn(90);}');
+  for(const id of ['blocks-5-kvadrat','blocks-5-pravougaonik'])assert.equal(blocks.matchCheck(challenges.find(c=>c.id===id).check,degenerate).correct,false,id);
+  const square=execute(cases[0][1]);
+  assert.equal(blocks.matchCheck(challenges.find(c=>c.id==='blocks-5-pravougaonik').check,square).correct,false,'A square cannot satisfy the requested 120×60 rectangle.');
+  const sum=challenges.find(c=>c.id==='blocks-5-zbir');
+  assert.equal(blocks.matchCheck(sum.check,execute('printOutput(500);',sum.input)).correct,false,'Unconsumed input must not pass.');
+  assert.equal(blocks.matchCheck(sum.check,execute('var a=readNumber("A"),b=readNumber("B");printOutput(a+b);',sum.input)).correct,true);
 });

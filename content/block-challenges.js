@@ -76,7 +76,7 @@ window.ELDI_BLOCK_CHALLENGES = (() => {
     }
     return copy;
   };
-  const output = expected => ({ type: 'output', expected, trim: true });
+  const output = (expected, extraStage) => ({ type: 'output', expected, trim: true, ...(extraStage ? {extraStage} : {}) });
   const stage = (x, y, heading, trailCount, shape = {}) => ({ type: 'stage', x, y, heading, trailCount, tolerance: 0.001, ...shape });
   const challenges = [];
   const addChallenge = (grade, suffix, title, category, description, hints, roots, check, inputText, starterRoots) => {
@@ -241,7 +241,7 @@ window.ELDI_BLOCK_CHALLENGES = (() => {
   addChallenge(7, 'događaj-crtanje', 'Poruka pokreće crtanje', 'Događaji i petlje',
     'Pošalji poruku „nacrtaj“. Kada lik primi poruku, neka nacrta kvadrat stranice 50 i zatim ispiše „Kvadrat je nacrtan.“.',
     ['Petlja za crtanje mora biti u tijelu primaoca poruke.', 'Ispis dodaj poslije petlje, unutar istog primaoca.'],
-    [block('edu_message', {}, { TEXT: text('nacrtaj') }), block('edu_received', { MESSAGE: 'nacrtaj' }, { DO: chain(repeat(num(4), move(num(50)), turn(num(90))), say(text('Kvadrat je nacrtan.'))) })], output('Kvadrat je nacrtan.'));
+    [block('edu_message', {}, { TEXT: text('nacrtaj') }), block('edu_received', { MESSAGE: 'nacrtaj' }, { DO: chain(repeat(num(4), move(num(50)), turn(num(90))), say(text('Kvadrat je nacrtan.'))) })], output('Kvadrat je nacrtan.', stage(0,0,360,4,{width:50,height:50,closed:true,segmentLengths:[50,50,50,50],segmentAngles:[0,-90,180,90]})));
 
   // 8. razred: ugniježđene petlje, pretraživanje, sortiranje i stringovi.
   addChallenge(8, 'suma-kvadrata', 'Zbir kvadrata prvih deset brojeva', 'Izrazi i akumulacija',

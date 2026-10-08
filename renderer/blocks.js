@@ -129,6 +129,8 @@ window.ELDIBlocks = (() => {
       if(check.segmentAngles)passed=passed&&lines.length===check.segmentAngles.length&&lines.every((line,index)=>{const actual=Math.atan2(line.y2-line.y1,line.x2-line.x1)*180/Math.PI,difference=((actual-check.segmentAngles[index])%360+360)%360;return difference<=tolerance||360-difference<=tolerance;});
     }
     if(check.inputCount!==undefined)passed=passed&&result.inputUsed===check.inputCount;
+    if(check.extraStage)passed=passed&&matchCheck(check.extraStage,result).correct;
+    if(Array.isArray(check.all))passed=(check.type?passed:true)&&check.all.every(part=>matchCheck(part,result).correct);
     return {passed,correct:passed,message:passed?'TAČNO — rezultat odgovara zadatku.':'Rezultat još ne odgovara zadatku. Provjeri ulaz, blokove i očekivani izlaz.'};
   }
   function code(language='js',trace=false){

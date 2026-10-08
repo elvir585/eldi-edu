@@ -212,5 +212,10 @@ test('Geometry challenges reject zero-length drawings and input challenges rejec
     assert.equal(blocks.matchCheck(challenge.check,{...hardcoded.last.result,actions:hardcoded.actions}).correct,false);
     const required=execute('var a=readNumber("A"),b=readNumber("B");printOutput(a+b);',[],{input:challenge.input});
     assert.equal(blocks.matchCheck(challenge.check,{...required.last.result,actions:required.actions}).correct,true);
+    const eventDrawing=dataset.find(item=>item.id==='blocks-7-događaj-crtanje');
+    const noDrawing=execute('say("Kvadrat je nacrtan.");');
+    assert.equal(blocks.matchCheck(eventDrawing.check,{...noDrawing.last.result,actions:noDrawing.actions}).correct,false);
+    const wrongSize=execute('for(var i=0;i<4;i++){move(20);turn(90);}say("Kvadrat je nacrtan.");');
+    assert.equal(blocks.matchCheck(eventDrawing.check,{...wrongSize.last.result,actions:wrongSize.actions}).correct,false);
   }finally{blocks.destroy();}
 });
