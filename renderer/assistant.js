@@ -55,10 +55,11 @@ window.ELDIAssistant = (() => {
     $('ai-settings').hidden=!show;
     $('ai-settings-toggle').setAttribute('aria-expanded',String(show));
     $('ai-settings-toggle').textContent=show?'Zatvori postavke':service?.configured?'Postavke':'Podesi asistenta';
-    if(show)$('ai-provider').focus();
+    if(show){const target=$('ai-provider').value==='chatgpt'&&!$('ai-login').hidden?$('ai-login'):$('ai-provider');target.focus({preventScroll:true});$('ai-settings').scrollTop=0;}
   }
   function providerFields() {
     const provider=$('ai-provider').value,local=provider==='ollama',chatgpt=provider==='chatgpt';
+    const chatgptWasHidden=$('ai-chatgpt-fields').hidden;
     $('ai-chatgpt-fields').hidden=!chatgpt;$('ai-api-model-field').hidden=chatgpt;
     $('ai-openai-fields').hidden=provider!=='openai'; $('ai-ollama-info').hidden=!local;
     $('ai-remove-key').hidden=provider!=='openai'||!service?.hasKey;
@@ -67,6 +68,7 @@ window.ELDIAssistant = (() => {
     if($('ai-remember-key').disabled)$('ai-remember-key').checked=false;
     const protection=service?.keyStorage==='encrypted'?'Ključ je sačuvan uz sistemsku zaštitu.':service?.keyStorage==='session'?'Ključ je dostupan samo dok je aplikacija otvorena.':'Ključ se ne dodaje profilu niti ZIP paketima.';
     $('ai-key-storage').textContent=protection+(service&&!service.capabilities?.encryptedStorage?' Sistemska zaštita nije dostupna; ključ ostaje samo za ovu sesiju.':'');
+    if(chatgpt&&chatgptWasHidden)$('ai-settings').scrollTop=0;
     updateDisclosure();
   }
   function applyStatus(status) {
@@ -91,6 +93,7 @@ window.ELDIAssistant = (() => {
     field.disabled=busy||settingBusy||!efforts.length;
   }
   function renderAccount(account) {
+    const signInWasHidden=$('ai-login').hidden;
     const models=account?.models||[],select=$('ai-chatgpt-model');select.replaceChildren();
     const selected=account?.model||'gpt-6.1-sol';
     if(!models.some(item=>item.model===selected))addOption(select,selected,account?.signedIn?selected+' — nije ponuđen':'Modeli se učitavaju nakon prijave');
@@ -98,6 +101,7 @@ window.ELDIAssistant = (() => {
     select.value=selected;select.disabled=busy||settingBusy||!models.length;fillEfforts(selected,account?.effort||'ultra');
     $('ai-account-status').textContent=account?.signedIn?[account.account?.email,account.account?.planType].filter(Boolean).join(' · '):account?.login?.pending?'Završi prijavu u otvorenom pregledniku.':'Koristi svoju ChatGPT pretplatu. API ključ nije potreban.';
     $('ai-login').hidden=!!account?.signedIn||!!account?.login?.pending;$('ai-device-login').hidden=$('ai-login').hidden;
+    if(signInWasHidden&&!$('ai-login').hidden&&$('ai-provider').value==='chatgpt')$('ai-settings').scrollTop=0;
     $('ai-login-cancel').hidden=!account?.login?.pending;$('ai-logout').hidden=!account?.signedIn;
     $('ai-device-code').hidden=!account?.login?.userCode;$('ai-device-code').textContent=account?.login?.userCode?'Kod za prijavu: '+account.login.userCode:'';
     $('ai-model-availability').textContent=account?.error||(!account?.available?'Ugrađeni ChatGPT servis je dostupan u kompletnom Windows izdanju.':'Lista prikazuje stvarno ponuđene modele i nivoe razmišljanja.');
