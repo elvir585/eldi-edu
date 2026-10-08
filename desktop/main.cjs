@@ -139,16 +139,17 @@ else {
       await fs.promises.writeFile(selection.filePath, bytes);
       return { cancelled: false, saved: true };
     });
-    mainWindow.loadFile(entry).catch(error => { console.error(error); if (smokeTest) app.exit(1); });
+    const exitSmoke=code=>{runner.cancel();gradeService.cancel();assistant?.dispose();app.exit(code);};
+    mainWindow.loadFile(entry).catch(error => { console.error(error); if (smokeTest) exitSmoke(1); });
     if (smokeTest) {
-      const timer = setTimeout(() => { console.error('Desktop smoke test timeout.'); app.exit(1); }, 600000);
+      const timer = setTimeout(() => { console.error('Desktop smoke test timeout.'); exitSmoke(1); }, 600000);
       mainWindow.webContents.once('did-finish-load', async () => {
         try {
           const result = await runDesktopSmoke(mainWindow);
           clearTimeout(timer);
           console.log('Desktop smoke test passed:', JSON.stringify(result));
-          app.exit(0);
-        } catch (error) { console.error(error); app.exit(1); }
+          exitSmoke(0);
+        } catch (error) { console.error(error); exitSmoke(1); }
       });
     }
   });
