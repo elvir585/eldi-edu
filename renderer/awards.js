@@ -94,7 +94,7 @@
 
   function badgeProgress(profile = {}) {
     const mathematics = Object.values(profile.mathWork?.results || {}).filter(item => item?.correct === true);
-    const blocks = Object.values(profile.blockResults || {}).filter(item => item?.correct === true);
+    const blocks = [...Object.values(profile.blockResults || {}), ...Object.values(profile.blockLibrary?.results || {})].filter(item => item?.correct === true);
     const programs = Object.entries(profile.results || {}).filter(([id, item]) => id.startsWith('task-') && item?.score === 1);
     const informatics = Object.values(profile.infoWork?.results || {}).filter(item => item?.correct === true);
     const exams = completedExams(profile);

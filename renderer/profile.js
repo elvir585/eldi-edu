@@ -17,7 +17,9 @@
     exams: () => node ? require('../app/exam-engine.js') : root.ELDIExamEngine,
     awards: () => node ? require('./awards.js') : root.ELDIAwards,
     packs: () => node ? require('../app/content-pack.js') : root.ELDIContentPacks,
-    books: () => node ? [require('../content/book-math.json'), require('../content/book-programming.json')] : (Array.isArray(root.ELDI_BOOKS) ? root.ELDI_BOOKS : root.ELDI_BOOKS?.books || [])
+    books: () => node ? [require('../content/book-math.json'), require('../content/book-programming.json')] : (Array.isArray(root.ELDI_BOOKS) ? root.ELDI_BOOKS : root.ELDI_BOOKS?.books || []),
+    blockCatalog: () => node ? require('../content/block-projects.json') : root.ELDI_BLOCK_PROJECTS,
+    blockPacks: () => node ? require('../app/block-project-catalog.js') : root.ELDIBlockCatalog
   };
   const api = factory(source);
   if (node) module.exports = api;
@@ -151,6 +153,35 @@
     for (const [key, item] of entries(value, label)) out[key] = dataClone(item, label, depth + 1, budget);
     return out;
   }
+  function blockLibrary(value) {
+    object(value, 'Biblioteka blokovskih projekata');
+    const api = source.blockPacks();
+    if (!api?.validateCatalog) fail('Nedostaje provjera biblioteke blokovskih projekata.');
+    const bytes = typeof TextEncoder === 'function' ? new TextEncoder().encode(JSON.stringify(value)).length : unescape(encodeURIComponent(JSON.stringify(value))).length;
+    if (bytes > 20 * 1024 * 1024) fail('Biblioteka blokovskih projekata smije imati do 20 MB.');
+    if (value.packs !== undefined && (!Array.isArray(value.packs) || value.packs.length > 30)) fail('Moguće je sačuvati do 30 dodatnih blokovskih paketa.');
+    const packs = (value.packs || []).map(pack => api.validateCatalog(pack));
+    const builtin = source.blockCatalog(), known = new Set((builtin?.projects || []).map(project => project.id));
+    const familyIds = new Set((builtin?.families || []).map(family => family.id));
+    for (const pack of packs) for (const family of pack.families) {
+      if (familyIds.has(family.id)) fail('Porodica blokovskih projekata mora imati jedinstvenu vlastitu oznaku.');
+      familyIds.add(family.id);
+    }
+    const custom = packs.flatMap(pack => pack.projects);
+    if (custom.length > 1500) fail('Moguće je sačuvati do 1500 dodatnih blokovskih projekata.');
+    for (const project of custom) { if (known.has(project.id)) fail('Blokovski projekat mora imati jedinstvenu vlastitu oznaku.'); known.add(project.id); }
+    const results = {};
+    for (const [id, result] of entries(value.results || {}, 'Rezultati biblioteke blokova', known.size)) {
+      if (!known.has(id)) fail('Rezultati biblioteke blokova: nepoznat projekat.');
+      results[id] = simpleResult(result, 'Rezultat blokovskog projekta');
+      if (result.independent !== undefined) results[id].independent = boolean(result.independent, 'Samostalno rješenje blokovskog projekta');
+      if ((results[id].independent || results[id].correct) && results[id].attempts < 1) fail('Riješen blokovski projekat mora imati barem jedan pokušaj.');
+      if (results[id].independent && !results[id].correct) fail('Samostalno riješen blokovski projekat mora biti tačno riješen.');
+    }
+    const selectedId = value.selectedId ?? null;
+    if (selectedId !== null && (!known.has(selectedId) || typeof selectedId !== 'string')) fail('Nepoznat odabrani blokovski projekat.');
+    return {packs, results, selectedId, input: string(value.input ?? '', 20000, 'Ulaz blokovskog projekta'), selectedAssisted: value.selectedAssisted === undefined ? false : boolean(value.selectedAssisted, 'Pomoć u aktivnom blokovskom projektu')};
+  }
   function exam(value, completed) {
     object(value, 'Provjera');
     if (value.completed !== completed) fail(completed ? 'Historija sadrži nezavršenu provjeru.' : 'Otvorena provjera je već završena.');
@@ -205,6 +236,7 @@
     }
     if (value.blockChallengeId !== undefined && value.blockChallengeId !== null) { if (!refs.blockIds.has(value.blockChallengeId)) fail('Nepoznat blokovski izazov.'); out.blockChallengeId = value.blockChallengeId; }
     out.blockResults = resultMap(value.blockResults, 'Blokovski rezultati', id => refs.blockIds.has(id));
+    if (value.blockLibrary !== undefined) out.blockLibrary = blockLibrary(value.blockLibrary);
     if (value.mathWork !== undefined) out.mathWork = mathWork(value.mathWork, refs);
     if (value.bookWork !== undefined) out.bookWork = bookWork(value.bookWork, refs);
     out.courseAnswers = answerMap(value.courseAnswers, 'Odgovori nastavnih cjelina', id => refs.courses.has(id));

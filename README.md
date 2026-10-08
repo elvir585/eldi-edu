@@ -1,4 +1,4 @@
-# ELDI EDU 10.4.0 — Zbirke i rješenja / Dark Edition
+# ELDI EDU 10.5.0 — 1000 blokovskih projekata + AI / Dark Edition
 
 **Matematika i informatika od 5. do 9. razreda kao Windows aplikacija koja radi bez interneta.**
 
@@ -8,11 +8,12 @@ Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanovi�
 
 Otvorite **[najnovije izdanje](https://github.com/elvir585/eldi-edu/releases/latest)**:
 
-- `ELDI-EDU-10.4.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
-- `ELDI-EDU-10.4.0-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
-- `ELDI-EDU-10.4.0-Zbirke-i-rjesenja.zip` — obje knjige, zadaci, postupci i izvorne datoteke rješenja.
+- `ELDI-EDU-10.5.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
+- `ELDI-EDU-10.5.0-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
+- `ELDI-EDU-10.5.0-1000-Blokovskih-projekata.zip` — 1000 riješenih Blockly projekata za učitavanje i pokretanje.
+- `ELDI-EDU-10.5.0-Zbirke-i-rjesenja.zip` — obje knjige, zadaci, postupci i izvorne datoteke rješenja.
 
-Windows 10/11 x64. Paket uključuje nastavni sadržaj, Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za učenje i izvršavanje programa. [GitHub Actions](https://github.com/elvir585/eldi-edu/actions/workflows/build-windows.yml) provjerava i gradi obje EXE datoteke prije objave.
+Windows 10/11 x64. Paket uključuje nastavni sadržaj, Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za nastavni sadržaj i izvršavanje programa. OpenAI asistent koristi internet; lokalni Ollama zahtijeva instaliran servis i preuzet model. [GitHub Actions](https://github.com/elvir585/eldi-edu/actions/workflows/build-windows.yml) provjerava i gradi obje EXE datoteke prije objave.
 
 ## Zbirke i rješenja
 
@@ -82,8 +83,23 @@ Tekstualni programi rade s pravima Windows korisnika; koristite svoje i provjere
 
 Node.js 24 ili noviji: `npm ci`, `npm run check`, `npm start`. Sadržaj za renderer generiše se iz verzionisanih JSON kataloga prilikom provjere i prije pokretanja.
 
-Provjere uključuju strukturu svih 1000 cjelina, primjere, matematičko generisanje, tačnost odgovora, sve brojeve zadataka od 1 do 50, granice ocjena, rezultate, diplome i uvoz profila. Blockly testovi stvarno generišu i interpretiraju rješenja izazova. Windows Actions ugrađuje sva četiri jezička alata, provjerava njihov stvarni rad, pokreće desktop i zapakovanu aplikaciju, provjerava korisničke tokove i PDF diplome te objavljuje Portable i Setup EXE, ZIP zbirki i `SHA256SUMS.txt`. Za novu sekciju provjerava pomoć, matematički odgovor, oba jezika zbirke, stvarno učitavanje PDF-a, vlastite sekcije, ZIP uvoz/izvoz i čuvanje bilješki. Svih 324 programska primjera dodatno se izvršavaju na Windowsu s ugrađenim alatima.
+Provjere uključuju strukturu svih 1000 cjelina, primjere, matematičko generisanje, tačnost odgovora, sve brojeve zadataka od 1 do 50, granice ocjena, rezultate, diplome i uvoz profila. Blockly testovi stvarno generišu i interpretiraju rješenja izazova. Windows Actions ugrađuje sva četiri jezička alata, provjerava njihov stvarni rad, pokreće desktop i zapakovanu aplikaciju, provjerava korisničke tokove i PDF diplome te objavljuje Portable i Setup EXE, ZIP zbirki, ZIP blokovskih projekata i `SHA256SUMS.txt`. Za novu sekciju provjerava pomoć, matematički odgovor, oba jezika zbirke, stvarno učitavanje PDF-a, vlastite sekcije, ZIP uvoz/izvoz i čuvanje bilješki. Svih 324 programska primjera dodatno se izvršavaju na Windowsu s ugrađenim alatima.
 
-## Naredno proširenje
+## 1000 riješenih blokovskih projekata
 
-Planirani su ZIP paket sa 1000 riješenih blokovskih projekata za različite teme, jednostavan uvoz i dugme „Pitaj AI asistenta“ za objašnjenja i rješenja. To proširenje **nije uključeno u izdanje 10.4.0**. Trenutno je dostupno 60 blokovskih izazova s riješenim primjerima i uvoz pojedinačnih JSON projekata. Pravi AI asistent zahtijeva zasebnu integraciju; postojeća pomoć u zadacima nije AI usluga.
+Biblioteka u Blokovskom studiju sadrži **1000 izvršivih Blockly projekata**: **100 vrsta algoritamskih zadataka × 10 prilagođenih scenarija**, odnosno **200 projekata po razredu od 5. do 9.** Broj predstavlja projekte, a ne 1000 različitih algoritama. Uz njih ostaje 60 ranijih izazova.
+
+Teme uključuju računanje, geometriju, tekst, uslove, djeljivost, razlomke, brojne sisteme, nizove, liste, pretragu, sortiranje, statistiku, funkcije i pozornicu. Pretražite biblioteku, odaberite razred, područje i težinu, otvorite tekst zadatka, pomoć i postupak, pa učitajte početne blokove ili riješen projekat. Rješenje radi kroz isti Blockly interpreter kao vlastiti rad. Svaki projekat ima tri provjerljiva ulaza; izmijenjeni ulaz izvan tih testova može se pokrenuti, ali ne daje automatsku ocjenu prema tuđem očekivanom izlazu.
+
+**ZIP paket** ima manifest `pack.json`, 1000 datoteka `solution.json` u pojedinačnim mapama, tekst zadatka i postupak u `README.md`, `input.txt`, `expected.txt`, `tests.json` i kontrolne SHA-256 vrijednosti. Uvoz: **Blokovski studio → Biblioteka → Uvezi JSON / ZIP**. Jedan `solution.json` može se učitati i kroz uvoz projekta u studiju. Cijeli paket i vlastite zbirke mogu se sačuvati iz aplikacije. Uvoz ne pokreće kod; dodatne zbirke ostaju u odabranom profilu.
+
+## Pravi AI asistent
+
+Dugme **„Pitaj AI asistenta“** otvara pomoć za odabrani zadatak ili trenutni kod. Odaberite savjet, objašnjenje, rješenje ili analizu greške. Prije slanja možete vidjeti prikazani materijal i isključiti ga. Dobiveni kod može se kopirati, sačuvati i otvoriti u editoru; ne izvršava se automatski.
+
+- **OpenAI API:** otvorite postavke asistenta, unesite vlastiti API ključ i odaberite model koji vaš račun podržava. API potrošnja obračunava se na vašem API računu; ChatGPT pretplata je zasebna. Ključ ostaje u memoriji ili se, po izboru korisnika, čuva uz Windows sistemsku zaštitu. Ne dodaje se GitHubu, profilu niti ZIP paketima.
+- **Ollama:** instalirajte i pokrenite Ollama na računaru, preuzmite model i upišite njegovo ime u postavke. Aplikacija koristi lokalni servis `127.0.0.1:11434`; bez servisa i modela nema odgovora.
+
+Aplikacija ne isporučuje zajednički API ključ niti glumi AI odgovor kada usluga nije podešena. AI izlaz služi učenju: provjerite račun i testirajte predloženi kod. Provjere integracije koriste kontrolisane odgovore API protokola, greške, prekid zahtjeva i čuvanje ključa; nisu izvršile živi plaćeni AI poziv. Nakon stvarnog odgovora korištenje pomoći označava se uz odgovarajući zadatak.
+
+U izdanju 10.5 dodatno su dorađeni tamni izgled, ljubičasti i tirkizni akcenti, navigacija, kartice biblioteke i pregled asistenta. Blockly raspored ostaje prilagođen manjim Windows ekranima, a diplome čitljive za štampanje.

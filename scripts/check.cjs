@@ -12,6 +12,8 @@ function filesIn(directory) {
 async function main() {
   const {maths,info}=require('./generate-content.cjs')();
   console.log('Zbirke i ZIP:',JSON.stringify(require('./build-learning-pack.cjs')()));
+  console.log('Blokovski katalog:',JSON.stringify(require('./build-block-projects.cjs').build()));
+  console.log('Blokovski ZIP:',JSON.stringify(require('./build-block-pack.cjs')()));
   const practice=require('../app/practice-engine.js');
   assert.equal(practice.topics.length,500);
   assert.equal(maths.length+info.length,1000);

@@ -11,7 +11,7 @@ function buildLearningPack() {
   const pack = validatePack({format:'ELDI-LEARNING-PACK',version:1,books});
   const entries = [{name:'pack.json',bytes:Buffer.from(JSON.stringify(pack,null,2)+'\n')}];
   const readme = [
-    '# ELDI EDU 10.4.0 - Zbirke i rjesenja', '',
+    '# ELDI EDU 10.5.0 - Zbirke i rjesenja', '',
     'Autori aplikacije: Dino Isanovic, Elvir Cajic, Damir Bajric i Jasmin Suljkanovic.',
     'Programerska knjiga: Elvir Cajic. Matematicka zbirka: Pedagoski zavod Tuzlanskog kantona, januar 2016.', '',
     'Sadrzaj: obje originalne PDF knjige, 162 programerska zadatka sa Python 3 i C++17 kodom, objavljeni primjeri ulaza/izlaza, odabrani razradjeni matematicki zadaci i manifest za uvoz.', '',
@@ -24,7 +24,7 @@ function buildLearningPack() {
     'Za terminalske naredbe Python 3 i g++ moraju biti dostupni na PATH. ELDI EDU Windows editor sadrzi vlastite jezicke alate.', '',
     'Provjere programskih rjesenja obuhvataju sintaksu/kompilaciju i objavljene primjere; nisu sluzbeni skriveni testovi.',
     'Matematicki PDF ostaje neizmijenjen. Digitalne ispravke i odabrana pomoc jasno su oznacene u katalogu.',
-    'Ovaj paket nije 1000 rijesenih blokovskih projekata i ne sadrzi AI uslugu.', ''
+    '1000 Blockly projekata dostupno je u zasebnom ZIP paketu Blokovskih-projekata. AI asistent podesava se u aplikaciji s vlastitim API kljucem ili lokalnim Ollama modelom.', ''
   ].join('\n');
   entries.push({name:'README.md',bytes:Buffer.from(readme)});
   const addFile = relative => entries.push({name:relative,bytes:fs.readFileSync(path.join(root,relative))});
@@ -43,7 +43,7 @@ function buildLearningPack() {
   const read=readPack(bytes);
   if(read.pack.books.length!==2)throw Error('ZIP mora sadržavati obje zbirke.');
   const folder=path.join(root,'content','packs');fs.mkdirSync(folder,{recursive:true});
-  const filename='ELDI-EDU-10.4.0-Zbirke-i-rjesenja.zip';
+  const filename='ELDI-EDU-10.5.0-Zbirke-i-rjesenja.zip';
   fs.writeFileSync(path.join(folder,filename),bytes);
   fs.writeFileSync(path.join(root,'content','books-data.js'),'window.ELDI_BOOKS='+JSON.stringify(pack.books)+';\n');
   return {filename,books:pack.books.length,tasks:pack.books.reduce((n,b)=>n+b.tasks.length,0),files:entries.length,bytes:bytes.length};

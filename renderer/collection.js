@@ -5,6 +5,11 @@ window.ELDICollection = (() => {
   let context, selection = {grade:5, topic:'', difficulty:'medium', search:''};
   const engine = () => window.EduPractice;
   const projects = () => window.ELDI_MATH_PROJECTS || [];
+  function studentInput(task,answers,notes) {
+    const text=task.fields.map(field=>`${field.label}: ${answers[field.key]||'(nije uneseno)'}`).join('\n')+'\n\nMoj postupak / bilješke:\n'+(notes||'(nije uneseno)');
+    const bytes=new TextEncoder().encode(text);
+    return bytes.length<=8192?text:new TextDecoder().decode(bytes.subarray(0,8192)).replace(/\uFFFD$/,'');
+  }
   function work() {
     const p = context.profile();
     p.mathWork ||= {answers:{}, notes:{}, results:{}, session:[], sheets:[]};
@@ -72,6 +77,12 @@ window.ELDICollection = (() => {
     document.querySelectorAll('[data-hint]').forEach(b=>b.onclick=()=>{const i=+b.dataset.hint;document.getElementById('task-hint-'+i).hidden=false;});
     document.querySelectorAll('[data-solution]').forEach(b=>b.onclick=()=>{const i=+b.dataset.solution,task=tasks[i],w=work();w.results[task.id]||={};if(!w.results[task.id].correct)w.results[task.id].assisted=true;context.save();document.getElementById('task-solution-'+i).hidden=false;});
     document.querySelectorAll('[data-check-task]').forEach(b=>b.onclick=()=>checkTasks(tasks,[+b.dataset.checkTask]));
+    document.querySelectorAll('[data-task-ai]').forEach(button=>button.onclick=()=>{
+      const task=tasks[+button.dataset.taskAi],origin=context,current=work();
+      origin.askAI({title:task.title,subject:'math',grade:task.grade,statement:[task.prompt,...task.fields.map(field=>field.label)].join('\n'),input:studentInput(task,current.answers[task.id]||{},current.notes[task.id])},()=>{
+        current.results[task.id]||={};current.results[task.id].assisted=true;origin.save();
+      });
+    });
     const checkAll=()=>checkTasks(tasks,tasks.map((_,i)=>i));document.getElementById('sheet-check').onclick=checkAll;document.getElementById('sheet-check-bottom').onclick=checkAll;
     document.getElementById('sheet-print').onclick=()=>printTasks(false);
     document.getElementById('sheet-print-solutions').onclick=()=>printTasks(true);
@@ -79,7 +90,7 @@ window.ELDICollection = (() => {
   }
   function taskHTML(task,i,ref) {
     const w=work(),answers=w.answers[task.id]||{},saved=w.results[task.id];
-    return `<article class="card solving-task" data-task-id="${escape(task.id)}"><div class="row between"><span class="tag">Zadatak ${i+1} · ${escape(task.title)}${ref.seed?' · varijanta '+ref.seed:''}</span><span class="task-saved-status">${saved?.correct?'✓ Riješeno'+(saved.assisted?' uz postupak':' samostalno'):''}</span></div><p class="task-prompt">${escape(task.prompt)}</p><div class="task-fields">${task.fields.map((f,j)=>`<label>${escape(f.label)}<input id="task-${i}-field-${j}" data-answer="${escape(f.key)}" data-task="${escape(task.id)}" value="${escape(answers[f.key]||'')}" autocomplete="off" spellcheck="false" placeholder="${f.type==='list'?'Brojevi odvojeni razmakom ili ;':'Upiši rješenje'}"><span id="task-${i}-feedback-${j}" class="field-feedback" role="status"></span><span class="print-answer-line">________________________________</span></label>`).join('')}</div><label class="working-label">Moj postupak / bilješke<textarea data-notes="${escape(task.id)}" class="working-notes" placeholder="Zapiši račun, međurezultate ili obrazloženje…">${escape(w.notes[task.id]||'')}</textarea></label><div class="row task-actions"><button data-check-task="${i}" class="primary">Provjeri zadatak</button><button data-hint="${i}">Pomoć</button><button data-solution="${i}">Prikaži postupak</button></div><p id="task-hint-${i}" class="notice task-hint" hidden>${escape(task.hint)}</p><div id="task-solution-${i}" class="worked-solution" hidden><h3>Postupak rješavanja</h3><ol>${task.steps.map(s=>`<li>${escape(s)}</li>`).join('')}</ol><p>${task.fields.map(f=>`${escape(f.label)}: <strong>${escape(f.answer)}</strong>`).join(' · ')}</p></div><p id="task-${i}-status" class="task-status" role="status"></p></article>`;
+    return `<article class="card solving-task" data-task-id="${escape(task.id)}"><div class="row between"><span class="tag">Zadatak ${i+1} · ${escape(task.title)}${ref.seed?' · varijanta '+ref.seed:''}</span><span class="task-saved-status">${saved?.correct?'✓ Riješeno'+(saved.assisted?' uz postupak':' samostalno'):''}</span></div><p class="task-prompt">${escape(task.prompt)}</p><div class="task-fields">${task.fields.map((f,j)=>`<label>${escape(f.label)}<input id="task-${i}-field-${j}" data-answer="${escape(f.key)}" data-task="${escape(task.id)}" value="${escape(answers[f.key]||'')}" autocomplete="off" spellcheck="false" placeholder="${f.type==='list'?'Brojevi odvojeni razmakom ili ;':'Upiši rješenje'}"><span id="task-${i}-feedback-${j}" class="field-feedback" role="status"></span><span class="print-answer-line">________________________________</span></label>`).join('')}</div><label class="working-label">Moj postupak / bilješke<textarea data-notes="${escape(task.id)}" class="working-notes" placeholder="Zapiši račun, međurezultate ili obrazloženje…">${escape(w.notes[task.id]||'')}</textarea></label><div class="row task-actions"><button data-check-task="${i}" class="primary">Provjeri zadatak</button><button data-hint="${i}">Pomoć</button><button data-solution="${i}">Prikaži postupak</button>${typeof context.askAI==='function'?`<button data-task-ai="${i}">✦ Pitaj AI asistenta</button>`:''}</div><p id="task-hint-${i}" class="notice task-hint" hidden>${escape(task.hint)}</p><div id="task-solution-${i}" class="worked-solution" hidden><h3>Postupak rješavanja</h3><ol>${task.steps.map(s=>`<li>${escape(s)}</li>`).join('')}</ol><p>${task.fields.map(f=>`${escape(f.label)}: <strong>${escape(f.answer)}</strong>`).join(' · ')}</p></div><p id="task-${i}-status" class="task-status" role="status"></p></article>`;
   }
   function checkTasks(tasks,indices) {
     const w=work();let correct=0;

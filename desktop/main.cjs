@@ -1,10 +1,12 @@
 'use strict';
-const { app, BrowserWindow, ipcMain, Menu, session, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, session, dialog, safeStorage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL, fileURLToPath } = require('node:url');
 const { createRunner } = require('./runner.cjs');
 const learningPacks = require('./learning-packs.cjs');
+const blockPacks = require('./block-packs.cjs');
+const {createAssistant} = require('./ai-assistant.cjs');
 
 const smokeTest = process.argv.includes('--smoke-test');
 const rendererRoot = path.resolve(__dirname, '..', 'renderer');
@@ -13,9 +15,11 @@ const entry = path.join(rendererRoot, 'index.html');
 const entryURL = pathToFileURL(entry).href;
 const runtimeRoot = app.isPackaged ? path.join(process.resourcesPath, 'runtimes') : path.resolve(__dirname, '..', 'runtimes');
 const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
-const bundledPackFilename = 'ELDI-EDU-10.4.0-Zbirke-i-rjesenja.zip';
+const bundledPackFilename = 'ELDI-EDU-10.5.0-Zbirke-i-rjesenja.zip';
 const bundledPackPath = path.resolve(__dirname, '..', 'content', 'packs', bundledPackFilename);
-let mainWindow;
+const bundledBlockFilename = 'ELDI-EDU-10.5.0-1000-Blokovskih-projekata.zip';
+const bundledBlockPath = path.resolve(__dirname, '..', 'content', 'packs', bundledBlockFilename);
+let mainWindow, assistant;
 
 app.setName('ELDI EDU');
 // Development and packaged checks must each start with an empty test profile.
@@ -27,6 +31,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); } });
   app.whenReady().then(() => {
+    assistant = createAssistant({settingsPath:path.join(app.getPath('userData'),'ai-settings.json'),safeStorage});
     session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
     session.defaultSession.setPermissionCheckHandler(() => false);
     session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
@@ -42,7 +47,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 10.4.0 — Zbirke i rješenja', show: !smokeTest,
+      title: 'ELDI EDU 10.5.0 — Blokovski studio i AI asistent', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
@@ -59,18 +64,32 @@ else {
       if (closeAllowed) return;
       event.preventDefault();
       if (closing) return;
-      closing = true; runner.cancel();
+      closing = true; runner.cancel(); assistant.cancel();
       const window = mainWindow;
       window.webContents.executeJavaScript('window.ELDIStorage?.flush()').catch(error => console.error('Čuvanje pri zatvaranju:', error.message)).finally(() => {
         closeAllowed = true;
         if (!window.isDestroyed()) window.close();
       });
     });
-    mainWindow.on('closed', () => { runner.cancel(); mainWindow = null; });
+    mainWindow.on('closed', () => { runner.cancel(); assistant.cancel(); mainWindow = null; });
     function trusted(event) { if (!mainWindow || event.sender !== mainWindow.webContents || !event.senderFrame || event.senderFrame.url.split('#')[0] !== entryURL) throw new Error('Zahtjev nije iz glavnog prozora.'); }
     ipcMain.handle('eldi:run-code', async (event, request) => { trusted(event); try { return await runner.runCode(request); } catch (error) { return { ok: false, phase: 'validation', stdout: '', stderr: error.message, exitCode: null, timedOut: false, truncated: false, cancelled: false }; } });
     ipcMain.handle('eldi:cancel-run', event => { trusted(event); return runner.cancel(); });
     ipcMain.handle('eldi:runtime-status', event => { trusted(event); return runner.runtimeStatus(); });
+    ipcMain.handle('eldi:ai-status', event => { trusted(event); return assistant.status(); });
+    ipcMain.handle('eldi:ai-save-settings', (event, settings) => { trusted(event); return assistant.saveSettings(settings); });
+    ipcMain.handle('eldi:ai-ask', (event, request) => { trusted(event); return assistant.ask(request); });
+    ipcMain.handle('eldi:ai-cancel', event => { trusted(event); return assistant.cancel(); });
+    ipcMain.handle('eldi:read-block-pack', (event, bytes) => { trusted(event); return blockPacks.readBlockPack(bytes); });
+    ipcMain.handle('eldi:save-block-pack', async (event, catalog) => {
+      trusted(event);
+      const bytes = catalog == null ? await fs.promises.readFile(bundledBlockPath) : blockPacks.createBlockPack(catalog);
+      const filename = catalog == null ? bundledBlockFilename : 'ELDI-EDU-Moji-blokovski-projekti.zip';
+      const selection = await dialog.showSaveDialog(mainWindow, {title:'Sačuvaj blokovske projekte i rješenja',defaultPath:path.join(app.getPath('documents'),filename),filters:[{name:'ELDI EDU ZIP paket',extensions:['zip']}],properties:['showOverwriteConfirmation']});
+      if (selection.canceled || !selection.filePath) return {success:false,canceled:true};
+      await fs.promises.writeFile(selection.filePath,bytes);
+      return {success:true,path:selection.filePath};
+    });
     ipcMain.handle('eldi:read-learning-pack', (event, bytes) => {
       trusted(event);
       return learningPacks.readPack(bytes);
@@ -116,7 +135,7 @@ else {
   });
 }
 app.on('window-all-closed', () => app.quit());
-app.on('before-quit', () => runner.cancel());
+app.on('before-quit', () => { runner.cancel(); assistant?.cancel(); });
 
 async function runDesktopSmoke(window) {
   window.showInactive();
@@ -124,6 +143,10 @@ async function runDesktopSmoke(window) {
   await fs.promises.mkdir(output, { recursive: true });
   const bundledBytes = await fs.promises.readFile(bundledPackPath);
   const bundled = learningPacks.readPack(bundledBytes);
+  const bundledBlockBytes = await fs.promises.readFile(bundledBlockPath);
+  const bundledBlocks = blockPacks.readBlockPack(bundledBlockBytes);
+  if (bundledBlocks.catalog.projects.length !== 1000) throw new Error('Ugrađeni blokovski paket mora sadržavati 1000 riješenih projekata.');
+  blockPacks.verifyProjectFiles(bundledBlockBytes, bundledBlocks.catalog);
   const programBook = bundled.pack.books.find(book => book.subject === 'informatics');
   const mathBook = bundled.pack.books.find(book => book.subject === 'math');
   if (bundled.pack.books.length !== 2 || programBook?.tasks.length !== 162 || mathBook?.tasks.length !== 53) throw new Error('Ugrađeni ZIP mora sadržati obje zbirke, 162 programerska i 53 matematička zadatka.');
@@ -171,8 +194,9 @@ async function runDesktopSmoke(window) {
     const bodyStyle=getComputedStyle(document.body);
     ensure(brightness(bodyStyle.backgroundColor)<60,'Pozadina aplikacije nije tamna: '+bodyStyle.backgroundColor);
     ensure(contrast(bodyStyle.color,bodyStyle.backgroundColor)>=7,'Tekst aplikacije nema dovoljan kontrast u tamnoj temi.');
-    for(const key of ['eldiDesktop','EduMath','EduPractice','ELDICollection','ELDIBlocks','ELDICourses','ELDIExams','ELDIAwards','ELDIExamEngine','ELDIStorage','ELDIBooks','ELDIContentPacks'])ensure(window[key],'Nije učitano: '+key);
+    for(const key of ['eldiDesktop','EduMath','EduPractice','ELDICollection','ELDIBlocks','ELDICourses','ELDIExams','ELDIAwards','ELDIExamEngine','ELDIStorage','ELDIBooks','ELDIContentPacks','ELDIBlockStudio','ELDIBlockCatalog','ELDIAssistant'])ensure(window[key],'Nije učitano: '+key);
     ensure(ELDI_MATH_CATALOG.length===500&&ELDI_INFORMATICS_CATALOG.length===500,'Katalog mora imati 500 matematičkih i 500 informatičkih cjelina.');
+    ensure(ELDI_BLOCK_PROJECTS.projects.length===1000,'Biblioteka mora imati 1000 riješenih blokovskih projekata.');
     ensure(EduPractice.topics.length===500,'Praktična matematika mora imati 500 vještina.');
     const visited=[];
     for(const name of ['home','courses','books','lessons','collection','math','blocks','code','exams','awards','progress','about']){
@@ -292,6 +316,121 @@ async function runDesktopSmoke(window) {
       $('shape').value=shape;$('calculate').click();ensure(/(Površina|Zapremina)/.test($('result').textContent),'Geometrijski alat: '+shape+' '+$('result').textContent);
     }
   `);
+  await stage('1000 project library, filters and assisted solution execution', `
+    go('blocks');ELDIBlockStudio.showLibrary();
+    ensure($('block-library-section')&&!$('block-library-section').hidden,'Biblioteka blokovskih projekata nije otvorena.');
+    ensure($('bl-total').textContent.replace(/[^0-9]/g,'').includes('1000'),'Biblioteka ne prikazuje 1000 ugrađenih projekata.');
+    const project=ELDI_BLOCK_PROJECTS.projects.find(item=>item.tests.some(test=>test.check?.type==='output'));
+    ensure(project,'Nedostaje blokovski projekat s provjerljivim izlazom.');
+    fill($('bl-search'),project.title);
+    ensure($('bl-list').textContent.includes(project.title),'Pretraga biblioteke nije vratila odabrani projekat.');
+    fill($('bl-search'),'');
+    window.__blockProjectSmoke=project.id;
+    ELDIBlockStudio.openProject(project.id,{solution:true});
+    const example=project.tests[0];fill($('blockinput'),example.input);
+    await ELDIBlockStudio.run();
+    ensure(state().blockLibrary.selectedId===project.id,'Odabrani projekat nije sačuvan u profilu.');
+    ensure(state().blockLibrary.results[project.id]?.correct&&state().blockLibrary.results[project.id]?.assisted,'Rješenje otvoreno uz pomoć mora imati tačan rezultat označen uz pomoć.');
+    ensure(!state().blockLibrary.results[project.id]?.independent,'Otvaranje gotovog rješenja ne smije dodijeliti samostalni rezultat.');
+    ensure($('blockcode').textContent.length>5,'Otvoreno blokovsko rješenje nije generisalo stvarni kod.');
+    await ELDIStorage.flush();
+  `);
+  await capture('11-block-project-solution');
+  await stage('independent workspace and alternate test input keep grading accurate', `
+    const project=ELDI_BLOCK_PROJECTS.projects.find(item=>item.id===window.__blockProjectSmoke);
+    ELDIBlockStudio.openProject(project.id,{solution:false});ELDIBlocks.load(project.solution);
+    fill($('blockinput'),project.tests[1].input);await ELDIBlockStudio.run({checkOnly:true,speed:0});
+    ensure(state().blockLibrary.results[project.id]?.independent&&state().blockLibrary.results[project.id]?.lastCorrect,'Tačan samostalni rad na drugom primjeru nije provjeren ili sačuvan.');
+    const attempts=state().blockLibrary.results[project.id].attempts;
+    fill($('blockinput'),'_ELDI_UNMATCHED_INPUT_');const result=await ELDIBlockStudio.run({checkOnly:true,speed:0});
+    ensure(result.ungradedInput&&!result.challenge,'Vlastiti nepoznati ulaz ne smije koristiti zastarjelu provjeru.');
+    ensure(state().blockLibrary.results[project.id].attempts===attempts,'Nepodržani ulaz ne smije dodijeliti novi ocijenjeni pokušaj.');
+    fill($('blockinput'),project.tests[0].input);await ELDIStorage.flush();
+  `);
+  await stage('library overview and unconfigured actual AI integration', `
+    ELDIBlockStudio.showLibrary();
+    const status=await eldiDesktop.aiStatus();
+    ensure(!status.configured&&!status.hasKey,'Test počinje bez tuđeg API ključa ili konfiguracije.');
+    ensure(!Object.hasOwn(status,'apiKey'),'AI status ne smije otkriti API ključ.');
+    const response=await eldiDesktop.aiAsk({question:'Objasni zbir dva broja.',context:{title:'Provjera bez konfiguracije'},language:'bs',mode:'hint'});
+    ensure(response.success===false&&typeof response.error?.message==='string','Nepodešen AI asistent ne smije izmišljati odgovor.');
+    const cancel=await eldiDesktop.aiCancel();ensure(cancel.success&&cancel.canceled===false,'Otkazivanje bez zahtjeva nije bezopasno.');
+  `);
+  await capture('12-block-project-library');
+  const blockExampleId = await evaluate('return window.__blockProjectSmoke;');
+  const blockExample = bundledBlocks.catalog.projects.find(project=>project.id===blockExampleId);
+  if (!blockExample) throw new Error('Za ZIP provjeru nije pronađen odabrani projekat.');
+  const ownBlockCatalog = {...bundledBlocks.catalog,title:'Moji blokovski projekti — provjera',projects:[blockExample],families:bundledBlocks.catalog.families.filter(family=>family.id===blockExample.familyId)};
+  const ownBlockBytes = blockPacks.createBlockPack(ownBlockCatalog);
+  await stage('block ZIP import through actual library form without execution', `
+    go('blocks');ELDIBlockStudio.showLibrary();
+    const before=JSON.stringify(ELDIBlocks.serialize()),transfer=new DataTransfer();
+    transfer.items.add(new File([new Uint8Array(${JSON.stringify([...ownBlockBytes])})],'Moji-blokovi.zip',{type:'application/zip'}));
+    $('bpackimport').files=transfer.files;$('bpackimport').dispatchEvent(new Event('change',{bubbles:true}));
+    const deadline=Date.now()+5000;while(state().blockLibrary.packs.length<1&&Date.now()<deadline)await wait(50);
+    ensure(state().blockLibrary.packs.length===1,'Blokovski ZIP nije uvezen kroz stvarnu formu biblioteke.');
+    const imported=state().blockLibrary.packs[0];
+    ensure(imported.projects.length===1&&imported.projects[0].id!==${JSON.stringify(blockExample.id)},'Uvezeni projekat mora dobiti vlastitu oznaku.');
+    ensure(JSON.stringify(imported.projects[0].solution)===${JSON.stringify(JSON.stringify(blockExample.solution))},'Uvoz blokovskog ZIP-a izmijenio je riješeni program.');
+    ensure(JSON.stringify(ELDIBlocks.serialize())===before,'Uvoz ZIP-a ne smije učitati ili izvršiti program bez korisnikove naredbe.');
+    window.__blockPackSmoke=imported;
+    await ELDIStorage.flush();
+  `);
+  const originalBlockSaveDialog = dialog.showSaveDialog;
+  const ownBlockExportPath = path.join(output,'smoke-custom-blocks.zip');
+  const defaultBlockExportPath = path.join(output,'smoke-1000-blocks.zip');
+  let blockDialogsOpened = 0;
+  try {
+    dialog.showSaveDialog = async () => {blockDialogsOpened++;return {canceled:false,filePath:ownBlockExportPath};};
+    await stage('native export of imported block solutions', `
+      const result=await eldiDesktop.saveBlockPack(window.__blockPackSmoke);ensure(result.success,'Vlastiti blokovski ZIP nije izvezen.');
+    `);
+    const ownExport = await fs.promises.readFile(ownBlockExportPath), roundtrip = blockPacks.readBlockPack(ownExport);
+    if (roundtrip.catalog.projects.length!==1 || JSON.stringify(roundtrip.catalog.projects[0].solution)!==JSON.stringify(blockExample.solution)) throw new Error('Vlastiti blokovski ZIP nije sačuvao rješenje.');
+    blockPacks.verifyProjectFiles(ownExport,roundtrip.catalog);
+    dialog.showSaveDialog = async () => {blockDialogsOpened++;return {canceled:true};};
+    await stage('block ZIP cancel and validation before save dialogue', `
+      const canceled=await eldiDesktop.saveBlockPack(window.__blockPackSmoke);ensure(canceled.canceled&&!canceled.success,'Otkazan blokovski izvoz ne smije prikazati uspjeh.');
+      let rejected=false;try{await eldiDesktop.saveBlockPack({format:'invalid',version:1,projects:[],families:[]});}catch{rejected=true;}ensure(rejected,'Neispravni blokovski paket nije odbijen prije dijaloga.');
+    `);
+    if (blockDialogsOpened!==2) throw new Error('Neispravni blokovski paket otvorio je dijalog.');
+    dialog.showSaveDialog = async () => {blockDialogsOpened++;return {canceled:false,filePath:defaultBlockExportPath};};
+    await stage('native complete 1000 project ZIP export', `
+      const result=await eldiDesktop.saveBlockPack();ensure(result.success,'Ugrađeni ZIP sa 1000 blokovskih projekata nije izvezen.');
+      delete window.__blockPackSmoke;
+    `);
+    if (!(await fs.promises.readFile(defaultBlockExportPath)).equals(bundledBlockBytes)) throw new Error('Izvoz ugrađenog blokovskog ZIP-a izmijenio je programe ili kontrolne otiske.');
+    await fs.promises.unlink(defaultBlockExportPath);
+  } finally {dialog.showSaveDialog=originalBlockSaveDialog;}
+  await stage('encrypted API key storage and renderer secrecy without a live call', `
+    const status=await eldiDesktop.aiStatus();
+    ensure(status.capabilities.encryptedStorage,'Windows mora ponuditi šifriranu pohranu AI ključa.');
+    const result=await eldiDesktop.aiSaveSettings({provider:'openai',model:status.model,apiKey:'sk-ELDI-SMOKE-DUMMY-NOT-A-REAL-API-KEY',rememberKey:true});
+    ensure(result.success&&result.status.configured&&result.status.hasKey&&result.status.keyStorage==='encrypted','Testni ključ nije spremljen u Windows šifriranu pohranu.');
+    ensure(!JSON.stringify(result).includes('sk-ELDI-SMOKE'),'Odgovor podešavanja otkrio je API ključ.');
+    ensure(!JSON.stringify(store).includes('sk-ELDI-SMOKE'),'API ključ ne smije postati dio profila.');
+  `);
+  const aiSettingsPath = path.join(app.getPath('userData'),'ai-settings.json');
+  const aiSettings = await fs.promises.readFile(aiSettingsPath,'utf8');
+  if (aiSettings.includes('sk-ELDI-SMOKE-DUMMY-NOT-A-REAL-API-KEY')) throw new Error('AI ključ je spremljen kao nešifrirani tekst.');
+  const reopenedAssistant = createAssistant({settingsPath:aiSettingsPath,safeStorage});
+  if (!reopenedAssistant.status().hasKey || !reopenedAssistant.status().configured || reopenedAssistant.status().keyStorage!=='encrypted') throw new Error('Windows šifrirana pohrana nije preživjela ponovno učitavanje AI konfiguracije.');
+  await stage('delete API key and show honest unconfigured AI help', `
+    const result=await eldiDesktop.aiSaveSettings({provider:'openai',model:(await eldiDesktop.aiStatus()).model,clearKey:true});
+    ensure(result.success&&!result.status.hasKey&&!result.status.configured,'Brisanje AI ključa nije uklonilo konfiguraciju.');
+    ELDIAssistant.open({title:'Zbir dva broja u blokovima',statement:'Učitaj dva broja i ispiši njihov zbir.',code:'printOutput(a + b);',language:'javascript'});
+    const deadline=Date.now()+3000;while(!$('ai-provider-badge')?.textContent.includes('nije podešena')&&Date.now()<deadline)await wait(50);
+    ensure($('ai-dialog')?.open&&$('ai-send').disabled,'Nepodešen AI asistent mora otvoriti podešavanje bez mogućnosti slanja.');
+    ensure($('ai-provider-badge').textContent.includes('nije podešena'),'AI dijalog ne prikazuje jasno da usluga nije podešena.');
+    ensure($('ai-key').type==='password'&&$('ai-key').value==='','AI podešavanja ne smiju prikazati sačuvani ključ.');
+    ensure($('ai-context-preview').textContent.includes('Zbir dva broja'),'AI kontekst se mora prikazati prije slanja.');
+  `);
+  await capture('13-ai-assistant-setup');
+  await stage('AI context choice and closed dialogue', `
+    $('ai-context-include').checked=false;$('ai-context-include').dispatchEvent(new Event('change',{bubbles:true}));
+    ensure($('ai-context-disclosure').textContent.includes('Pitanje'),'Isključen kontekst nije objašnjen prije slanja.');
+    $('ai-close').click();ensure(!$('ai-dialog').open,'AI dijalog nije zatvoren.');
+  `);
   await stage('native Python C C++ Java execution', `
     go('code');
     const status=await eldiDesktop.runtimeStatus();
@@ -371,6 +510,13 @@ async function runDesktopSmoke(window) {
   if (!pdfReader) throw new Error('Unutrašnji PDF čitač nije potvrdio učitavanje cijele knjige od 203 stranice: ' + JSON.stringify(pdfFrames));
   console.log('Desktop PDF reader passed:', JSON.stringify({ loaded: pdfReader.loaded, pages: pdfReader.pages }));
   await capture('09-book-reader');
+  await stage('PDF back navigation restores original task and working hints', `
+    const book=ELDI_BOOKS.find(book=>book.subject==='math'),task=book.tasks[0];
+    $('books-reader-back').click();
+    ensure($('books-hint')&&$('books-notes')&&$('view').innerText.includes(task.title),'Povratak iz PDF-a nije otvorio izvorni zadatak.');
+    $('books-hint').click();
+    ensure($('books-hints').textContent.includes(task.help[0]),'Pomoć zadatka nakon povratka iz PDF-a nije dostupna.');
+  `);
   await stage('book mathematical answer and learner-owned section', `
     const book=ELDI_BOOKS.find(book=>book.subject==='math'),task=book.tasks.find(task=>task.answer?.type==='number');
     ensure(task,'Matematička zbirka nema zadatak s provjerljivim brojevnim odgovorom.');
@@ -542,6 +688,10 @@ async function runDesktopSmoke(window) {
     const book=ELDI_BOOKS.find(book=>book.subject==='informatics');
     ensure(state().bookWork.notes[book.tasks[0].id]==='Moj postupak iz knjige: ulaz, račun, provjera rezultata.','Bilješke iz knjige nisu preživjele ponovno otvaranje.');
     ensure(book.theory.some(lesson=>state().bookWork.notes[lesson.id]==='Moje bilješke teorijske lekcije: ideja, primjer, samostalna primjena.'),'Bilješke teorijske lekcije nisu preživjele ponovno otvaranje.');
+    ensure(state().blockLibrary?.packs?.length===1,'Uvezeni blokovski ZIP nije preživio ponovno otvaranje.');
+    ensure(state().blockLibrary.results[state().blockLibrary.selectedId]?.independent,'Samostalno riješen blokovski projekat nije preživio ponovno otvaranje.');
+    const blockProfile=ELDIProfiles.exportProfile(state()).profile.blockLibrary;
+    ensure(blockProfile.packs.length===1&&blockProfile.input===state().blockLibrary.input,'Validirana rezervna kopija nije sačuvala blokovske projekte i aktivni ulaz.');
   `);
   if (await evaluate(snapshot) !== beforeReload) throw new Error('Ponovno učitavanje promijenilo je sačuvane profile, odgovore, bilješke, programe ili priznanja.');
   await stage('dark edition final theme restored', `
@@ -549,5 +699,5 @@ async function runDesktopSmoke(window) {
     ensure(document.body.classList.contains('dark')&&localStorage.getItem('eldi-theme-v2')==='dark','Tamna tema nije sačuvana nakon povratka.');
     ensure((window.__eldiErrors||[]).length===0,'Greške prikaza nakon promjene teme: '+JSON.stringify(window.__eldiErrors));
   `);
-  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, books: 2, workedMath: 53, workedProgramming: 162, programmingTheory: 109, bookEditorExecutions: 6, importedBookLanguages: ['c', 'java'], zipRoundtrip: true, pdfReader: { loaded: true, pages: pdfReader.pages }, screenshotDirectory: output };
+  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, books: 2, workedMath: 53, workedProgramming: 162, programmingTheory: 109, bookEditorExecutions: 6, importedBookLanguages: ['c', 'java'], zipRoundtrip: true, blockProjects: 1000, blockZipRoundtrip: true, blockIndependentAndAssisted: true, ungradedInputGuard: true, aiUnconfiguredHonest: true, aiEncryptedStorage: true, aiLiveRequest: false, pdfReader: { loaded: true, pages: pdfReader.pages }, screenshotDirectory: output };
 }

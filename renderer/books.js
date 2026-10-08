@@ -9,7 +9,7 @@ window.ELDIBooks = (() => {
   const builtinSources = {'pztk-matematika':'content/books/matematika-pztk.pdf','programiranje-elvir-cajic':'content/books/programiranje.pdf'};
   const languages = {python:'Python',cpp:'C++',c:'C',java:'Java'};
   let context, selected = {book:'all', grade:'all', chapter:'all', search:'', offset:0, kind:'tasks'};
-  let active = null, hinted = 0, language = 'python', assisted = false;
+  let active = null, activeTheory = null, activeReader = null, hinted = 0, language = 'python', assisted = false;
   const $ = id => context.root.querySelector('#' + id);
   const on = (id, event, fn) => { const element = $(id); if (element) element[event] = fn; };
   const currentProfile = () => typeof context.profile === 'function' ? context.profile() : context.profile;
@@ -70,9 +70,9 @@ window.ELDIBooks = (() => {
     return scope().flatMap(book=>(book.theory||[]).map(item=>({book,item}))).filter(({book,item})=>
       (selected.grade==='all'||selected.grade==='advanced')&&(selected.chapter==='all'||book.id+':'+theoryChapterId(book,item)===selected.chapter)&&lower(item.title+' '+item.body).includes(term));
   }
-  function mount(options) { context = options; active = null; catalog(); }
+  function mount(options) { context = options; active = null; activeTheory = null; activeReader = null; catalog(); }
   function catalog() {
-    active = null;
+    active = null; activeTheory = null; activeReader = null;
     const all = books(), originals = all.filter(book => builtinSources[book.id]), count = all.reduce((n,book) => n + tasks(book).length, 0);
     if(selected.book!=='all'&&!all.some(book=>book.id===selected.book)){selected.book='all';selected.chapter='all';selected.offset=0;}
     const done = Object.keys(work().completed).length;
@@ -126,9 +126,10 @@ window.ELDIBooks = (() => {
     on('books-prev','onclick',()=>{selected.offset-=size;list();});on('books-next','onclick',()=>{selected.offset+=size;list();});pdfHits();
   }
   function openTheory(bookId,theoryId){
-    const book=books().find(book=>book.id===bookId),item=book?.theory?.find(item=>item.id===theoryId);if(!book||!item)return;active=null;
+    const book=books().find(book=>book.id===bookId),item=book?.theory?.find(item=>item.id===theoryId);if(!book||!item)return;active=null;activeTheory={book,item};activeReader=null;
     const examples=Array.isArray(item.codeExamples)?item.codeExamples:[],w=work();
     context.root.innerHTML=`<div class="books-shell books-detail"><div class="books-backbar"><button id="books-back">← Teorijske lekcije</button><span class="tag">${esc(book.title)} · str. ${Number(item.sourcePage)||1}</span>${builtinSources[book.id]?'<button id="books-open-pdf">Otvori lekciju u PDF-u ↗</button>':''}</div><div class="books-heading"><div><div class="eyebrow">TEORIJA PROGRAMIRANJA / ${esc(chapters(book).find(chapter=>chapter.id===theoryChapterId(book,item))?.title||'LEKCIJA')}</div><h1>${esc(item.title)}</h1></div></div><article class="card books-theory-body"><div class="books-section-label"><span>01</span><h2>Objašnjenje i primjena</h2></div>${text(item.body).split(/\n\s*\n/).map(paragraph=>`<p>${esc(paragraph)}</p>`).join('')}</article>${examples.length?`<h2 class="books-theory-example-heading">Primjeri iz lekcije</h2>${examples.map((example,index)=>`<article class="card books-code-card"><div class="books-section-label"><span>${String(index+2).padStart(2,'0')}</span><h2>${esc(example.label||example.language||'Primjer koda')}</h2></div><p class="books-catalog-note">${example.runnable?'Potpuni primjer označen u knjizi. Provjeri potrebni ulaz prije pokretanja.':'Isječak ili vođeni primjer. Može zahtijevati ranije definisane varijable i dodatni kod.'}</p><pre class="books-source-code" tabindex="0">${esc(example.code)}</pre><div class="books-button-row"><button data-books-theory-code="${index}" class="primary">Otvori ${example.runnable?'program':'isječak'} u editoru</button><button data-books-theory-export="${index}">↓ Sačuvaj kod</button></div></article>`).join('')}`:''}<article class="card books-theory-notes"><label class="books-notes-label">Moje bilješke<textarea id="books-notes" maxlength="20000" placeholder="Sažmi ideju, zapiši pitanje ili vlastiti primjer…">${esc(w.notes[item.id]||'')}</textarea></label></article><p class="books-attribution">${esc(item.note||'Teorijska lekcija iz knjige Elvira Čajića.')}</p></div>`;
+    addAIButton();
     on('books-back','onclick',catalog);on('books-open-pdf','onclick',()=>reader(book.id,Number(item.sourcePage)||1,()=>openTheory(book.id,item.id)));
     on('books-notes','oninput',event=>{work().notes[item.id]=event.target.value.slice(0,20000);context.save();});
     const lang=example=>/c\+\+|^cpp$/i.test(example.language||'')?'cpp':/java/i.test(example.language||'')?'java':/^c(?:\s|\d|$)/i.test(example.language||'')?'c':'python';
@@ -149,7 +150,7 @@ window.ELDIBooks = (() => {
     const book=books().find(book=>book.id===bookId);if(!book)return;
     if(!taskId){selected.book=bookId;selected.chapter='all';selected.offset=0;catalog();return;}
     const task=tasks(book).find(task=>task.id===taskId);if(!task)return;
-    active={book,task};hinted=0;assisted=!!work().results[task.id]?.assisted;language=Object.keys(languages).find(lang=>task.solutions?.[lang]?.code)||'python';
+    active={book,task};activeTheory=null;activeReader=null;hinted=0;assisted=!!work().results[task.id]?.assisted;language=Object.keys(languages).find(lang=>task.solutions?.[lang]?.code)||'python';
     detail();
   }
   function detail() {
@@ -162,7 +163,8 @@ window.ELDIBooks = (() => {
     }
     const sourceNotes=(task.notes||[]).filter(note=>note&&typeof note==='object');
     if(sourceNotes.length){const details=document.createElement('details'),summary=document.createElement('summary');details.className='books-source-notes';summary.textContent='Napomene uz digitalni prijepis ('+sourceNotes.length+')';details.append(summary);for(const note of sourceNotes){const paragraph=document.createElement('p');paragraph.textContent=(note.page?'Str. '+note.page+': ':'')+text(note.restored||note.original)+' '+text(note.reason);details.append(paragraph);}context.root.querySelector('.books-attribution').before(details);}
-    on('books-back','onclick',catalog);on('books-open-pdf','onclick',()=>reader(book.id,task.page||1,()=>detail()));
+    addAIButton();
+    on('books-back','onclick',catalog);on('books-open-pdf','onclick',()=>reader(book.id,task.page||1,()=>open(book.id,task.id)));
     on('books-edit-task','onclick',()=>{catalog();taskForm({bookId:book.id,task});});
     on('books-notes','oninput',event=>{work().notes[task.id]=event.target.value.slice(0,20000);context.save();});
     on('books-complete','onchange',event=>{if(event.target.checked)work().completed[task.id]={date:new Date().toISOString(),assisted,verified:!!work().results[task.id]?.correct};else delete work().completed[task.id];context.save();updateProgress();});
@@ -230,11 +232,11 @@ window.ELDIBooks = (() => {
   function filename(value){return text(value).replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,100)||'ELDI-zadatak';}
   function codeFilename(value,lang){return lang==='java'?'Main.java':filename(value)+'.'+({python:'py',cpp:'cpp',c:'c'}[lang]||'txt');}
   function reader(bookId,page=1,back=catalog){
-    const book=books().find(book=>book.id===bookId),source=builtinSources[bookId];if(!book||!source)return;
-    const maximum=Math.max(1,bookPages(book));page=Math.max(1,Math.min(maximum,Math.trunc(page)||1));
+    const book=books().find(book=>book.id===bookId),source=builtinSources[bookId];if(!book||!source)return;activeTheory=null;active=null;
+    const maximum=Math.max(1,bookPages(book));page=Math.max(1,Math.min(maximum,Math.trunc(page)||1));activeReader={book,page};
     context.root.innerHTML=`<div class="books-shell books-reader"><div class="books-backbar"><button id="books-reader-back">← Nazad</button><span class="tag">IZVORNI PDF · ${maximum} stranica</span></div><div class="books-heading"><div><div class="eyebrow">ČITAJ ORIGINAL</div><h1>${esc(book.title)}</h1></div></div><div class="books-reader-toolbar card"><button id="books-reader-prev" aria-label="Prethodna PDF stranica">←</button><label>PDF stranica<input id="books-reader-page" type="number" min="1" max="${maximum}" value="${page}"></label><span>/ ${maximum}</span><button id="books-reader-go" class="primary">Otvori stranicu</button><button id="books-reader-next" aria-label="Sljedeća PDF stranica">→</button><label>Cjelina<select id="books-reader-chapter"><option value="">Skoči na cjelinu…</option>${chapters(book).filter(ch=>ch.pageStart||ch.pageFrom).map(ch=>`<option value="${Number(ch.pageStart||ch.pageFrom)}">${esc(ch.title)}</option>`).join('')}</select></label></div><p class="books-catalog-note">Broj označava stranicu PDF datoteke. Izvorni prijelom, slike i formule prikazuju se bez izmjena. Zumiranje i štampanje dostupni su u PDF prikazu.</p><iframe id="books-reader-frame" class="books-reader-frame" src="../${source}#page=${page}" title="${esc(book.title)} — originalni PDF"></iframe></div>`;
     on('books-reader-back','onclick',back);
-    const jump=target=>{page=Math.max(1,Math.min(maximum,Math.trunc(target)||1));$('books-reader-page').value=page;$('books-reader-frame').src='../'+source+'#page='+page;$('books-reader-prev').disabled=page===1;$('books-reader-next').disabled=page===maximum;};
+    const jump=target=>{page=Math.max(1,Math.min(maximum,Math.trunc(target)||1));activeReader={book,page};$('books-reader-page').value=page;$('books-reader-frame').src='../'+source+'#page='+page;$('books-reader-prev').disabled=page===1;$('books-reader-next').disabled=page===maximum;};
     on('books-reader-go','onclick',()=>{const input=$('books-reader-page');if(input.reportValidity())jump(Number(input.value));});
     on('books-reader-page','onkeydown',event=>{if(event.key==='Enter')$('books-reader-go').click();});
     on('books-reader-prev','onclick',()=>jump(page-1));on('books-reader-next','onclick',()=>jump(page+1));
@@ -310,5 +312,16 @@ window.ELDIBooks = (() => {
     $('books-task-title').focus();$('books-form-host').scrollIntoView({block:'start',behavior:'smooth'});
   }
   function summary(profile){const w=profile?.bookWork||{},done=Object.values(w.completed||{});return{practised:done.length,verified:done.filter(item=>item.verified).length,assisted:done.filter(item=>item.assisted).length,sections:(w.customSections||[]).length};}
-  return {mount,catalog,open,openTheory,reader,summary};
+  function getContext(){
+    if(active){const {book,task}=active;return {title:task.title,subject:task.subject||book.subject,grade:task.grade||undefined,statement:[task.statement,task.input?'Ulaz: '+task.input:'',task.output?'Izlaz: '+task.output:'',task.limits?'Ograničenja: '+task.limits:'',...(task.examples||[]).slice(0,3).map((example,index)=>'Primjer '+(index+1)+'\nUlaz:\n'+text(example.input)+'\nIzlaz:\n'+text(example.output))].filter(Boolean).join('\n\n'),language:$('books-code-card')&&!$('books-code-card').hidden?language:undefined,code:$('books-code-card')&&!$('books-code-card').hidden?task.solutions?.[language]?.code||'':'',input:[...context.root.querySelectorAll('[data-books-answer]')].map((answer,index)=>'Moj odgovor '+(index+1)+': '+answer.value).concat('Moje bilješke: '+text($('books-notes')?.value)).join('\n'),output:$('books-answer-status')?.textContent||''};}
+    if(activeTheory)return {title:activeTheory.item.title,subject:activeTheory.book.subject,statement:[text(activeTheory.item.body),...(activeTheory.item.codeExamples||[]).slice(0,4).map(example=>'Primjer '+text(example.language)+'\n'+text(example.code))].join('\n\n'),input:'Moje bilješke: '+text($('books-notes')?.value)};
+    if(activeReader)return {title:activeReader.book.title+' · PDF stranica '+activeReader.page,subject:activeReader.book.subject,statement:'Asistent ne čita automatski otvorenu PDF stranicu. Prepiši tekst zadatka u svoje pitanje kako bi mogao pomoći.'};
+    return {title:'Zbirke i rješenja',statement:'Učenje matematike i programiranja uz zbirke, zadatke i teoriju.'};
+  }
+  function markAssisted(){if(!active)return;assisted=true;rememberHelp(active.task.id);updateProgress();}
+  function addAIButton(){
+    if(!context.askAI)return;const bar=context.root.querySelector('.books-backbar');if(!bar)return;
+    const button=document.createElement('button');button.id='books-ask-ai';button.textContent='✦ Pitaj AI asistenta';button.onclick=()=>context.askAI(getContext(),markAssisted);bar.append(button);
+  }
+  return {mount,catalog,open,openTheory,reader,summary,getContext,markAssisted};
 })();

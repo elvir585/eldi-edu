@@ -78,3 +78,10 @@ test('Badges depend on actual saved successes, never attempted tasks or fabricat
   assert.equal(badge(profile,'exam-1').current,1); assert.equal(badge(profile,'exam-50').current,50);
   assert(!badge(profile,'passed-5').earned);
 });
+
+
+test('Solved library projects and legacy challenges both earn Blockly badges', () => {
+  const progress=A.badgeProgress({blockResults:{legacy:{correct:true}},blockLibrary:{results:{project:{correct:true},unfinished:{correct:false}}}});
+  assert.equal(progress.find(item=>item.id==='blocks-1').current,2);
+  assert.equal(progress.find(item=>item.id==='blocks-1').earned,true);
+});

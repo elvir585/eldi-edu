@@ -9,3 +9,5 @@ content/books-data.js
 content/packs/
 __pycache__/
 *.pyc
+
+content/block-projects-data.js

@@ -119,3 +119,36 @@ test('Theory notes from bundled and imported lessons survive backup without beco
   const forged=structuredClone(profile);forged.bookWork.results[theory.id]={correct:true,attempts:1};assert.throws(()=>P.importProfile(wrapped(forged)),/nepoznat zadatak/);
   const duplicate=structuredClone(profile);duplicate.bookWork.customSections[0].theory.push(own.theory[0]);assert.throws(()=>P.importProfile(wrapped(duplicate)),/više puta/);
 });
+
+function ownBlockCatalog() {
+  const source=structuredClone(require('../content/block-projects.json')),project=source.projects[0];
+  const family=source.families.find(item=>item.id===project.familyId);
+  project.id='own-block-project-1';project.familyId='own-block-family-1';family.id='own-block-family-1';
+  source.projects=[project];source.families=[family];
+  return require('../app/block-project-catalog.js').validateCatalog(source);
+}
+test('Block library backup retains custom projects, assisted and independent results, active input and workspace', () => {
+  const builtin=require('../content/block-projects.json').projects[0],own=ownBlockCatalog();
+  const result={correct:true,lastCorrect:true,attempts:3,assisted:false,independent:true,grade:7,date:'2026-10-08T12:23:00Z'};
+  const profile={name:'Učenik',blocks:own.projects[0].solution,blockLibrary:{packs:[own],results:{[builtin.id]:{...result,assisted:true,independent:false},'own-block-project-1':result},selectedId:'own-block-project-1',input:'  12\n   7\n',selectedAssisted:false}};
+  const before=JSON.stringify(profile),imported=P.importProfile(P.exportProfile(profile));
+  assert.deepEqual(imported.blockLibrary,profile.blockLibrary);assert.deepEqual(imported.blocks,profile.blocks);
+  assert.equal(JSON.stringify(profile),before);assert.equal(P.exportProfile(imported).schema,3);
+  assert.equal(imported.blockLibrary.results[builtin.id].independent,false);
+  assert.equal(imported.blockLibrary.results['own-block-project-1'].independent,true);
+});
+test('Block library imports reject colliding identities, unknown records, oversized input and inconsistent credit atomically', () => {
+  const own=ownBlockCatalog(),base={name:'Učenik',blockLibrary:{packs:[own],results:{},selectedId:null,input:'',selectedAssisted:false}};
+  for(const patch of [{selectedId:'missing'},{results:{missing:{correct:false,attempts:1}}},{input:'x'.repeat(20001)},{selectedAssisted:'true'},{packs:[own,own]}]) {
+    const invalid=structuredClone(base);Object.assign(invalid.blockLibrary,patch);const before=JSON.stringify(invalid);
+    assert.throws(()=>P.importProfile(wrapped(invalid)));assert.equal(JSON.stringify(invalid),before);
+  }
+  for(const record of [{correct:true,attempts:0},{correct:false,attempts:1,independent:true},{correct:true,attempts:1,independent:'yes'}]) {
+    const invalid=structuredClone(base);invalid.blockLibrary.results['own-block-project-1']=record;assert.throws(()=>P.importProfile(wrapped(invalid)));
+  }
+  const collision=structuredClone(base);collision.blockLibrary.packs[0].projects[0].id=require('../content/block-projects.json').projects[0].id;
+  assert.throws(()=>P.importProfile(wrapped(collision)),/jedinstvenu/);
+  const reserved=JSON.parse(JSON.stringify(base));reserved.blockLibrary.results=JSON.parse('{"__proto__":{"correct":true,"attempts":1}}');
+  assert.throws(()=>P.importProfile(wrapped(reserved)));assert.equal({}.correct,undefined);
+  const tooMany=structuredClone(base);tooMany.blockLibrary.packs=Array(31).fill(own);assert.throws(()=>P.importProfile(wrapped(tooMany)),/30/);
+});

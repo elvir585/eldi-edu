@@ -262,6 +262,62 @@ test('Run promises preserve their selected challenge and paused playback advance
   }finally{blocks.destroy();}
 });
 
+test('Current input selects its own project check and unknown inputs never earn sample credit', async () => {
+  const blocks=studio();
+  try {
+    const context=blocks.testContext;
+    context.Worker=class {
+      constructor(){this.terminated=false;}
+      postMessage(request){setTimeout(()=>{if(this.terminated)return;const run=execute(request.code,request.keys,request);for(const message of run.messages){if(this.terminated)break;this.onmessage({data:message});}},0);}
+      terminate(){this.terminated=true;}
+    };
+    blocks.load({format:'ELDI-BLOCKS-1',workspace:{blocks:{languageVersion:0,blocks:[
+      {type:'edu_print',inputs:{TEXT:{block:{type:'edu_number_input',inputs:{PROMPT:{block:{type:'text',fields:{TEXT:''}}}}}}}}
+    ]}}});
+    blocks.setChallenge({id:'two-input-tests',input:'7',check:{type:'output',expected:'7'},tests:[
+      {input:'7',check:{type:'output',expected:'7',inputCount:1}},
+      {input:'12',check:{type:'output',expected:'12',inputCount:1}}
+    ]});
+    const second=await blocks.run({input:'12\r\n',checkOnly:true});
+    assert.equal(second.challenge.correct,true,'The second input uses the second expected result.');
+    assert.equal(second.output.trim(),'12');
+    assert.equal(second.ungradedInput,false);
+    const unknown=await blocks.run({input:'33',checkOnly:true});
+    assert.equal(unknown.ok,true,'Custom input still runs the real program.');
+    assert.equal(unknown.output.trim(),'33');
+    assert.equal(unknown.challenge,undefined,'Custom input has no saved task credit.');
+    assert.equal(unknown.ungradedInput,true);
+    assert.match(context.document.getElementById('blockcheck').textContent,/bez automatskog ocjenjivanja/);
+    blocks.setChallenge({id:'legacy-input',input:'7',check:{type:'output',expected:'7'}});
+    const legacy=await blocks.run({input:'33',checkOnly:true});
+    assert.equal(legacy.challenge,undefined,'The earlier 60 challenges also reject stale sample grading.');
+    assert.equal(legacy.ungradedInput,true);
+  } finally { blocks.destroy(); }
+});
+
+test('Shape checks inspect every rectangle position and dimension, not only the drawing count', () => {
+  const blocks=studio();
+  try {
+    const run=execute('rectangle(20,15); pen(false); go(25,0); pen(true); rectangle(20,15);');
+    assert.equal(run.last.type,'done');
+    const result={...run.last.result,actions:run.actions};
+    const check={type:'stage',x:25,y:0,trailCount:2,shapes:[
+      {kind:'rectangle',x:0,y:0,w:20,h:15,angle:0},
+      {kind:'rectangle',x:25,y:0,w:20,h:15,angle:0}
+    ]};
+    assert.equal(blocks.matchCheck(check,result).correct,true);
+    const wrongWidth=JSON.parse(JSON.stringify(result));
+    wrongWidth.stage.trail[0].w=19;
+    assert.equal(blocks.matchCheck(check,wrongWidth).correct,false,'The same number of rectangles with the wrong cell width fails.');
+    const wrongPosition=JSON.parse(JSON.stringify(result));
+    wrongPosition.stage.trail[1].x=24;
+    assert.equal(blocks.matchCheck(check,wrongPosition).correct,false,'The final sprite position cannot substitute for every rectangle position.');
+    const wrongOrder=JSON.parse(JSON.stringify(result));
+    wrongOrder.stage.trail.reverse();
+    assert.equal(blocks.matchCheck(check,wrongOrder).correct,false);
+  } finally { blocks.destroy(); }
+});
+
 test('Geometry challenges reject zero-length drawings and input challenges reject hardcoded output without reads', () => {
   const blocks=studio();try{
     const context=blocks.testContext;vm.runInContext(read('content/block-challenges.js'),context);

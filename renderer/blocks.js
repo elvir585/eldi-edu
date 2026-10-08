@@ -173,6 +173,7 @@ window.ELDIBlocks = (() => {
       const lines=(state.trail||[]).filter(line=>line.kind==='line');
       if(check.segmentLengths)passed=passed&&lines.length===check.segmentLengths.length&&lines.every((line,index)=>near(Math.hypot(line.x2-line.x1,line.y2-line.y1),check.segmentLengths[index]));
       if(check.segmentAngles)passed=passed&&lines.length===check.segmentAngles.length&&lines.every((line,index)=>{const actual=Math.atan2(line.y2-line.y1,line.x2-line.x1)*180/Math.PI,difference=((actual-check.segmentAngles[index])%360+360)%360;return difference<=tolerance||360-difference<=tolerance;});
+      if(check.shapes){const shapes=state.trail||[];passed=passed&&shapes.length===check.shapes.length&&shapes.every((shape,index)=>{const expected=check.shapes[index];return shape.kind===expected.kind&&['x','y','w','h','angle','r','x1','y1','x2','y2'].every(key=>expected[key]===undefined||near(shape[key],expected[key]));});}
     }
     if(check.inputCount!==undefined)passed=passed&&result.inputUsed===check.inputCount;
     if(check.extraStage)passed=passed&&matchCheck(check.extraStage,result).correct;
@@ -199,16 +200,21 @@ window.ELDIBlocks = (() => {
   function load(project){if(project?.format!=='ELDI-BLOCKS-1'||!project.workspace)throw Error('Nepoznat format blokovskog projekta.');stop();Blockly.serialization.workspaces.load(project.workspace,workspace);update();}
   function stop(){worker?.terminate();worker=null;clearTimeout(runningTimer);clearTimeout(animTimer);animTimer=null;actionQueue=[];finalResult=null;paused=false;workspace?.highlightBlock?.(null);if(runResolve){runResolve({ok:false,cancelled:true,output:$('blockout')?.textContent||'',actions:allActions});runResolve=null;}}
   function run(options={}){
-    const runChallenge=challenge;
+    const runInput=options.input??$('blockinput')?.value??'',selectedChallenge=challenge;
+    const definedTests=Array.isArray(selectedChallenge?.tests)&&selectedChallenge.tests.length?selectedChallenge.tests:typeof selectedChallenge?.input==='string'?[{input:selectedChallenge.input,check:selectedChallenge.check}]:null;
+    const normalizedInput=value=>String(value).replace(/\r\n/g,'\n').trim();
+    const matchedTest=definedTests?.find(test=>normalizedInput(test.input)===normalizedInput(runInput));
+    const runChallenge=definedTests?(matchedTest?{...selectedChallenge,check:matchedTest.check}:null):selectedChallenge;
+    const ungradedInput=!!selectedChallenge&&!!definedTests&&!matchedTest;
     stop();reset();allActions=[];if($('blockout'))$('blockout').textContent='';if($('blockcheck'))$('blockcheck').textContent='';speed=Number.isFinite(Number(options.speed))?Math.max(0,Math.min(200,Number(options.speed))):25;paused=options.paused===true;
     if(window.AudioContext||window.webkitAudioContext)try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();}catch{}
     return new Promise(resolve=>{
       runResolve=resolve;
-      function complete(result){clearTimeout(runningTimer);worker?.terminate();worker=null;result.actions=allActions;if(runChallenge)result.challenge={id:runChallenge.id,...matchCheck(runChallenge.check,result)};if($('blockcheck'))$('blockcheck').textContent=result.challenge?.message||'';finalResult=result;if(options.checkOnly){actionQueue=[];if($('blockout'))$('blockout').textContent=result.output||result.error||'';finishAnimation();}else if(!paused&&!animTimer)animate();}
+      function complete(result){clearTimeout(runningTimer);worker?.terminate();worker=null;result.actions=allActions;result.ungradedInput=ungradedInput;if(runChallenge)result.challenge={id:runChallenge.id,...matchCheck(runChallenge.check,result)};if($('blockcheck'))$('blockcheck').textContent=result.challenge?.message||(ungradedInput?'Vlastiti ulaz — program je pokrenut bez automatskog ocjenjivanja. Odaberi jedan od primjera zadatka za provjeru.':'');finalResult=result;if(options.checkOnly){actionQueue=[];if($('blockout'))$('blockout').textContent=result.output||result.error||'';finishAnimation();}else if(!paused&&!animTimer)animate();}
       try{
         worker=new Worker('block-worker.js');worker.onmessage=event=>{const data=event.data;if(data.type==='actions'){allActions.push(...data.actions);actionQueue.push(...data.actions);if(!paused&&!animTimer)animate();}if(data.type==='done')complete(data.result||{ok:true,output:'',stage:{},variables:{}});if(data.type==='error'){if($('blockout'))$('blockout').textContent+='Greška: '+data.message+'\n';complete({...data.result,ok:false,error:data.message});}};
         worker.onerror=event=>{if($('blockout'))$('blockout').textContent+='Greška: '+event.message;complete({ok:false,error:event.message,output:'',variables:{}});};
-        worker.postMessage({code:code('js',true),input:options.input??$('blockinput')?.value??'',keys:[...keys],sprite:Number($('sprite')?.value||0),mouse:{...mouse}});
+        worker.postMessage({code:code('js',true),input:runInput,keys:[...keys],sprite:Number($('sprite')?.value||0),mouse:{...mouse}});
         runningTimer=setTimeout(()=>{if($('blockout'))$('blockout').textContent+='Prekoračeno 6 sekundi računanja.';complete({ok:false,error:'Prekoračeno vrijeme izvršavanja.',output:'',variables:{}});},6000);
       }catch(error){complete({ok:false,error:error.message,output:'',variables:{}});}
     });
@@ -227,6 +233,7 @@ window.ELDIBlocks = (() => {
     run,stop,pause,resume,step,load,serialize,update,code,example,matchCheck,setTheme,
     setChallenge(value){challenge=value||null;if($('blockcheck'))$('blockcheck').textContent='';},
     clear(){stop();workspace.clear();update();},select(index){current=Math.max(0,Math.min(sprites.length-1,Math.trunc(Number(index)||0)));stage();},
-    getToolbox(){return toolbox;},getTheme(){return themeName;},getState(){return {paused,running:!!worker||!!finalResult||actionQueue.length>0,queue:actionQueue.length};}
+    getToolbox(){return toolbox;},getTheme(){return themeName;},getState(){return {paused,running:!!worker||!!finalResult||actionQueue.length>0,queue:actionQueue.length};},
+    resize(){if(workspace)Blockly.svgResize(workspace);}
   };
 })();

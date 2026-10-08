@@ -664,6 +664,153 @@ body[data-page='blocks'] #view > p { margin: 0 0 14px; font-size: 12px; }
   body.dark .blocklyMenuItemHighlight, body.dark .blocklyMenuItemSelected { background-color: #2b4162; }
   body.dark .blocklyWidgetDiv input.blocklyHtmlInput { min-height: 0; width: 100%; border: 1px solid #92b3ff; color: #eef3ff; background: #16253e; box-shadow: 0 0 0 2px #92b3ff30; }
 }
+/* Studio Edition refresh. Decorative layers never change the native workbench
+   geometry, and are confined to screen output so certificates remain paper-like. */
+@media screen {
+  body.dark {
+    --line: #30415d;
+    --accent: #a8bfff;
+    --accent-hover: #c0d1ff;
+    --accent-soft: #263555;
+    --purple: #342b51;
+    --shadow: 0 8px 26px #00000024, inset 0 1px 0 #f1f5ff04;
+    background:
+      radial-gradient(ellipse at 90% 0, #164b5940, transparent 44%),
+      radial-gradient(ellipse at 15% 16%, #4a34752e, transparent 42%),
+      linear-gradient(#a4b7ee03 1px, transparent 1px),
+      linear-gradient(90deg, #a4b7ee03 1px, transparent 1px), var(--bg);
+    background-size: auto, auto, 76px 76px, 76px 76px, auto;
+    background-attachment: fixed;
+  }
+  body.dark > aside {
+    border-right-color: #2a3b54;
+    background:
+      radial-gradient(ellipse at 0 0, #39437045, transparent 48%),
+      radial-gradient(ellipse at 0 100%, #154d4c24, transparent 45%),
+      linear-gradient(175deg, #101a2c, #0d1422 70%, #101d29);
+    box-shadow: 8px 0 28px #00000010;
+    scrollbar-width: thin;
+    scrollbar-color: #445978 #101a2c;
+  }
+  body.dark .brand::before { filter: drop-shadow(0 5px 12px #81abff30); }
+  body.dark .brand span, body.dark .brand small { color: #afc4e6; }
+  body.dark .nav-label { color: #91a9d0; }
+  body.dark aside nav button { border-color: #30405a; background: #101a2c50; }
+  body.dark aside nav button:hover { border-color: #536b94; background: #24334d; box-shadow: inset 0 1px 0 #ffffff06; }
+  body.dark aside nav button.active {
+    border-color: #7d79c5;
+    background: linear-gradient(110deg, #423d78, #263e66 86%);
+    box-shadow: 0 5px 16px #00000030, inset 0 1px 0 #ffffff0b;
+  }
+  body.dark aside nav button.active::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: -1px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #8ae3de;
+    box-shadow: 0 0 10px #8ae3de38;
+  }
+  body.dark aside nav button.active::after { background: #a2eee6; box-shadow: 0 0 10px #8ae3de4d; }
+  body.dark .aside-bottom button { border-color: #415677; background: #1b2b44; }
+  body.dark main > header > span {
+    padding: 5px 9px;
+    border: 1px solid #354764;
+    border-radius: 6px;
+    background: #16243a80;
+    color: #c0d2ef;
+  }
+  body.dark main > header > span::before { background: #a99cea; box-shadow: 0 0 0 3px #a99cea12; }
+  body.dark main > header .profile select { border-color: #435879; background: #142139; }
+  body.dark button { box-shadow: inset 0 1px 0 #ffffff04; }
+  body.dark button:hover { border-color: #718ab2; box-shadow: 0 4px 12px #00000024, inset 0 1px 0 #ffffff08; }
+  body.dark button.primary, body.dark .primary, body.dark button.selected, body.dark .selected {
+    border-color: #8a88d6;
+    background: linear-gradient(135deg, #5b4aab, #365ba5);
+    box-shadow: 0 5px 15px #09112759, inset 0 1px 0 #ffffff0e;
+    color: #fff;
+  }
+  body.dark button.primary:hover, body.dark button.selected:hover {
+    border-color: #b4b4f5;
+    background: linear-gradient(135deg, #6a57be, #456bbb);
+  }
+  body.dark :is(button, a, input, textarea, select, summary):focus-visible { outline-color: #9fe3e1; }
+  body.dark input:focus, body.dark select:focus, body.dark textarea:focus { border-color: #aac4ff; box-shadow: 0 0 0 3px #a5bfff1c; }
+  body.dark .hero {
+    border-color: #56608c;
+    background:
+      radial-gradient(ellipse at 100% 0, #1a626b70, transparent 53%),
+      radial-gradient(ellipse at 36% 110%, #6241a45c, transparent 65%),
+      linear-gradient(120deg, #1a2544, #24284f 66%, #173945);
+    box-shadow: 0 16px 38px #00000038, inset 0 1px 0 #c3d3ff0b;
+  }
+  body.dark .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: url('assets/learning-grid.svg') right 18px top 8px / 380px auto no-repeat;
+    opacity: .5;
+  }
+  body.dark .hero::after { border-color: #a9a0ed0c; }
+  body.dark .hero h1 { text-shadow: 0 3px 16px #070d291c; }
+  body.dark .hero .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #a2f0e5;
+    letter-spacing: 1.5px;
+  }
+  body.dark .hero .eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #a2f0e5; box-shadow: 0 0 0 4px #a2f0e510; }
+  body.dark .hero p { color: #d0dcf4; }
+  body.dark .hero button { border-color: #7484ae; background: #182a447d; }
+  body.dark .hero button:hover { border-color: #bfceee; background: #31456e; }
+  body.dark .hero button.primary {
+    border-color: #c2efe8;
+    background: linear-gradient(135deg, #c2f1e4, #acd9f3);
+    color: #143047;
+    box-shadow: 0 5px 18px #0a172b40, inset 0 1px 0 #ffffff55;
+  }
+  body.dark .hero button.primary:hover { border-color: #e4ffff; background: linear-gradient(135deg, #d4fff3, #c4eaff); }
+  body.dark .orbit { border-color: #b2a7ee66; }
+  body.dark .orbit::before { border-color: #8ad7dd4d; }
+  body.dark .orb {
+    border-color: #e8edff;
+    background: linear-gradient(135deg, #e1e9ff, #aaadf1 65%, #8ed8e0);
+    color: #293976;
+    box-shadow: 12px 16px 0 #08142940, 0 0 45px #a796ec33;
+  }
+  body.dark .float.a { border-color: #9d91d9; background: #342d57; }
+  body.dark .float.b { border-color: #65bbba; background: #183e4a; }
+  body.dark .card, body.dark .course-card, body.dark .award-card {
+    background: linear-gradient(145deg, #1b263b, #141e2e 74%);
+    box-shadow: var(--shadow);
+  }
+  body.dark .lesson-card:hover, body.dark .course-card:hover { border-color: #7d82b2; box-shadow: 0 10px 28px #00000038, inset 0 1px 0 #ffffff08; }
+  body.dark[data-page='home'] .grid > .card { border-top-color: #9db9ff; box-shadow: 0 8px 26px #00000026, inset 0 1px 0 #d8e5ff08; }
+  body.dark[data-page='home'] .grid > .card:nth-child(2) { border-top-color: #b394ec; }
+  body.dark[data-page='home'] .grid > .card:nth-child(3) { border-top-color: #79d4ce; }
+  body.dark[data-page='home'] .grid > .card:nth-child(4) { border-top-color: #e7bf79; }
+  body.dark[data-page='home'] .grid > .card::before { border: 1px solid #9db9ff33; box-shadow: 0 5px 15px #070f221a; }
+  body.dark[data-page='home'] .grid > .card:nth-child(2)::before { border-color: #b394ec3b; }
+  body.dark[data-page='home'] .grid > .card:nth-child(3)::before { border-color: #79d4ce3b; }
+  body.dark[data-page='home'] .grid > .card:nth-child(4)::before { border-color: #e7bf793b; }
+  body.dark .stat { background: linear-gradient(135deg, #1c293f, #151f31); border-color: #354761; }
+  body.dark .stat::before { background: #9db9ff; }
+  body.dark .stat:nth-child(2)::before { background: #b394ec; }
+  body.dark .stat:nth-child(3)::before { background: #79d4ce; }
+  body.dark .stat:nth-child(4)::before { background: #e7bf79; }
+  body.dark .stat::after { content: ''; position: absolute; top: -32px; right: -27px; width: 106px; height: 106px; border: 18px solid #b8caff04; border-radius: 50%; pointer-events: none; }
+  body.dark .stat strong { color: #f4f7ff; font-variant-numeric: tabular-nums; }
+  body.dark .stat span { color: #b5c6e0; }
+  body.dark .badge { border: 1px solid #a8bfff24; }
+  body.dark .notice { border-left-color: #b29ce8; background: #1b273b; }
+  body.dark .progressbar span { background: linear-gradient(90deg, #a194eb, #77d4ca); }
+  body.dark .tools, body.dark .catalog-toolbar, body.dark .exam-controls { box-shadow: inset 0 1px 0 #ffffff05, 0 5px 18px #00000012; }
+  body.dark footer { border-top-color: #2e3e58; color: #a6bbd8; }
+}
 @media (min-width: 1600px) {
   main { padding-right: 48px; padding-left: 48px; }
   .hero { padding: 42px 45px; }
@@ -883,3 +1030,7 @@ body[data-page='blocks'] #blockcheck:empty { display: none; }
   body.printing-certificate .certificate-topline { margin-bottom: 5mm; }
   .terminal { max-height: none; }
 }
+
+/* The global assistant entry follows the Dark Edition accents. */
+main > header .ai-launch { border-color:#a08cc4; background:#f1ebfa; color:#674490; white-space:nowrap; }
+body.dark main > header .ai-launch { border-color:#66558c; background:linear-gradient(120deg,#2a2444,#1c3344); color:#e3d6ff; }
