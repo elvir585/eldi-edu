@@ -643,8 +643,12 @@ body[data-page='blocks'] #view > p { margin: 0 0 14px; font-size: 12px; }
   body.dark #blocklyDiv .blocklyFlyoutBackground { fill: #19263a; fill-opacity: 1; }
   body.dark #blocklyDiv .blocklyScrollbarHandle { fill: #576d8b; }
   body.dark #blocklyDiv .blocklyScrollbarHandle:hover { fill: #8da6ca; }
-  body.dark #blocklyDiv .blocklyZoom { opacity: .94; }
-  body.dark #blocklyDiv .blocklyZoom image, body.dark #blocklyDiv .blocklyTrash image { filter: invert(.88) hue-rotate(180deg); }
+  body.dark #blocklyDiv .blocklyZoom { opacity: 1; }
+  body.dark #blocklyDiv .blocklyZoom image, body.dark #blocklyDiv .blocklyTrash image { filter: brightness(1.6); }
+  body.dark #blocklyDiv .blocklyZoom image, body.dark #blocklyDiv .blocklyTrash > image, body.dark #blocklyDiv .blocklyTrashLid { opacity: .86; }
+  body.dark #blocklyDiv .blocklyZoom image:hover, body.dark #blocklyDiv .blocklyZoom:focus image,
+  body.dark #blocklyDiv .blocklyTrashFull:hover > image, body.dark #blocklyDiv .blocklyTrashFull:hover > .blocklyTrashLid,
+  body.dark #blocklyDiv .blocklyTrashFull:focus > image, body.dark #blocklyDiv .blocklyTrashFull:focus > .blocklyTrashLid { opacity: 1; }
   body.dark .block-side > div { border-color: #304361; background: #141f31; }
   body.dark .block-side h3 { color: #a7bddb; }
   body.dark .stage { border-color: #344a68; background: #101827; }
@@ -758,7 +762,7 @@ body[data-page='blocks'] #block-task-brief { max-height: 35px; overflow: auto; m
 body[data-page='blocks'] #blockcheck { margin: 0 0 7px; font-size: 11px; }
 body[data-page='blocks'] #blockcheck:empty { display: none; }
 @media screen and (min-width: 900px) {
-  body[data-page='blocks'] { --sidebar-width: 180px; --workbench-height: clamp(360px, calc(100vh - 218px), 850px); }
+  body[data-page='blocks'] { --sidebar-width: 180px; --workbench-height: clamp(360px, calc(100vh - 250px), 850px); }
   body[data-page='blocks'] > aside { padding: 16px 12px 12px; }
   body[data-page='blocks'] .brand { padding-left: 43px; font-size: 32px; }
   body[data-page='blocks'] .brand::before { width: 34px; height: 34px; }

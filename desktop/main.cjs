@@ -217,7 +217,7 @@ async function runDesktopSmoke(window) {
   `);
   await capture('04-blocks');
   await stage('dark Blockly colors and reversible theme choice', `
-    const workspace=document.querySelector('#blocklyDiv .blocklySvg'),toolbox=document.querySelector('.blocklyToolboxDiv');
+    const workspace=document.querySelector('#blocklyDiv .blocklySvg'),toolbox=document.querySelector('#blocklyDiv .blocklyToolbox');
     ensure(workspace&&toolbox,'Nedostaje prikaz Blockly radnog prostora ili kategorija.');
     ensure(brightness(getComputedStyle(workspace).backgroundColor)<95,'Blokovski radni prostor nije tamno obojen.');
     ensure(brightness(getComputedStyle(toolbox).backgroundColor)<95,'Kategorije blokova nisu na tamnoj pozadini.');
