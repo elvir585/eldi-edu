@@ -173,3 +173,75 @@ body [class*="gui_stage-and-target-wrapper"] {
     width: 6rem;
   }
 }
+
+/* Sound's non-wrapping toolbar creates a 600px+ intrinsic minimum beside
+ * the stage. Fit the real SVG waveform and keep every editing/effect action.
+ * AudioSelector uses its actual boundingClientRect for trim/playhead input,
+ * so the SVG viewBox and selector continue to share the same visible width. */
+body [class*="sound-editor_editor-container"] {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+body [class*="sound-editor_waveform-container"] {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+body [class*="sound-editor_waveform-container"] > svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-width: 0;
+}
+@media (max-width: 1100px) {
+  body [class*="sound-editor_editor-container"] {
+    padding: 8px;
+  }
+  body [class*="sound-editor_row"] {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  body [class*="sound-editor_row"] + [class*="sound-editor_row"] {
+    margin-top: 12px;
+  }
+  body [class*="sound-editor_input-group"] {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-inline-end: 6px;
+    gap: 4px;
+  }
+  body [class*="sound-editor_input-group"] + [class*="sound-editor_input-group"] {
+    margin-inline-start: 0;
+  }
+  body [class*="sound-editor_editor-container"] [class*="input_input-form"] {
+    width: 150px;
+    max-width: 100%;
+  }
+  body [class*="sound-editor_button-group"] {
+    margin-inline-start: 4px;
+  }
+  body [class*="sound-editor_effect-button"],
+  body [class*="sound-editor_tool-button"] {
+    flex: 0 1 54px;
+    min-width: 44px;
+    max-width: 100%;
+    margin: 0;
+    padding: 4px 2px;
+    color: #dae7f8;
+  }
+  body [class*="sound-editor_tool-button"] img {
+    width: 24px;
+  }
+  body [class*="sound-editor_waveform-container"] {
+    margin-block: 12px;
+  }
+}
