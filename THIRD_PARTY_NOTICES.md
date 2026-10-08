@@ -15,3 +15,14 @@ Originalne knjige u sekciji „Zbirke i rješenja“ zadržavaju svoje autorstvo
 Knjige su uključene iz dokumenata koje je dostavio korisnik, bez izmjena originalnih PDF datoteka. Digitalne obrade navode izvorne stranice i označavaju uredničke ispravke. Autorstvo aplikacije ne zamjenjuje autorstvo izvornih knjiga. Prije dalje distribucije zadržite pripadajuće licence, atribucije i obavijesti.
 
 Razvojni testovi koriste @xmldom/xmldom 0.9.12 (MIT) za XML DOM u Blockly provjerama; ova razvojna zavisnost nije ugrađena u korisnički EXE.
+
+
+## Official Codex app-server
+
+OpenAI Codex0.161.0, Apache-2.0. Windows executable is obtained from the official pinned release and SHA256 verified. LICENSE and NOTICE are included alongside runtimes/codex/codex.exe. Source: https://github.com/openai/codex/tree/rust-v0.161.0 . No credentials are included in this distribution.
+
+## Standalone Scratch editor component
+
+The separate local iframe loads @scratch/scratch-gui15.2.0, a Scratch Foundation component under AGPL-3.0-only. Its runtime, paint, render and storage components retain their original licenses. Local file path relocation and the iframe adapter are documented in scratch-editor/SOURCE.json and docs/SCRATCH.md. Adapter source is AGPL-3.0-only. LICENSE/TRADEMARK and source metadata are included with the component. The release provides a matching Scratch-izvori.zip containing the pinned upstream source archive, adapter, exact dependency lock and build procedure.
+
+Corresponding upstream commit: https://github.com/scratchfoundation/scratch-editor/tree/5fe823510f3ae0cc7291d49bc824cc5c54fe7723 . The original ELDI .sb3 examples retain ELDI application authorship; Scratch library media attribution is retained in the official distribution/source archive. This application is independently developed and does not imply endorsement by Scratch Foundation or OpenAI.

@@ -20,19 +20,16 @@ jobs:
     steps:
       - name: Preuzmi izvorni kod
         uses: actions/checkout@v7
-
       - name: Node.js
         uses: actions/setup-node@v7
         with:
           node-version: '24.21.0'
           package-manager-cache: false
-
       - name: Java JDK
         uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '25'
-
       - name: GCC i G++ (MSYS2 UCRT64)
         id: msys2
         uses: msys2/setup-msys2@v2
@@ -41,22 +38,22 @@ jobs:
           update: true
           install: mingw-w64-ucrt-x86_64-gcc
           cache: false
-
       - name: Instaliraj zavisnosti
         shell: pwsh
         run: |
-          if (Test-Path package-lock.json) { npm ci } else { npm install }
+          npm ci
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Provjeri kod
+      - name: Ugradi službeni Scratch editor i offline biblioteku
+        run: npm run scratch:bundle
+      - name: Provjeri kod, sadržaj i integracije
         run: npm run check
-
       - name: Ugradi Python, GCC/G++ i JDK
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         run: npm run runtime:bundle
-
-      - name: Provjeri svih 324 rješenja programerske zbirke na Windowsu
+      - name: Ugradi ChatGPT prijavu bez API ključa
+        run: npm run chatgpt:bundle
+      - name: Provjeri 324 programa iz zbirke na Windowsu
         shell: pwsh
         run: |
           $bookPython = Join-Path $PWD 'runtimes/python/python.exe'
@@ -66,19 +63,25 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $bookPython scripts/verify-book-programming.py --python $bookPython --cpp $bookCpp --jobs 4 --output smoke-previews/programming-verification-windows.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
+      - name: Provjeri 55 programerskih izazova kroz 880 izvršavanja
+        run: node scripts/verify-program-assessments.cjs --bundled --output smoke-previews/assessment-verification-windows.json
       - name: Provjeri sva četiri ugrađena jezika
         run: node scripts/check.cjs --bundled
-
-      - name: Provjeri desktop prozor
+      - name: Provjeri desktop tokove i Scratch izvršavanje
         run: npm run smoke
-
+      - name: Sačuvaj razvojne prikaze za pregled
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ELDI-EDU-11.0.0-Development-QA
+          path: smoke-previews/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Izradi instalacijski i prenosivi EXE
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npm run build:win
-
-      - name: Provjeri zapakovanu aplikaciju
+      - name: Provjeri zapakovanu aplikaciju i pripremi ZIP pakete
         shell: pwsh
         run: |
           $application = Join-Path $PWD 'release/win-unpacked/ELDI EDU.exe'
@@ -86,22 +89,29 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
           $executables = Get-ChildItem release -Filter '*.exe'
           if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }
-          Copy-Item 'content/packs/ELDI-EDU-10.5.1-Zbirke-i-rjesenja.zip' 'release/'
-          Copy-Item 'content/packs/ELDI-EDU-10.5.1-1000-Blokovskih-projekata.zip' 'release/'
+          Get-ChildItem content/packs -Filter 'ELDI-EDU-11.0.0-*.zip' | Copy-Item -Destination release/
           $packs = Get-ChildItem release -Filter '*.zip'
-          if ($packs.Count -ne 2) { throw 'Očekivana su dva ZIP paketa: zbirke i 1000 blokovskih projekata.' }
+          if ($packs.Count -lt 5) { throw 'Nedostaju ZIP zbirke, Blockly, programerski izazovi, Scratch primjeri ili izvori.' }
+          Copy-Item 'docs/POKRETANJE.txt' 'release/POKRETANJE.txt'
+          $portable = Get-ChildItem release -Filter '*Portable-x64.exe'
+          if ($portable.Count -ne 1) { throw 'Nedostaje prenosiva aplikacija za kompletan paket.' }
+          $fullPath = Join-Path $PWD 'release/ELDI-EDU-11.0.0-Kompletan-paket.zip'
+          $fullFiles = @($portable.FullName) + @($packs.FullName) + @((Join-Path $PWD 'release/POKRETANJE.txt'))
+          Compress-Archive -LiteralPath $fullFiles -DestinationPath $fullPath -CompressionLevel NoCompression -Force
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $fullArchive = [System.IO.Compression.ZipFile]::OpenRead($fullPath)
+          try { if ($fullArchive.Entries.Count -ne $fullFiles.Count) { throw 'Kompletan paket nema sve datoteke.' } } finally { $fullArchive.Dispose() }
+          $packs = Get-ChildItem release -Filter '*.zip'
           @($executables) + @($packs) | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content release/SHA256SUMS.txt
-
       - name: Sačuvaj provjere izgleda i PDF diplomu
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-10.5.1-Visual-QA
+          name: ELDI-EDU-11.0.0-Visual-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
-
-      - name: Sačuvaj Windows EXE i ZIP zbirki
+      - name: Sačuvaj Windows EXE i ZIP pakete
         uses: actions/upload-artifact@v7
         with:
           name: ELDI-EDU-Windows-x64
@@ -112,43 +122,34 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
-
       - name: Objavi izdanje na GitHubu
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.5.1' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v11.0.0' }}
           target_commitish: ${{ github.sha }}
-          name: ELDI EDU 10.5.1 — 1000 blokovskih projekata i AI asistent (Windows, build ${{ github.run_number }})
+          name: ELDI EDU 11.0 — ChatGPT prijava, Scratch i digitalna učionica
           body: |
-            Preuzmite **ELDI-EDU-10.5.1-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.5.1-Setup-x64.exe** za instalaciju.
+            **Windows 10/11 x64:** Portable EXE za direktno pokretanje ili Setup EXE za instalaciju.
 
-            Verzija **10.5.1** poboljšava prikaz otvorenih blokovskih rješenja na manjim prozorima: visina radnog prostora prilagođava se dostupnom prostoru uz pozornicu, kod i konzolu. AI dijalog zadržava polje za pitanje i dugme za slanje u vidljivom dijelu prozora i dok su otvorene postavke.
+            **Kompletan-paket.zip** sadrži Portable EXE, svih pet ZIP zbirki/izvora i kratke upute. Raspakujte ga i pokrenite Portable EXE. Sve pojedinačne datoteke dostupne su i zasebno.
 
-            Nova sekcija **Zbirke i rješenja** povezuje obje priložene PDF knjige s pretragom zadataka, postupnim objašnjenjima, bilješkama učenika i Python/C++ editorom. Knjige se čitaju unutar aplikacije.
+            **ChatGPT bez API ključa:** u asistentu kliknite **Prijavi se ChatGPT računom**. Ugrađeni službeni Codex app-server vodi prijavu kroz preglednik ili kod uređaja. Pretplata, limiti, model i nivo razmišljanja pripadaju prijavljenom računu. GPT‑6.1 Sol / Ultra koriste se kada ih servis ponudi i zahtjev uspješno potvrdi pristup; nema automatske zamjene drugim modelom. Svaki korisnik koristi vlastitu prijavu. API i Ollama ostaju dodatne opcije.
 
-            **ELDI-EDU-10.5.1-Zbirke-i-rjesenja.zip** sadrži obje PDF knjige (203 i 464 stranice), 162 programerska zadatka s Python/C++ rješenjima i 53 odabrana matematička zadatka s postupkom. Svih 324 programerskih rješenja provjereno je izvršavanjem na dostupnim primjerima iz knjige. Matematička rješenja ne obuhvataju sve zadatke PDF knjige.
+            **Digitalna matematička sveska:** osam porodica zadataka, provjera podržanih računskih koraka i linearnih jednačina, djelimični bodovi, sačuvani postupci, crteži i grafikoni. Konačan odgovor sam donosi 40/100; razrađeni tačni međukoraci do 60 dodatnih bodova. Dokaze i tekstualna obrazloženja pregleda nastavnik.
 
-            Možete dodavati svoje sekcije i zadatke, uvoziti ELDI EDU JSON/ZIP pakete i izvoziti svoje zbirke u ZIP. Uvezeni kod izvršava se tek na vaš zahtjev u editoru.
+            **Nastavnički centar:** odjeljenja, spiskovi, zadaci od 1 do 50, dodjela lokalnim profilima, predaja, automatski rezultati, pregled postupka, komentari i zasebna nastavnička ocjena. Prenos JSON datotekama, CSV izvještaji i štampa.
 
-            **Dark Edition** donosi tamnije pozadine, jasnije boje kategorija blokova i usklađen izgled radnog prostora, pozornice, konzole i prikaza koda. Tamna tema je početni izbor ovog izdanja; dugme teme omogućava prelazak na svijetli izgled bez promjene složenog programa ili rada učenika.
+            **Scratch studio:** službeni Scratch editor 15.2.0 s prilagođenim lokalnim putanjama. .sb3 uvoz/izvoz, događaji, likovi, kostimi, pozadine, zvukovi i šest originalnih ELDI projekata. Offline biblioteka je ugrađena. Pripadajući izvori i AGPL licenca dostupni su u Scratch-izvori ZIP-u. Blockly studio sa 1000 riješenih projekata ostaje zaseban.
 
-            500 matematičkih i 500 informatičkih tematskih cjelina i vještina s objašnjenjima, primjerima i praktičnim zadacima. Matematička zbirka omogućava 100.000 indeksiranih generisanja (500 vještina × 200 indeksa); indeksi ne znače 100.000 sadržajno različitih zadataka.
+            **Put učenja:** 91 cjelina povezuje svih 500 matematičkih i 500 informatičkih vještina. Objašnjenje, primjer, rad, provjera i preporuka. Početna mapa je urednički plan; nastavnik može dodati službene ishode, izvore, stranice i školsku godinu. Potpuna službena usklađenost nije potvrđena.
 
-            Radni listovi i provjere do 50 zadataka, prilagodljivi pragovi ocjena, značke i diploma s rezultatom, imenima četiri autora i pečatom aplikacije. Diplomom se potvrđuje rezultat u aplikaciji.
+            **Programerski izazovi:** 55 različitih zadataka, po 11 za svaki razred, sa osam testova po zadatku. Podržani Python, C, C++ i Java. Python/C++ referentna rješenja provjerena kroz 880 izvršavanja. ZIP sadrži zadatke, rješenja, početne kodove i javne primjere.
 
-            Blokovski studio ima 60 praktičnih izazova, 14 kategorija, konzolu, pozornicu i prikaz koda. Sadržaj obuhvata 5–9. razred; broj cjelina označava izdvojene vještine i nije tvrdnja o 500 zasebnih školskih nastavnih oblasti.
+            Novi tamni pregled, grupisana navigacija, pretraga sadržaja (Ctrl+K), veći tekst, nastavak posljednjeg rada, pet automatskih sigurnosnih kopija i provjera GitHub izdanja. Ocjene, značke i diplome s imenima autora i pečatom ostaju dostupni.
 
-            Blokovi, kod, konzola i pozornica ostaju zajedno i na manjim Windows ekranima, a izbor izazova otvara se prema potrebi. Diplome zadržavaju svijetli papir za štampu i izvoz u PDF.
+            Aplikacija ne prenosi tuđu ChatGPT pretplatu ni pristupne podatke. Živa prijava i AI odgovor provjeravaju se na računaru korisnika; razvojne provjere obuhvataju protokol, prekid, greške i stvarni ugrađeni servis bez prijave i inferencije. Osnovni sadržaj i školski programi rade bez interneta. Tekstualni programi koriste prava Windows korisnika; izdanje nije digitalno potpisano.
 
-            **ELDI-EDU-10.5.1-1000-Blokovskih-projekata.zip** donosi 1000 riješenih projekata u blokovima za različite teme: programski obrasci, matematika, tekst, liste i crtanje. Projekti su grupisani po algoritamskim porodicama i varijantama ulaza. Biblioteka omogućava pretragu, filtre, postupnu pomoć, otvaranje rješenja u studiju, stvarno izvršavanje i uvoz ZIP/JSON paketa. Broj projekata ne znači 1000 zasebnih algoritama.
-
-            Dugme **Pitaj AI asistenta** otvara stvarnu integraciju s OpenAI API ili lokalnim Ollama serverom. OpenAI zahtijeva vaš API ključ i internet; API usluga može se naplaćivati. ChatGPT pretplata ne uključuje API kredit. Ollama radi s vlastitim lokalnim serverom i preuzetim modelom. AI odgovor nije službena provjera tačnosti. Primjeri se lokalno provjeravaju u studiju.
-
-            API ključ ne čuva se u profilu, ZIP paketu ili izvoru aplikacije. Pamćenje ključa koristi Windows šifriranu pohranu; moguće je koristiti ključ samo u trenutnoj sesiji. Svako slanje pitanja pokreće korisnik; kontekst se prethodno prikazuje. Osnovna nastava i izvršavanje blokova ostaju dostupni bez AI konfiguracije.
-
-            Windows 10/11 x64. Python, GCC/G++ i Java JDK ugrađeni su u aplikaciju. Internet nije potreban za nastavu i izvršavanje školskih programa.
-
-            Programi iz editora izvršavaju se lokalno s dozvolama vašeg Windows korisnika. Ovo izdanje nije digitalno potpisano.
+            Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović**.
           files: |
             release/*.exe
             release/*.zip

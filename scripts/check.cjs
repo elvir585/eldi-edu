@@ -14,6 +14,7 @@ async function main() {
   console.log('Zbirke i ZIP:',JSON.stringify(require('./build-learning-pack.cjs')()));
   console.log('Blokovski katalog:',JSON.stringify(require('./build-block-projects.cjs').build()));
   console.log('Blokovski ZIP:',JSON.stringify(require('./build-block-pack.cjs')()));
+  console.log('Programerski ZIP:',JSON.stringify(require('./build-assessment-pack.cjs')()));
   const practice=require('../app/practice-engine.js');
   assert.equal(practice.topics.length,500);
   assert.equal(maths.length+info.length,1000);
@@ -30,8 +31,9 @@ async function main() {
   for (const grade of [5,6,7,8,9]) for (const subject of ['math','informatics']) assert.ok(curriculum.some(lesson => lesson.g === grade && lesson.subject === subject), `Nedostaje ${subject}, ${grade}. razred.`);
   fs.writeFileSync(path.join(root, 'content/data.js'), 'window.ELDI_CONTENT=' + JSON.stringify(curriculum) + ';\nwindow.ELDI_TASKS=' + JSON.stringify(tasks) + ';\n');
   for (const file of [...filesIn(path.join(root, 'desktop')), ...filesIn(path.join(root, 'scripts')), ...filesIn(path.join(root, 'renderer')), ...filesIn(path.join(root, 'app')), ...filesIn(path.join(root, 'content'))]) {
-    if (/\.(cjs|js)$/.test(file)) execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' });
+    if (/\.(cjs|js)$/.test(file)&&!file.startsWith(path.join(root,'renderer','vendor','scratch')+path.sep)) execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' });
   }
+  execFileSync(process.execPath,['--check',path.join(root,'scratch-editor','bootstrap.js')],{stdio:'pipe'});
   assert.throws(() => validateRequest({ language: 'sh', code: 'echo test' }));
   assert.throws(() => validateRequest({ language: 'python', code: 'x'.repeat(SOURCE_LIMIT + 1) }));
   assert.throws(() => validateRequest({ language: 'python', code: '' }));

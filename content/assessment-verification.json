@@ -1,0 +1,672 @@
+{
+  "edition": "11.0.0",
+  "platform": "linux",
+  "bundled": false,
+  "date": "2026-10-08T14:09:36.622Z",
+  "tasks": 55,
+  "programs": 110,
+  "cases": 880,
+  "passed": 880,
+  "results": [
+    {
+      "taskId": "pa-zbir",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-razlika",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-razlika",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-proizvod",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-proizvod",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-podjela",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-podjela",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-max-tri",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-max-tri",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-sort-tri",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-sort-tri",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-pravougaonik",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-pravougaonik",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-trajanje",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-trajanje",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-racun",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-racun",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zadnja-cifra",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zadnja-cifra",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-cifara",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-cifara",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-parnost",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-parnost",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-djeljivost",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-djeljivost",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-nzd",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-nzd",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-nzs",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-nzs",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prost",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prost",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-broj-djelilaca",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-broj-djelilaca",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-skrati-razlomak",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-skrati-razlomak",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prestupna",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prestupna",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-do-n",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-do-n",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-interval",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-interval",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-umnozaka",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zbir-umnozaka",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-niz-zbir",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-niz-zbir",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prvi-maksimum",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prvi-maksimum",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-iznad-prosjeka",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-iznad-prosjeka",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-predznaci",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-predznaci",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-obrni-niz",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-obrni-niz",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-razliciti",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-razliciti",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prefiks",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-prefiks",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rastuci-segment",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rastuci-segment",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-dijagonale",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-dijagonale",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-transponuj",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-transponuj",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rotacija",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rotacija",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-palindrom",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-palindrom",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-frekvencija",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-frekvencija",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rijeci",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rijeci",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rle",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-rle",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-binarni-decimalni",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-binarni-decimalni",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-decimalni-baza",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-decimalni-baza",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zagrade",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-zagrade",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-anagram",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-anagram",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-spajanje",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-spajanje",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-binarna-pretraga",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-binarna-pretraga",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-dubina-zagrada",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-dubina-zagrada",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-bfs",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-bfs",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-komponente",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-komponente",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-dijkstra",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-dijkstra",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-raspored",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-raspored",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-kovanice",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-kovanice",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-lis",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-lis",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-ruksak",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-ruksak",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-sito",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-sito",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-segment-zbir",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-segment-zbir",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-putanje-mreza",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-putanje-mreza",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-topoloski",
+      "language": "python",
+      "passed": 8,
+      "total": 8
+    },
+    {
+      "taskId": "pa-topoloski",
+      "language": "cpp",
+      "passed": 8,
+      "total": 8
+    }
+  ]
+}

@@ -11,3 +11,6 @@ __pycache__/
 *.pyc
 
 content/block-projects-data.js
+renderer/vendor/scratch/
+scratch-editor/node_modules/
+scratch-editor/upstream-*.zip

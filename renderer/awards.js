@@ -94,8 +94,13 @@
 
   function badgeProgress(profile = {}) {
     const mathematics = Object.values(profile.mathWork?.results || {}).filter(item => item?.correct === true);
+    const notebook=typeof module==='object'&&module.exports?require('../app/math-notebook.js'):window.EduMathNotebook;
+    for(const [id,work] of Object.entries(profile.mathNotebook?.attempts||{})){
+      try{const match=/^notebook-([5-9])-([A-Za-z]+)-(\d+)$/.exec(id);if(match&&notebook?.gradeSteps(notebook.generateTask(Number(match[1]),match[2],Number(match[3])),work.lines).complete)mathematics.push({correct:true,assisted:work.assisted===true});}catch{}
+    }
     const blocks = [...Object.values(profile.blockResults || {}), ...Object.values(profile.blockLibrary?.results || {})].filter(item => item?.correct === true);
-    const programs = Object.entries(profile.results || {}).filter(([id, item]) => id.startsWith('task-') && item?.score === 1);
+    const programs = new Set(Object.entries(profile.results || {}).filter(([id, item]) => id.startsWith('task-') && item?.score === 1).map(([id])=>id));
+    for(const attempt of profile.programAssessment?.attempts||[])if(attempt.total>0&&attempt.passed===attempt.total)programs.add('assessment-'+attempt.taskId);
     const informatics = Object.values(profile.infoWork?.results || {}).filter(item => item?.correct === true);
     const exams = completedExams(profile);
     const perfect = exams.filter(exam => exam.correct === exam.total).length;
@@ -104,7 +109,7 @@
       catch { return false; }
     }).length;
     const independent = mathematics.filter(item => item.assisted !== true).length;
-    const facts = {math: mathematics.length, independent, blocks: blocks.length, programming: programs.length, informatics: informatics.length, exams: exams.length, perfect, passed, examTasks: exams.reduce((sum, exam) => sum + exam.correct, 0)};
+    const facts = {math: mathematics.length, independent, blocks: blocks.length, programming: programs.size, informatics: informatics.length, exams: exams.length, perfect, passed, examTasks: exams.reduce((sum, exam) => sum + exam.correct, 0)};
     const definitions = [
       ['first-step', 'Prvi korak', 'Riješi svoj prvi matematički zadatak.', '∑', 'math', 1, 'math'],
       ['math-10', 'Deset rješenja', 'Riješi 10 različitih zadataka iz zbirke.', '10', 'math', 10, 'math'],

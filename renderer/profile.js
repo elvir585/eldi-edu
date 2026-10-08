@@ -19,7 +19,12 @@
     packs: () => node ? require('../app/content-pack.js') : root.ELDIContentPacks,
     books: () => node ? [require('../content/book-math.json'), require('../content/book-programming.json')] : (Array.isArray(root.ELDI_BOOKS) ? root.ELDI_BOOKS : root.ELDI_BOOKS?.books || []),
     blockCatalog: () => node ? require('../content/block-projects.json') : root.ELDI_BLOCK_PROJECTS,
-    blockPacks: () => node ? require('../app/block-project-catalog.js') : root.ELDIBlockCatalog
+    blockPacks: () => node ? require('../app/block-project-catalog.js') : root.ELDIBlockCatalog,
+    notebook: () => node ? require('../app/math-notebook.js') : root.EduMathNotebook,
+    teacher: () => node ? require('../app/teacher-engine.js') : root.ELDITeacherEngine,
+    paths: () => node ? require('../app/learning-paths.js') : root.ELDILearningPlan,
+    assessment: () => node ? require('../app/program-assessment.js') : root.ELDIProgramAssessmentEngine,
+    scratch: () => node ? require('../app/scratch-projects.js') : root.ELDIScratchProjects
   };
   const api = factory(source);
   if (node) module.exports = api;
@@ -260,6 +265,11 @@
         if (certificate.id !== expected.id) fail('Potvrda ne odgovara sačuvanoj provjeri.');
       }
     }
+    if(value.mathNotebook!==undefined)out.mathNotebook=source.notebook().normalizeState(value.mathNotebook);
+    if(value.teacherWork!==undefined)out.teacherWork=source.teacher().normalizeState(value.teacherWork);
+    if(value.learningPathWork!==undefined)out.learningPathWork=source.paths().normalizeWork(value.learningPathWork);
+    if(value.programAssessment!==undefined)out.programAssessment=source.assessment().normalizeState(value.programAssessment);
+    if(value.scratchWork!==undefined)out.scratchWork=source.scratch().normalizeState(value.scratchWork);
     return out;
   }
   function importProfile(wrapper) {

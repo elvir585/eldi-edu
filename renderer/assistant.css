@@ -119,3 +119,16 @@ body:has(.ai-dialog[open]) { overflow:hidden; }
 }
 @media(prefers-reduced-motion:reduce) { .ai-busy-dots{animation:none;} }
 @media print { .ai-dialog { display:none!important; } }
+/* Subscription sign-in is the primary connection path in ELDI EDU 11. */
+.ai-chatgpt-fields { display:grid;gap:10px; }
+.ai-account-card { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid #3b5a70;border-radius:14px;background:linear-gradient(125deg,#173447,#202a43); }
+.ai-account-card strong { color:#d6f8fa;font-size:14px; }
+.ai-account-card p { margin:5px 0 0;color:#afc4d3;font-size:12px;overflow-wrap:anywhere; }
+.ai-account-emblem { color:#73e4cf;font-size:28px; }
+.ai-login-actions { display:flex;gap:7px;flex-wrap:wrap; }
+.ai-login-actions button { font-size:12px;padding:7px 11px; }
+.ai-device-code { margin:0;padding:10px 14px;border-radius:10px;background:#163e3c;color:#b6fff0;font-size:15px;font-weight:800;letter-spacing:1px;user-select:all; }
+.ai-chatgpt-fields select { width:100%;min-width:0; }
+body:not(.dark) .ai-account-card { background:linear-gradient(125deg,#e1f5f4,#eaf0fb);border-color:#bfd7df; }
+body:not(.dark) .ai-account-card strong { color:#163c4c; }
+body:not(.dark) .ai-account-card p { color:#466070; }

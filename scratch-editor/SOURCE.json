@@ -1,0 +1,26 @@
+{
+  "component": "Official Scratch editor with documented local webpack publicPath relocation",
+  "version": "15.2.0",
+  "sourceCommit": "5fe823510f3ae0cc7291d49bc824cc5c54fe7723",
+  "license": "AGPL-3.0-only",
+  "sourceUrl": "https://github.com/scratchfoundation/scratch-editor/tree/5fe823510f3ae0cc7291d49bc824cc5c54fe7723",
+  "sourceArchive": "https://github.com/scratchfoundation/scratch-editor/archive/5fe823510f3ae0cc7291d49bc824cc5c54fe7723.zip",
+  "npm": {
+    "package": "@scratch/scratch-gui",
+    "version": "15.2.0",
+    "integrity": "sha512-ZjKknkK6Suh0qtfCgaKNUt2Ilz/j6pWdTn6+Brrb2NLn8iXviccLfiSezAFvXqFqWaOMjac0sMfe8JpKkkOPTg=="
+  },
+  "adapterSource": "scratch-editor/bootstrap.js in elvir585/eldi-edu release source",
+  "adapterLicense": "AGPL-3.0-only",
+  "modifications": [
+    {
+      "date": "2026-10-08",
+      "file": "scratch-gui-standalone.js",
+      "description": "Two webpack runtime publicPath assignments relocated from / to local script directory. Exact transformation is in scripts/build-scratch.cjs."
+    }
+  ],
+  "assetOrigin": "https://assets.scratch.mit.edu",
+  "examples": 6,
+  "originalBundleSha256": "3d578e03630c55c9e6dd73fca330e827447fca8b75c3594fd9e12dd91c6034b0",
+  "bundleSha256": "ec442a3d2a306da80f1a325a58cd2a2ec2e67d58749250c9cbdce7af67d7fff8"
+}

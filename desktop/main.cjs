@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, ipcMain, Menu, session, dialog, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, session, dialog, safeStorage, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL, fileURLToPath } = require('node:url');
@@ -7,6 +7,9 @@ const { createRunner } = require('./runner.cjs');
 const learningPacks = require('./learning-packs.cjs');
 const blockPacks = require('./block-packs.cjs');
 const {createAssistant} = require('./ai-assistant.cjs');
+const {createCodexAssistant} = require('./codex-assistant.cjs');
+const {createMaintenance,releaseURL}=require('./maintenance.cjs');
+const {createGradeService}=require('./program-assessment.cjs');
 
 const smokeTest = process.argv.includes('--smoke-test');
 const rendererRoot = path.resolve(__dirname, '..', 'renderer');
@@ -15,11 +18,12 @@ const entry = path.join(rendererRoot, 'index.html');
 const entryURL = pathToFileURL(entry).href;
 const runtimeRoot = app.isPackaged ? path.join(process.resourcesPath, 'runtimes') : path.resolve(__dirname, '..', 'runtimes');
 const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
-const bundledPackFilename = 'ELDI-EDU-10.5.1-Zbirke-i-rjesenja.zip';
+const bundledPackFilename = 'ELDI-EDU-11.0.0-Zbirke-i-rjesenja.zip';
 const bundledPackPath = path.resolve(__dirname, '..', 'content', 'packs', bundledPackFilename);
-const bundledBlockFilename = 'ELDI-EDU-10.5.1-1000-Blokovskih-projekata.zip';
+const bundledBlockFilename = 'ELDI-EDU-11.0.0-1000-Blokovskih-projekata.zip';
 const bundledBlockPath = path.resolve(__dirname, '..', 'content', 'packs', bundledBlockFilename);
-let mainWindow, assistant;
+let mainWindow, assistant, maintenance;
+const gradeService=createGradeService({runner:createRunner({runtimeRoot,allowSystem:!app.isPackaged})});
 
 app.setName('ELDI EDU');
 // Development and packaged checks must each start with an empty test profile.
@@ -31,7 +35,9 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); } });
   app.whenReady().then(() => {
-    assistant = createAssistant({settingsPath:path.join(app.getPath('userData'),'ai-settings.json'),safeStorage});
+    const codex=createCodexAssistant({homePath:path.join(app.getPath('userData'),'chatgpt-account-v1'),executablePath:path.join(runtimeRoot,'codex',process.platform==='win32'?'codex.exe':'codex'),appVersion:app.getVersion(),openExternal:url=>shell.openExternal(url)});
+    assistant=createAssistant({settingsPath:path.join(app.getPath('userData'),'ai-settings.json'),safeStorage,codexAssistant:codex});
+    maintenance=createMaintenance({directory:path.join(app.getPath('userData'),'backups-v1'),version:app.getVersion()});
     session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
     session.defaultSession.setPermissionCheckHandler(() => false);
     session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
@@ -47,10 +53,11 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 10.5.1 — Blokovski studio i AI asistent', show: !smokeTest,
+      title: 'ELDI EDU 11.0 — Digitalna učionica / Dark Edition', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
+    assistant.subscribe(status=>{if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send('ai-status',status);});
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       { label: 'ELDI EDU', submenu: [{ label: 'Zatvori', role: 'quit' }] },
       { label: 'Uredi', submenu: [{ label: 'Kopiraj', role: 'copy' }, { label: 'Zalijepi', role: 'paste' }, { label: 'Označi sve', role: 'selectAll' }] },
@@ -64,19 +71,31 @@ else {
       if (closeAllowed) return;
       event.preventDefault();
       if (closing) return;
-      closing = true; runner.cancel(); assistant.cancel();
+      closing = true; runner.cancel(); gradeService.cancel(); assistant.cancel();
       const window = mainWindow;
-      window.webContents.executeJavaScript('window.ELDIStorage?.flush()').catch(error => console.error('Čuvanje pri zatvaranju:', error.message)).finally(() => {
+      window.webContents.executeJavaScript('window.ELDIFlushBackup?.() || window.ELDIStorage?.flush()').catch(error => console.error('Čuvanje pri zatvaranju:', error.message)).finally(() => {
         closeAllowed = true;
         if (!window.isDestroyed()) window.close();
       });
     });
-    mainWindow.on('closed', () => { runner.cancel(); assistant.cancel(); mainWindow = null; });
+    mainWindow.on('closed', () => { runner.cancel(); gradeService.cancel(); assistant.dispose(); mainWindow = null; });
     function trusted(event) { if (!mainWindow || event.sender !== mainWindow.webContents || !event.senderFrame || event.senderFrame.url.split('#')[0] !== entryURL) throw new Error('Zahtjev nije iz glavnog prozora.'); }
     ipcMain.handle('eldi:run-code', async (event, request) => { trusted(event); try { return await runner.runCode(request); } catch (error) { return { ok: false, phase: 'validation', stdout: '', stderr: error.message, exitCode: null, timedOut: false, truncated: false, cancelled: false }; } });
     ipcMain.handle('eldi:cancel-run', event => { trusted(event); return runner.cancel(); });
     ipcMain.handle('eldi:runtime-status', event => { trusted(event); return runner.runtimeStatus(); });
-    ipcMain.handle('eldi:ai-status', event => { trusted(event); return assistant.status(); });
+    ipcMain.handle('eldi:ai-status', event => { trusted(event); return assistant.refreshStatus(); });
+    ipcMain.handle('eldi:ai-refresh-status', event=>{trusted(event);return assistant.refreshStatus();});
+    ipcMain.handle('eldi:ai-login', (event,type)=>{trusted(event);return assistant.loginStart(type);});
+    ipcMain.handle('eldi:ai-login-cancel', event=>{trusted(event);return assistant.loginCancel();});
+    ipcMain.handle('eldi:ai-logout', event=>{trusted(event);return assistant.logout();});
+    ipcMain.handle('eldi:program-grade', (event,request)=>{trusted(event);return gradeService.run(request);});
+    ipcMain.handle('eldi:program-grade-cancel', event=>{trusted(event);return gradeService.cancel();});
+    ipcMain.handle('eldi:program-solution', (event,request)=>{trusted(event);return gradeService.solution(request);});
+    ipcMain.handle('eldi:backup-save', (event,value,force)=>{trusted(event);return maintenance.backup(value,{force:force===true});});
+    ipcMain.handle('eldi:backup-list', event=>{trusted(event);return maintenance.list();});
+    ipcMain.handle('eldi:backup-read', (event,id)=>{trusted(event);return maintenance.read(id);});
+    ipcMain.handle('eldi:check-updates', event=>{trusted(event);return maintenance.updates();});
+    ipcMain.handle('eldi:open-release', (event,url)=>{trusted(event);const valid=releaseURL(url);if(!valid)throw Error('Nepodržana adresa preuzimanja.');return shell.openExternal(valid);});
     ipcMain.handle('eldi:ai-save-settings', (event, settings) => { trusted(event); return assistant.saveSettings(settings); });
     ipcMain.handle('eldi:ai-ask', (event, request) => { trusted(event); return assistant.ask(request); });
     ipcMain.handle('eldi:ai-cancel', event => { trusted(event); return assistant.cancel(); });
@@ -122,7 +141,7 @@ else {
     });
     mainWindow.loadFile(entry).catch(error => { console.error(error); if (smokeTest) app.exit(1); });
     if (smokeTest) {
-      const timer = setTimeout(() => { console.error('Desktop smoke test timeout.'); app.exit(1); }, 180000);
+      const timer = setTimeout(() => { console.error('Desktop smoke test timeout.'); app.exit(1); }, 600000);
       mainWindow.webContents.once('did-finish-load', async () => {
         try {
           const result = await runDesktopSmoke(mainWindow);
@@ -135,7 +154,7 @@ else {
   });
 }
 app.on('window-all-closed', () => app.quit());
-app.on('before-quit', () => { runner.cancel(); assistant?.cancel(); });
+app.on('before-quit', () => { runner.cancel();gradeService.cancel();assistant?.dispose(); });
 
 async function runDesktopSmoke(window) {
   window.showInactive();
@@ -360,10 +379,14 @@ async function runDesktopSmoke(window) {
     ensure(state().blockLibrary.results[project.id].attempts===attempts,'Nepodržani ulaz ne smije dodijeliti novi ocijenjeni pokušaj.');
     fill($('blockinput'),project.tests[0].input);await ELDIStorage.flush();
   `);
-  await stage('library overview and unconfigured actual AI integration', `
+  await stage('library overview and actual bundled ChatGPT handshake without sign-in', `
     ELDIBlockStudio.showLibrary();
     const status=await eldiDesktop.aiStatus();
     ensure(!status.configured&&!status.hasKey,'Test počinje bez tuđeg API ključa ili konfiguracije.');
+    ensure(status.provider==='chatgpt'&&status.capabilities.chatgpt,'ChatGPT pretplata mora biti početni način povezivanja.');
+    ensure(status.chatgpt?.available&&!status.chatgpt.signedIn&&!status.chatgpt.error,'Ugrađeni Codex mora proći stvarni stdio handshake bez preuzimanja tuđeg računa.');
+    ensure(status.chatgpt.model==='gpt-6.1-sol'&&status.chatgpt.effort==='ultra','Traženi model i nivo moraju biti vidljivi bez zamjene drugim modelom.');
+    ensure(!JSON.stringify(status).includes('accessToken')&&!JSON.stringify(status).includes('refreshToken'),'ChatGPT status ne smije sadržavati prijavne tokene.');
     ensure(!Object.hasOwn(status,'apiKey'),'AI status ne smije otkriti API ključ.');
     const response=await eldiDesktop.aiAsk({question:'Objasni zbir dva broja.',context:{title:'Provjera bez konfiguracije'},language:'bs',mode:'hint'});
     ensure(response.success===false&&typeof response.error?.message==='string','Nepodešen AI asistent ne smije izmišljati odgovor.');
@@ -418,7 +441,7 @@ async function runDesktopSmoke(window) {
   await stage('encrypted API key storage and renderer secrecy without a live call', `
     const status=await eldiDesktop.aiStatus();
     ensure(status.capabilities.encryptedStorage,'Windows mora ponuditi šifriranu pohranu AI ključa.');
-    const result=await eldiDesktop.aiSaveSettings({provider:'openai',model:status.model,apiKey:'sk-ELDI-SMOKE-DUMMY-NOT-A-REAL-API-KEY',rememberKey:true});
+    const result=await eldiDesktop.aiSaveSettings({provider:'openai',model:'gpt-5.4-mini',apiKey:'sk-ELDI-SMOKE-DUMMY-NOT-A-REAL-API-KEY',rememberKey:true});
     ensure(result.success&&result.status.configured&&result.status.hasKey&&result.status.keyStorage==='encrypted','Testni ključ nije spremljen u Windows šifriranu pohranu.');
     ensure(!JSON.stringify(result).includes('sk-ELDI-SMOKE'),'Odgovor podešavanja otkrio je API ključ.');
     ensure(!JSON.stringify(store).includes('sk-ELDI-SMOKE'),'API ključ ne smije postati dio profila.');
@@ -428,16 +451,24 @@ async function runDesktopSmoke(window) {
   if (aiSettings.includes('sk-ELDI-SMOKE-DUMMY-NOT-A-REAL-API-KEY')) throw new Error('AI ključ je spremljen kao nešifrirani tekst.');
   const reopenedAssistant = createAssistant({settingsPath:aiSettingsPath,safeStorage});
   if (!reopenedAssistant.status().hasKey || !reopenedAssistant.status().configured || reopenedAssistant.status().keyStorage!=='encrypted') throw new Error('Windows šifrirana pohrana nije preživjela ponovno učitavanje AI konfiguracije.');
-  await stage('delete API key and show honest unconfigured AI help', `
+  await stage('delete API key and show ChatGPT subscription sign-in without key wall', `
     const result=await eldiDesktop.aiSaveSettings({provider:'openai',model:(await eldiDesktop.aiStatus()).model,clearKey:true});
     ensure(result.success&&!result.status.hasKey&&!result.status.configured,'Brisanje AI ključa nije uklonilo konfiguraciju.');
+    const selected=await eldiDesktop.aiSaveSettings({provider:'chatgpt',model:'gpt-6.1-sol',effort:'ultra'});
+    ensure(selected.success&&!selected.status.hasKey&&!selected.status.chatgpt.signedIn,'Početna ChatGPT postavka ne smije zahtijevati ili izmišljati prijavu.');
     ELDIAssistant.open({title:'Zbir dva broja u blokovima',statement:'Učitaj dva broja i ispiši njihov zbir.',code:'printOutput(a + b);',language:'javascript'});
-    const deadline=Date.now()+3000;while(!$('ai-provider-badge')?.textContent.includes('nije podešena')&&Date.now()<deadline)await wait(50);
+    const deadline=Date.now()+5000;while(!$('ai-provider-badge')?.textContent.includes('prijavi svoj račun')&&Date.now()<deadline)await wait(50);
     ensure($('ai-dialog')?.open&&$('ai-send').disabled,'Nepodešen AI asistent mora otvoriti podešavanje bez mogućnosti slanja.');
-    ensure($('ai-provider-badge').textContent.includes('nije podešena'),'AI dijalog ne prikazuje jasno da usluga nije podešena.');
+    ensure($('ai-provider-badge').textContent.includes('prijavi svoj račun'),'AI dijalog mora prikazati stvarno stanje ChatGPT prijave.');
+    ensure($('ai-provider').value==='chatgpt'&&!$('ai-chatgpt-fields').hidden&&$('ai-openai-fields').hidden,'Početni prikaz mora ponuditi ChatGPT prijavu bez polja za API ključ.');
+    ensure(!$('ai-login').hidden&&!$('ai-login').disabled&&$('ai-login').textContent.includes('Prijavi se'),'Dugme stvarne ChatGPT prijave mora biti dostupno.');
+    ensure(!$('ai-device-login').hidden&&$('ai-device-login').textContent.includes('kodom'),'Mora postojati opcija službene prijave kodom.');
+    ensure($('ai-chatgpt-model').value==='gpt-6.1-sol'&&$('ai-effort').value==='ultra','Prije prijave se ne smije izmisliti drugi dostupni model.');
     ensure($('ai-key').type==='password'&&$('ai-key').value==='','AI podešavanja ne smiju prikazati sačuvani ključ.');
     ensure($('ai-context-preview').textContent.includes('Zbir dva broja'),'AI kontekst se mora prikazati prije slanja.');
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const loginBox=$('ai-login').getBoundingClientRect(),settingsBox=$('ai-settings').getBoundingClientRect();
+    ensure(loginBox.height>20&&loginBox.top>=settingsBox.top&&loginBox.bottom<=settingsBox.bottom,'ChatGPT prijava mora biti vidljiva bez skrolanja podešavanja.');
     for(const id of ['ai-question','ai-send']){
       const box=$(id).getBoundingClientRect();
       ensure(box.width>50&&box.height>20&&box.top>=0&&box.bottom<=innerHeight+2,'Polje za pitanje i slanje AI asistenta moraju biti vidljivi pri otvaranju: '+id+' '+box.top+'–'+box.bottom+'/'+innerHeight);
@@ -446,7 +477,7 @@ async function runDesktopSmoke(window) {
   await capture('13-ai-assistant-setup');
   await stage('AI context choice and closed dialogue', `
     $('ai-context-include').checked=false;$('ai-context-include').dispatchEvent(new Event('change',{bubbles:true}));
-    ensure($('ai-context-disclosure').textContent.includes('Pitanje'),'Isključen kontekst nije objašnjen prije slanja.');
+    ensure($('ai-context-disclosure').textContent.includes('Pitanje')&&$('ai-context-disclosure').textContent.includes('ChatGPT'),'Isključen kontekst i odredište ChatGPT usluge nisu objašnjeni prije slanja.');
     $('ai-close').click();ensure(!$('ai-dialog').open,'AI dijalog nije zatvoren.');
   `);
   await stage('native Python C C++ Java execution', `
@@ -685,6 +716,9 @@ async function runDesktopSmoke(window) {
     ensure((window.__eldiErrors||[]).length===0,'Greške prikaza: '+JSON.stringify(window.__eldiErrors));
     await ELDIStorage.flush();go('home');
   `);
+  await require('./edition-smoke.cjs').runEditionSmoke({stage,capture,evaluate,window});
+  await require('./program-smoke.cjs').runProgramSmoke({stage,capture,evaluate,window});
+  await require('./scratch-smoke.cjs').runScratchSmoke({stage,capture,evaluate,window});
   await stage('light theme preference stored before reload', `
     $('theme').click();
     ensure(!document.body.classList.contains('dark'),'Ručni izbor svijetle teme nije primijenjen.');

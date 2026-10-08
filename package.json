@@ -1,6 +1,6 @@
 {
   "name": "eldi-edu",
-  "version": "10.5.1",
+  "version": "11.0.0",
   "private": true,
   "description": "ELDI EDU — desktop aplikacija za matematiku i informatiku od 5. do 9. razreda",
   "main": "desktop/main.cjs",
@@ -16,7 +16,10 @@
     "runtime:bundle": "node scripts/build-runtime.cjs",
     "build:win": "electron-builder --win nsis portable --x64 --publish never",
     "smoke": "electron . --smoke-test",
-    "prestart": "node scripts/generate-content.cjs && node scripts/build-learning-pack.cjs && node scripts/build-block-projects.cjs && node scripts/build-block-pack.cjs"
+    "prestart": "node scripts/generate-content.cjs && node scripts/build-learning-pack.cjs && node scripts/build-block-projects.cjs && node scripts/build-block-pack.cjs && node scripts/build-assessment-pack.cjs && node scripts/build-scratch.cjs",
+    "scratch:bundle": "node scripts/build-scratch.cjs",
+    "chatgpt:bundle": "node scripts/build-codex.cjs",
+    "assessments:verify": "node scripts/verify-program-assessments.cjs"
   },
   "devDependencies": {
     "@xmldom/xmldom": "0.9.12",
@@ -36,7 +39,8 @@
       "content/**/*",
       "package.json",
       "README.md",
-      "THIRD_PARTY_NOTICES.md"
+      "THIRD_PARTY_NOTICES.md",
+      "!content/packs/*-Scratch-izvori.zip"
     ],
     "extraResources": [
       {

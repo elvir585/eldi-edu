@@ -1,0 +1,94 @@
+/* Component scoped styles for the digital mathematics notebook. */
+.math-notebook { --mn-grid: color-mix(in srgb,var(--line) 65%,transparent); }
+.math-notebook .mn-hero { display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 28px;margin-bottom:18px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(125deg,var(--paper),var(--accent-soft));position:relative;overflow:hidden; }
+.math-notebook .mn-hero h1 { font-size:clamp(26px,3vw,42px);margin:4px 0 6px; }
+.math-notebook .mn-hero p { margin:0;color:var(--muted); }
+.math-notebook .mn-hero-score { display:grid;text-align:center;min-width:145px;padding:12px;border-radius:16px;background:var(--paper);border:1px solid var(--line); }
+.math-notebook .mn-hero-score strong { font-size:38px;line-height:1.1;color:var(--teal); }
+.math-notebook .mn-hero-score span { color:var(--muted);font-size:11px; }
+.math-notebook .mn-tabs { margin:0 0 16px; }
+.math-notebook .mn-selection { margin-bottom:18px;padding:16px; }
+.math-notebook .mn-selection label { min-width:100px; }
+.math-notebook .mn-selection label:nth-child(2) { flex:1; }
+.math-notebook .mn-selection input { width:95px; }
+.math-notebook .mn-work-grid,.math-notebook .mn-geometry-grid { display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;align-items:start; }
+.math-notebook .mn-pad { min-width:0;padding:22px;background-color:var(--paper);background-image:linear-gradient(transparent calc(100% - 1px),color-mix(in srgb,var(--line) 30%,transparent) 1px);background-size:100% 36px; }
+.math-notebook .mn-pad h2 { margin:12px 0;font-size:21px;line-height:1.5; }
+.math-notebook .mn-source { font:600 22px/1.6 'Consolas','Courier New',monospace;padding:14px 18px;margin:12px 0;background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;overflow-wrap:anywhere; }
+.math-notebook .mn-instruction { font-size:12px;color:var(--muted);margin-bottom:20px; }
+.math-notebook .mn-step { display:grid;grid-template-columns:28px minmax(0,1fr) 30px;gap:9px;margin:10px 0;align-items:start; }
+.math-notebook .mn-step-number { display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:50%;height:27px;margin-top:8px;font-size:12px;font-weight:600;color:var(--muted);background:var(--paper); }
+.math-notebook .mn-step input { width:100%;font:15px/1.5 Consolas,'Courier New',monospace;min-height:44px; }
+.math-notebook .mn-remove { min-height:30px;height:30px;padding:0;margin-top:7px;font-size:20px;color:var(--muted); }
+.math-notebook .mn-feedback { display:block;font-size:11px;line-height:1.55;padding-top:3px; }
+.math-notebook .mn-feedback.error { color:var(--negative); }
+.math-notebook .mn-feedback.success { color:var(--positive); }
+.math-notebook .mn-row-actions { margin:18px 0; }
+.math-notebook .mn-result { display:flex;gap:16px;align-items:center;padding:16px;background:var(--soft);border:1px solid var(--line);border-radius:12px;margin:14px 0; }
+.math-notebook .mn-result>strong { font-size:32px;color:var(--accent);line-height:1.1;white-space:nowrap; }
+.math-notebook .mn-result small { font-size:12px;color:var(--muted); }
+.math-notebook .mn-result b { font-size:12px; }
+.math-notebook .mn-result p { font-size:11px;color:var(--muted);margin:4px 0 0; }
+.math-notebook .mn-complete { border-color:var(--positive); }
+.math-notebook .mn-notes-label { display:grid;margin-top:24px; }
+.math-notebook .mn-notes-label textarea { width:100%;min-height:110px;resize:vertical;margin-top:7px; }
+.math-notebook .mn-limits,.math-notebook .mn-storage-note { font-size:11px;color:var(--muted); }
+.math-notebook .mn-help { display:grid;gap:16px;position:static; }
+.math-notebook .mn-help>.card { padding:18px; }
+.math-notebook .mn-help h3 { margin:4px 0 12px; }
+.math-notebook .mn-help p { color:var(--muted);font-size:11px;line-height:1.65; }
+.math-notebook .mn-help button { display:flex;width:100%;margin:7px 0;font-size:12px; }
+.math-notebook .mn-help ol { padding-left:20px;font-size:12px;overflow-wrap:anywhere; }
+.math-notebook .mn-point-row { display:flex;align-items:center;gap:12px;padding:8px 0; }
+.math-notebook .mn-point-row strong { font-size:26px;color:var(--teal);width:38px;flex-shrink:0; }
+.math-notebook .mn-point-row span { font-size:11px;color:var(--muted); }
+.math-notebook .mn-import-label { font-size:12px;margin:10px 0;display:grid;gap:5px; }
+.math-notebook .mn-import-label input { font-size:10px;width:100%; }
+.math-notebook .mn-history-list { display:grid;gap:8px; }
+.math-notebook .mn-history-row { width:100%;display:flex;justify-content:space-between;gap:15px;padding:14px;text-align:left;background:var(--soft); }
+.math-notebook .mn-history-row span { display:grid;gap:3px; }
+.math-notebook .mn-history-row small { color:var(--muted);font-size:11px; }
+.math-notebook .mn-history-row>strong { color:var(--teal);white-space:nowrap; }
+.math-notebook .mn-drawing { min-width:0;padding:20px; }
+.math-notebook .mn-drawing h2 { font-size:20px;margin:0; }
+.math-notebook .mn-drawing>p { font-size:11px;color:var(--muted); }
+.math-notebook .mn-svg { width:100%;display:block;max-height:430px;border:1px solid var(--line);border-radius:14px;background:var(--soft);margin-top:14px;touch-action:none;overflow:hidden; }
+.math-notebook .mn-shape { fill:color-mix(in srgb,var(--teal) 12%,transparent);stroke:var(--teal);stroke-width:2.5; }
+.math-notebook .mn-dimension-text { fill:var(--ink);font:13px 'Segoe UI',sans-serif; }
+.math-notebook .mn-height { fill:none;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:5 3; }
+.math-notebook .mn-center { fill:var(--accent); }
+.math-notebook .mn-grid-line { stroke:var(--mn-grid);stroke-width:1; }
+.math-notebook .mn-axis { stroke:var(--muted);stroke-width:1.5; }
+.math-notebook .mn-axis-label { fill:var(--muted);font:9px 'Segoe UI',sans-serif; }
+.math-notebook .mn-function { stroke:var(--teal);stroke-width:3; }
+.math-notebook .mn-point { fill:var(--amber);stroke:var(--paper);stroke-width:2;cursor:grab; }
+.math-notebook .mn-point:active { cursor:grabbing; }
+.math-notebook .mn-point-label { fill:var(--ink);font:bold 11px 'Segoe UI',sans-serif;pointer-events:none; }
+.math-notebook .mn-slider-label { display:block;margin:20px 0 16px;font-size:12px; }
+.math-notebook .mn-slider-label output { float:right;font-weight:700;color:var(--teal); }
+.math-notebook .mn-slider-label input { display:block;width:100%;margin-top:9px;padding:0; }
+.math-notebook .mn-measure { display:grid;gap:2px;padding:12px 0;border-top:1px solid var(--line); }
+.math-notebook .mn-measure>span { color:var(--muted);font-size:11px; }
+.math-notebook .mn-measure strong { color:var(--ink);font-size:15px;overflow-wrap:anywhere; }
+.math-notebook .mn-measure small { color:var(--teal);font-size:10px; }
+.math-notebook .mn-coordinate-table { font-family:Consolas,monospace; }
+.math-notebook .mn-add-point { gap:10px; }
+.math-notebook .mn-add-point label { min-width:0;flex:1; }
+.math-notebook .mn-add-point input { width:100%; }
+.math-notebook #mn-point-list { max-height:200px;overflow-y:auto; }
+.math-notebook .mn-point-entry { display:flex;align-items:center;justify-content:space-between;gap:10px;font:12px Consolas,monospace; }
+.math-notebook .mn-point-entry button { width:28px;height:28px;min-height:28px;padding:0; }
+.math-notebook .mn-print-sheet { display:none; }
+@media(max-width:1100px){.math-notebook .mn-work-grid,.math-notebook .mn-geometry-grid{grid-template-columns:minmax(0,1fr) 225px;gap:13px;}.math-notebook .mn-pad{padding:17px;}.math-notebook .mn-help>.card{padding:14px;}.math-notebook .mn-hero{padding:20px;}.math-notebook .mn-hero-score{min-width:120px;}}
+@media(max-width:850px){.math-notebook .mn-work-grid,.math-notebook .mn-geometry-grid{grid-template-columns:minmax(0,1fr);}.math-notebook .mn-help{grid-template-columns:repeat(auto-fit,minmax(205px,1fr));}.math-notebook .mn-hero-score{display:none;}.math-notebook .mn-selection .row{align-items:end;}.math-notebook .mn-selection label:nth-child(2){flex:auto;}}
+@media print{
+  body.printing-notebook{background:white!important;color:black!important;font:12pt/1.5 Georgia,serif;}
+  body.printing-notebook aside,body.printing-notebook header,body.printing-notebook>footer{display:none!important;}
+  body.printing-notebook main,body.printing-notebook section#view{margin:0!important;padding:0!important;}
+  body.printing-notebook .mn-interactive{display:none!important;}
+  body.printing-notebook .mn-print-sheet{display:block!important;color:black!important;}
+  body.printing-notebook .mn-print-sheet h1{font-size:22pt;color:black!important;}
+  body.printing-notebook .mn-print-sheet h2{font-size:16pt;color:black!important;}
+  body.printing-notebook .mn-print-line{line-height:2.1;}
+  body.printing-notebook .mn-print-sheet footer{font-size:9pt;margin-top:25px;}
+}

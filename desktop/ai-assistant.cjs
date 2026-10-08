@@ -9,7 +9,7 @@ const path = require('node:path');
 const ENDPOINTS = Object.freeze({openai:'https://api.openai.com/v1/responses',ollama:'http://127.0.0.1:11434/api/chat'});
 const DEFAULT_MODELS = Object.freeze({openai:'gpt-5.4-mini',ollama:'qwen2.5-coder:7b'});
 const LIMITS = Object.freeze({questionBytes:8*1024,contextBytes:96*1024,historyBytes:48*1024,historyMessages:12,historyMessageBytes:16*1024,responseBytes:1024*1024,textBytes:128*1024,maxOutputTokens:4096,settingsBytes:16*1024});
-const PROVIDERS = Object.keys(ENDPOINTS), LANGUAGES = ['bs','hr','sr','en'], MODES = ['hint','explain','solve','debug'];
+const PROVIDERS = ['chatgpt',...Object.keys(ENDPOINTS)], LANGUAGES = ['bs','hr','sr','en'], MODES = ['hint','explain','solve','debug'];
 const MODEL_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,119}$/;
 const KEY_PATTERN = /^[a-zA-Z0-9_-]{16,512}$/;
 
@@ -137,38 +137,42 @@ function extractResponse(provider,data,key) {
 }
 
 function createAssistant(options={}) {
-  const settingsPath=options.settingsPath,storage=options.safeStorage,fetchImpl=options.fetchImpl||globalThis.fetch;
+  const settingsPath=options.settingsPath,storage=options.safeStorage,fetchImpl=options.fetchImpl||globalThis.fetch,codex=options.codexAssistant;
   if(settingsPath!==undefined&&(typeof settingsPath!=='string'||!path.isAbsolute(settingsPath)))throw new Error('AI settingsPath must be absolute.');
   if(typeof fetchImpl!=='function')throw new Error('AI assistant needs a fetch implementation.');
   const timeoutMs=Math.min(180000,Math.max(10,Number(options.timeoutMs)||90000));
   const responseLimit=Math.min(LIMITS.responseBytes,Math.max(1024,Number(options.maxResponseBytes)||LIMITS.responseBytes));
-  let provider='openai',models={...DEFAULT_MODELS},apiKey='',encryptedKey='',keyStorage='none',settingsError=null,active=null;
+  let provider=codex?'chatgpt':'openai',models={...DEFAULT_MODELS,chatgpt:'gpt-6.1-sol'},effort='ultra',apiKey='',encryptedKey='',keyStorage='none',settingsError=null,active=null;
 
   if(settingsPath&&fs.existsSync(settingsPath)) {
     try {
       if(fs.statSync(settingsPath).size>LIMITS.settingsBytes)throw new Error();
       const saved=JSON.parse(fs.readFileSync(settingsPath,'utf8'));
-      if(!plainObject(saved)||saved.version!==1||!PROVIDERS.includes(saved.provider)||!plainObject(saved.models))throw new Error();
-      const nextModels={openai:validateModel(saved.models.openai),ollama:validateModel(saved.models.ollama)};
+      if(!plainObject(saved)||![1,2].includes(saved.version)||!PROVIDERS.includes(saved.provider)||!plainObject(saved.models))throw new Error();
+      const nextModels={openai:validateModel(saved.models.openai),ollama:validateModel(saved.models.ollama),chatgpt:validateModel(saved.models.chatgpt||'gpt-6.1-sol')};
       if(saved.encryptedKey!==undefined&&(typeof saved.encryptedKey!=='string'||saved.encryptedKey.length>12000||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(saved.encryptedKey)))throw new Error();
-      provider=saved.provider;models=nextModels;encryptedKey=saved.encryptedKey||'';
+      provider=saved.provider;models=nextModels;encryptedKey=saved.encryptedKey||'';effort=validateModel(saved.effort||'ultra');
       if(encryptedKey) {
         if(secureStorageAvailable(storage)){try{apiKey=validateKey(storage.decryptString(Buffer.from(encryptedKey,'base64')));keyStorage='encrypted';}catch{settingsError='Sačuvani API ključ se ne može otključati. Ponovo unesite ključ u AI postavkama.';}}
         else settingsError='Zaštita sačuvanog API ključa nije dostupna. Unesite ključ za ovu sesiju.';
       }
+      if(codex&&saved.version===1&&provider==='openai'&&!apiKey)provider='chatgpt';
     } catch {settingsError='AI postavke se ne mogu pročitati. Ponovo ih sačuvajte u aplikaciji.';}
   }
   function status() {
-    return {provider,model:models[provider],hasKey:Boolean(apiKey),keyStorage,configured:provider==='ollama'||Boolean(apiKey),busy:Boolean(active),capabilities:{openai:true,ollama:true,encryptedStorage:secureStorageAvailable(storage)},error:settingsError};
+    const chatgpt=codex?.status();
+    return {provider,model:models[provider],effort:provider==='chatgpt'?effort:undefined,hasKey:Boolean(apiKey),keyStorage,configured:provider==='chatgpt'?!!chatgpt?.configured:provider==='ollama'||Boolean(apiKey),busy:Boolean(active)||!!chatgpt?.busy,capabilities:{chatgpt:!!codex,openai:true,ollama:true,encryptedStorage:secureStorageAvailable(storage)},chatgpt,error:settingsError||(provider==='chatgpt'?chatgpt?.error:null)};
   }
   function saveSettings(settings) {
-    if(active)return failure('BUSY','Sačekajte odgovor ili zaustavite trenutni AI zahtjev prije izmjene postavki.');
+    if(active||codex?.status().busy)return failure('BUSY','Sačekajte odgovor ili zaustavite trenutni AI zahtjev prije izmjene postavki.');
     try {
-      if(!plainObject(settings)||Object.keys(settings).some(name=>!['provider','model','apiKey','clearKey','rememberKey'].includes(name)))throw new AssistantError('INVALID_SETTINGS','Neispravne AI postavke.');
+      if(!plainObject(settings)||Object.keys(settings).some(name=>!['provider','model','effort','apiKey','clearKey','rememberKey'].includes(name)))throw new AssistantError('INVALID_SETTINGS','Neispravne AI postavke.');
       const nextProvider=settings.provider===undefined?provider:settings.provider;
-      if(!PROVIDERS.includes(nextProvider))throw new AssistantError('INVALID_SETTINGS','Odaberite OpenAI ili lokalnu Ollamu.');
+      if(!PROVIDERS.includes(nextProvider)||(nextProvider==='chatgpt'&&!codex))throw new AssistantError('INVALID_SETTINGS','Odaberite ChatGPT, OpenAI API ili lokalnu Ollamu.');
       for(const flag of ['clearKey','rememberKey'])if(settings[flag]!==undefined&&typeof settings[flag]!=='boolean')throw new AssistantError('INVALID_SETTINGS','Neispravna postavka čuvanja ključa.');
       const nextModels={...models,[nextProvider]:settings.model===undefined?models[nextProvider]:validateModel(settings.model)};
+      const nextEffort=settings.effort===undefined?effort:validateModel(settings.effort);
+      if(nextProvider==='chatgpt') {const selected=codex.configure({model:nextModels.chatgpt,effort:nextEffort},{validateOnly:true});if(!selected.success)return selected;}
       let nextKey=apiKey,nextEncrypted=encryptedKey,nextKeyStorage=keyStorage;
       if(settings.clearKey===true){nextKey='';nextEncrypted='';nextKeyStorage='none';}
       if(settings.apiKey!==undefined&&settings.apiKey!=='') {
@@ -182,10 +186,11 @@ function createAssistant(options={}) {
       }
       if(settingsPath) {
         const tmp=settingsPath+'.'+process.pid+'.tmp';
-        try {fs.mkdirSync(path.dirname(settingsPath),{recursive:true,mode:0o700});fs.writeFileSync(tmp,JSON.stringify({version:1,provider:nextProvider,models:nextModels,...(nextEncrypted?{encryptedKey:nextEncrypted}:{})},null,2)+'\n',{mode:0o600});fs.renameSync(tmp,settingsPath);}
+        try {fs.mkdirSync(path.dirname(settingsPath),{recursive:true,mode:0o700});fs.writeFileSync(tmp,JSON.stringify({version:2,provider:nextProvider,models:nextModels,effort:nextEffort,...(nextEncrypted?{encryptedKey:nextEncrypted}:{})},null,2)+'\n',{mode:0o600});fs.renameSync(tmp,settingsPath);}
         catch {try{fs.unlinkSync(tmp);}catch{}throw new AssistantError('STORAGE','AI postavke se ne mogu sačuvati. Provjerite pristup korisničkoj mapi.');}
       } else if(nextKeyStorage==='encrypted'){nextEncrypted='';nextKeyStorage='session';}
-      provider=nextProvider;models=nextModels;apiKey=nextKey;encryptedKey=nextEncrypted;keyStorage=nextKeyStorage;settingsError=null;
+      provider=nextProvider;models=nextModels;effort=nextEffort;apiKey=nextKey;encryptedKey=nextEncrypted;keyStorage=nextKeyStorage;settingsError=null;
+      if(provider==='chatgpt')codex.configure({model:models.chatgpt,effort});
       return {success:true,status:status()};
     } catch(error){return failure(error instanceof AssistantError?error.code:'INVALID_SETTINGS',error instanceof AssistantError?error.message:'Neispravne AI postavke.');}
   }
@@ -193,6 +198,10 @@ function createAssistant(options={}) {
     if(active)return failure('BUSY','AI već priprema odgovor. Sačekajte ili zaustavite trenutni zahtjev.');
     let request;
     try {request=validateRequest(value);}catch(error){return failure(error instanceof AssistantError?error.code:'INVALID_REQUEST',error instanceof AssistantError?error.message:'Neispravan zahtjev za AI pomoć.');}
+    if(provider==='chatgpt') {
+      if(!codex)return failure('UNCONFIGURED','ChatGPT prijava je dostupna u kompletnom Windows izdanju ELDI EDU 11.');
+      return codex.ask({...request,question:redact(request.question,apiKey),context:redact(request.context,apiKey),history:request.history.map(item=>({...item,content:redact(item.content,apiKey)})),instructions:instructions(request)});
+    }
     if(provider==='openai'&&!apiKey)return failure('UNCONFIGURED','Za OpenAI unesite vlastiti API ključ u AI postavkama ili odaberite lokalnu Ollamu.');
     const selectedProvider=provider,selectedModel=models[provider],selectedKey=apiKey,controller=new AbortController();
     const job={controller,reason:null};active=job;
@@ -218,8 +227,14 @@ function createAssistant(options={}) {
       return failure('NETWORK',selectedProvider==='ollama'?'Lokalni AI servis nije dostupan. Pokrenite Ollamu na ovom računaru i provjerite odabrani model.':'Veza s OpenAI uslugom nije uspjela. Provjerite internet pa pokušajte ponovo.');
     } finally {clearTimeout(timer);controller.signal.removeEventListener('abort',abortListener);if(active===job)active=null;}
   }
-  function cancel() {if(!active)return {success:true,canceled:false};active.reason='CANCELED';active.controller.abort();return {success:true,canceled:true};}
-  return Object.freeze({status,saveSettings,ask,cancel});
+  function cancel() {if(provider==='chatgpt')return codex?.cancel()||{success:true,canceled:false};if(!active)return {success:true,canceled:false};active.reason='CANCELED';active.controller.abort();return {success:true,canceled:true};}
+  codex?.configure({model:models.chatgpt,effort});
+  async function refreshStatus(){if(codex)await codex.refresh();return status();}
+  async function loginStart(type){if(!codex)return failure('UNCONFIGURED','ChatGPT prijava nije dostupna u ovom izdanju.');const saved=saveSettings({provider:'chatgpt'});if(!saved.success)return saved;const result=await codex.loginStart(type);return {...result,status:status()};}
+  async function loginCancel(){if(!codex)return failure('UNCONFIGURED','ChatGPT prijava nije dostupna.');const result=await codex.loginCancel();return {...result,status:status()};}
+  async function logout(){if(!codex)return failure('UNCONFIGURED','ChatGPT prijava nije dostupna.');const result=await codex.logout();return {...result,status:status()};}
+  function subscribe(listener){return codex?.subscribe(()=>listener(status()))||(()=>{});}
+  return Object.freeze({status,refreshStatus,saveSettings,ask,cancel,loginStart,loginCancel,logout,subscribe,dispose:()=>{cancel();codex?.dispose();}});
 }
 
 module.exports={createAssistant,validateRequest,ENDPOINTS,DEFAULT_MODELS,LIMITS};
