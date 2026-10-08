@@ -2,7 +2,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('eldiDesktop', Object.freeze({
-  version: '10.2.1',
+  version: '10.3.0',
   runCode: request => ipcRenderer.invoke('eldi:run-code', request),
   cancelRun: () => ipcRenderer.invoke('eldi:cancel-run'),
   runtimeStatus: () => ipcRenderer.invoke('eldi:runtime-status'),

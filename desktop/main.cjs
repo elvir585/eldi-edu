@@ -35,7 +35,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 10.2.1 — Matematika i informatika', show: !smokeTest,
+      title: 'ELDI EDU 10.3.0 — Dark Edition', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, backgroundThrottling: !smokeTest }
     });
@@ -107,6 +107,10 @@ async function runDesktopSmoke(window) {
     const answer=field=>Array.isArray(field.answer)?field.answer.length?field.answer.join('; '):'nema':String(field.answer);
     const fill=(element,value)=>{ensure(element,'Nedostaje polje za odgovor.');element.value=value;element.dispatchEvent(new Event('input',{bubbles:true}));};
     const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    const rgb=colour=>{const values=String(colour).match(/[\\d.]+/g);ensure(values&&values.length>=3,'Nije prikazana RGB boja: '+colour);return values.slice(0,3).map(Number);};
+    const brightness=colour=>rgb(colour).reduce((sum,value)=>sum+value,0)/3;
+    const luminance=colour=>rgb(colour).map(value=>{value/=255;return value<=0.04045?value/12.92:Math.pow((value+0.055)/1.055,2.4);}).reduce((sum,value,i)=>sum+value*[0.2126,0.7152,0.0722][i],0);
+    const contrast=(foreground,background)=>{const a=luminance(foreground),b=luminance(background);return(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);};
   `;
   const evaluate = code => window.webContents.executeJavaScript(`(async()=>{${helpers}${code}})()`);
   async function stage(name, code) {
@@ -123,6 +127,11 @@ async function runDesktopSmoke(window) {
     const deadline=Date.now()+5000;
     while(!window.__eldiReady&&Date.now()<deadline)await wait(50);
     ensure(window.__eldiReady,'Početni podaci i profil nisu učitani.');
+    ensure(document.body.classList.contains('dark'),'Dark Edition mora se pokrenuti u tamnoj temi.');
+    ensure($('theme').getAttribute('aria-pressed')==='true','Dugme teme mora prikazati aktivnu tamnu temu.');
+    const bodyStyle=getComputedStyle(document.body);
+    ensure(brightness(bodyStyle.backgroundColor)<60,'Pozadina aplikacije nije tamna: '+bodyStyle.backgroundColor);
+    ensure(contrast(bodyStyle.color,bodyStyle.backgroundColor)>=7,'Tekst aplikacije nema dovoljan kontrast u tamnoj temi.');
     for(const key of ['eldiDesktop','EduMath','EduPractice','ELDICollection','ELDIBlocks','ELDICourses','ELDIExams','ELDIAwards','ELDIExamEngine','ELDIStorage'])ensure(window[key],'Nije učitano: '+key);
     ensure(ELDI_MATH_CATALOG.length===500&&ELDI_INFORMATICS_CATALOG.length===500,'Katalog mora imati 500 matematičkih i 500 informatičkih cjelina.');
     ensure(EduPractice.topics.length===500,'Praktična matematika mora imati 500 vještina.');
@@ -207,6 +216,34 @@ async function runDesktopSmoke(window) {
     }
   `);
   await capture('04-blocks');
+  await stage('dark Blockly colors and reversible theme choice', `
+    const workspace=document.querySelector('#blocklyDiv .blocklySvg'),toolbox=document.querySelector('.blocklyToolboxDiv');
+    ensure(workspace&&toolbox,'Nedostaje prikaz Blockly radnog prostora ili kategorija.');
+    ensure(brightness(getComputedStyle(workspace).backgroundColor)<95,'Blokovski radni prostor nije tamno obojen.');
+    ensure(brightness(getComputedStyle(toolbox).backgroundColor)<95,'Kategorije blokova nisu na tamnoj pozadini.');
+    for(const id of ['blocklang','blockinput']){
+      const style=getComputedStyle($(id));
+      ensure(brightness(style.backgroundColor)<110,'Kontrola nije tamna: '+id);
+      ensure(contrast(style.color,style.backgroundColor)>=4.5,'Kontrola nije čitljiva u tamnoj temi: '+id);
+    }
+    await wait(100);await ELDIStorage.flush();
+    window.__themeWorkspaceSnapshot=JSON.stringify(ELDIBlocks.serialize());
+    window.__themeProfileSnapshot=JSON.stringify(store);
+    $('theme').click();await wait(100);
+    ensure(!document.body.classList.contains('dark')&&$('theme').getAttribute('aria-pressed')==='false','Prelazak na svijetlu temu nije uspio.');
+    ensure(brightness(getComputedStyle(workspace).backgroundColor)>150,'Blockly nije prešao na svijetlu temu.');
+    ensure(JSON.stringify(ELDIBlocks.serialize())===window.__themeWorkspaceSnapshot,'Promjena teme izmijenila je složeni blokovski program.');
+    ensure(JSON.stringify(store)===window.__themeProfileSnapshot,'Promjena teme izmijenila je rad učenika.');
+  `);
+  await capture('04-blocks-light');
+  await stage('dark theme restored without changing program', `
+    $('theme').click();await wait(100);
+    ensure(document.body.classList.contains('dark')&&$('theme').getAttribute('aria-pressed')==='true','Povratak na tamnu temu nije uspio.');
+    ensure(brightness(getComputedStyle(document.querySelector('#blocklyDiv .blocklySvg')).backgroundColor)<95,'Blockly nije vratio tamnu pozadinu.');
+    ensure(JSON.stringify(ELDIBlocks.serialize())===window.__themeWorkspaceSnapshot,'Povratak na tamnu temu izmijenio je program.');
+    ensure(JSON.stringify(store)===window.__themeProfileSnapshot,'Povratak na tamnu temu izmijenio je profil.');
+    delete window.__themeWorkspaceSnapshot;delete window.__themeProfileSnapshot;
+  `);
   await stage('profile creation and all mathematics laboratories', `
     go('home');$('new-profile').click();$('profile-name').value='Provjera paketa';$('profile-create').click();
     ensure($('profile').selectedOptions[0].textContent==='Provjera paketa','Kreiranje profila nije uspjelo.');
@@ -249,6 +286,9 @@ async function runDesktopSmoke(window) {
     ensure(document.querySelectorAll('.signature-name').length===4&&document.querySelector('svg.certificate-seal'),'Nedostaju četiri imena autora ili pečat aplikacije.');
     for(const author of ELDIAwards.AUTHORS)ensure($('view').innerText.includes(author),'Diploma nema ime autora: '+author);
     ensure($('view').innerText.includes('50 / 50'),'Diploma ne prikazuje tačne bodove.');
+    ensure(document.body.classList.contains('dark'),'Pregled diplome ne smije promijeniti odabranu temu.');
+    const sheetStyle=getComputedStyle(document.querySelector('.certificate-sheet'));
+    ensure(brightness(sheetStyle.backgroundColor)>220&&contrast(sheetStyle.color,sheetStyle.backgroundColor)>=7,'Diploma mora zadržati čitljiv svijetli papir unutar tamne aplikacije.');
     ensure(typeof eldiDesktop.savePdf==='function','PDF preuzimanje nije dostupno.');
     let rejected=false;try{await eldiDesktop.savePdf('../smoke.pdf');}catch{rejected=true;}ensure(rejected,'PDF naziv s putanjom nije odbijen.');
   `);
@@ -268,6 +308,11 @@ async function runDesktopSmoke(window) {
     ensure((window.__eldiErrors||[]).length===0,'Greške prikaza: '+JSON.stringify(window.__eldiErrors));
     await ELDIStorage.flush();go('home');
   `);
+  await stage('light theme preference stored before reload', `
+    $('theme').click();
+    ensure(!document.body.classList.contains('dark'),'Ručni izbor svijetle teme nije primijenjen.');
+    ensure(localStorage.getItem('eldi-theme-v2')==='light','Ručni izbor teme nije sačuvan.');
+  `);
   const snapshot = 'return JSON.stringify(store);';
   const beforeReload = await evaluate(snapshot);
   await new Promise((resolve, reject) => {
@@ -279,7 +324,13 @@ async function runDesktopSmoke(window) {
     const deadline=Date.now()+5000;while(!window.__eldiReady&&Date.now()<deadline)await wait(50);
     ensure(window.__eldiReady,'Sačuvani profil nije učitan nakon ponovnog otvaranja.');
     ensure($('profile').selectedOptions[0].textContent==='Provjera paketa','Odabrani profil nije sačuvan.');
+    ensure(!document.body.classList.contains('dark')&&$('theme').getAttribute('aria-pressed')==='false','Ručni izbor svijetle teme nije preživio ponovno otvaranje.');
   `);
   if (await evaluate(snapshot) !== beforeReload) throw new Error('Ponovno učitavanje promijenilo je sačuvane profile, odgovore, bilješke, programe ili priznanja.');
-  return { ...initial, worksheet: 50, exams: [50, 10], certificates: 2, screenshotDirectory: output };
+  await stage('dark edition final theme restored', `
+    $('theme').click();
+    ensure(document.body.classList.contains('dark')&&localStorage.getItem('eldi-theme-v2')==='dark','Tamna tema nije sačuvana nakon povratka.');
+    ensure((window.__eldiErrors||[]).length===0,'Greške prikaza nakon promjene teme: '+JSON.stringify(window.__eldiErrors));
+  `);
+  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, screenshotDirectory: output };
 }

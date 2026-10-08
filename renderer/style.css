@@ -30,19 +30,21 @@ body {
 }
 body.dark {
   color-scheme: dark;
-  --bg: #111a2c;
-  --paper: #1a263c;
+  --bg: #0b111c;
+  --paper: #141e2e;
   --ink: #eef3ff;
-  --muted: #b4c0d6;
-  --line: #34415b;
-  --accent: #8ba6ff;
-  --accent-hover: #aac0ff;
-  --accent-soft: #283963;
-  --soft: #202e46;
-  --purple: #352b56;
-  --positive: #71d8b9;
-  --negative: #ff99a7;
-  --shadow: 0 8px 24px #00000018;
+  --muted: #a5b6cf;
+  --line: #2d3d57;
+  --accent: #96b5ff;
+  --accent-hover: #b1c7ff;
+  --accent-soft: #203255;
+  --soft: #19263b;
+  --purple: #312744;
+  --teal: #70d8c7;
+  --amber: #edc36f;
+  --positive: #72d9b5;
+  --negative: #ff9caf;
+  --shadow: 0 8px 24px #00000026;
 }
 button, a { touch-action: manipulation; }
 button {
@@ -74,7 +76,12 @@ button.primary, .primary, button.selected, .selected {
   color: #fff;
   box-shadow: 0 4px 10px #315ce821;
 }
-body.dark button.primary, body.dark .primary, body.dark button.selected { color: #101d39; }
+body.dark button.primary, body.dark .primary, body.dark button.selected, body.dark .selected {
+  border-color: #688bef;
+  background: #3e63ca;
+  color: #fff;
+  box-shadow: 0 4px 12px #07112766;
+}
 button.primary:hover, button.selected:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 button.danger, .danger { color: var(--negative); border-color: #d9a5ae; }
 a { color: var(--accent); text-underline-offset: 3px; }
@@ -534,6 +541,125 @@ body[data-page='blocks'] #view > p { margin: 0 0 14px; font-size: 12px; }
 .signature-name { display: block; color: #254777; font: italic 17px/1.5 Georgia, serif; }
 .certificate-footer { margin: 9px 0 0; padding: 10px 0 0; border-top: 1px solid #d4ddeb; color: #718096; font: 9px/1.6 'Segoe UI', sans-serif; }
 .certificate-actions { margin-bottom: 15px; }
+/* Dark Edition: the workspace, controls and learning pages share one palette.
+   These are screen colors; printed work and certificates keep their paper design. */
+@media screen {
+  body.dark {
+    background: radial-gradient(ellipse at 100% 0, #1a365b38, transparent 48%), var(--bg);
+    background-attachment: fixed;
+    scrollbar-color: #4b607f #101a29;
+  }
+  body.dark ::selection { background: #4565a5; color: #fff; }
+  body.dark > aside {
+    border-right-color: #263750;
+    background: radial-gradient(ellipse at 0 0, #16355066, transparent 55%), linear-gradient(175deg, #0f192a, #0b1422 72%, #0e202b);
+  }
+  body.dark .brand span, body.dark .brand small { color: #a4bee5; }
+  body.dark aside nav button { color: #b6c8e5; }
+  body.dark aside nav button:hover { border-color: #345176; background: #1b2e47; color: #fff; }
+  body.dark aside nav button.active { border-color: #537dce; background: linear-gradient(110deg, #284d94, #1c355e); box-shadow: 0 5px 16px #00000030; }
+  body.dark aside nav button.active::after { background: #8cdded; box-shadow: 0 0 9px #8cdded59; }
+  body.dark .aside-bottom button { border-color: #354c6d; background: #192a42; color: #d9e8ff; }
+  body.dark main > header { border-bottom-color: #27374f; }
+  body.dark button { border-color: #354761; }
+  body.dark button:hover { border-color: #647fa7; background: #21314a; box-shadow: 0 3px 9px #00000021; }
+  body.dark button.primary:hover, body.dark button.selected:hover { border-color: #8aa8ff; background: #486ed4; color: #fff; }
+  body.dark button.danger, body.dark .danger { border-color: #704354; color: var(--negative); }
+  body.dark :is(button, a, input, textarea, select, summary):focus-visible { outline-color: #a0beff; }
+  body.dark input, body.dark select, body.dark textarea { background: #101b2c; border-color: #354761; }
+  body.dark input:hover, body.dark select:hover, body.dark textarea:hover { border-color: #647fa7; }
+  body.dark input:focus, body.dark select:focus, body.dark textarea:focus { border-color: #8eafff; box-shadow: 0 0 0 3px #8eafff1a; }
+  body.dark input::placeholder, body.dark textarea::placeholder { color: #7f94b2; opacity: 1; }
+  body.dark .hero {
+    border-color: #365780;
+    background: radial-gradient(ellipse at 100% 0, #15555d9c, transparent 47%), radial-gradient(ellipse at 35% 110%, #43377b66, transparent 65%), linear-gradient(120deg, #14233f, #172d56 70%, #173642);
+    box-shadow: 0 16px 34px #00000030;
+  }
+  body.dark .hero button { border-color: #647da6; background: #192d4c; color: #e8f2ff; }
+  body.dark .hero button:hover { border-color: #9dbbe3; background: #2b4568; }
+  body.dark .hero button.primary { border-color: #99d7e7; background: #abdcea; color: #102f49; }
+  body.dark .hero button.primary:hover { border-color: #cdf7ff; background: #c2ebf5; }
+  body.dark .card, body.dark .course-card, body.dark .award-card { background: linear-gradient(145deg, #172236, var(--paper) 65%); }
+  body.dark .lesson-card:hover, body.dark .course-card:hover { border-color: #536f9c; box-shadow: 0 9px 24px #00000030; }
+  body.dark[data-page='home'] .grid > .card:nth-child(2)::before { background: #332746; color: #c8a7ff; }
+  body.dark[data-page='home'] .grid > .card:nth-child(3)::before { background: #183c3d; color: #79dcd5; }
+  body.dark[data-page='home'] .grid > .card:nth-child(4)::before { background: #3b301f; color: #edc371; }
+  body.dark .stat { background: linear-gradient(145deg, #19263b, var(--paper)); }
+  body.dark .tools, body.dark .catalog-toolbar, body.dark .exam-controls { background: #141f31; }
+  body.dark .worksheet-options { border-color: #65548d; border-left-color: #a18bd8; }
+  body.dark .notice { border-left-color: #a18bd8; }
+  body.dark .task-fields input { background: #101b2c; }
+  body.dark .working-notes { background: repeating-linear-gradient(#111d2f, #111d2f 27px, #2d3d57 28px); }
+  body.dark .worked-solution, body.dark .result { background: #19263b; }
+  body.dark .good { border-color: #3d7765; background: #173b32; color: #99e3c4; }
+  body.dark .bad { border-color: #855062; background: #3c202e; color: #ffb1c0; }
+  body.dark .progressbar { background: #25354e; }
+  body.dark .progressbar span { background: linear-gradient(90deg, #739af3, #54c3bd); }
+  body.dark .answer:hover { border-color: #6686c2; background: #223555; }
+  body.dark .terminal, body.dark .editor { border-color: #304866; background: #0c1524; color: #d0e5f7; }
+  body.dark .result-panel { border-color: #4b6590; background: #141f31; }
+  body.dark .exam-sticky { background: #172339; box-shadow: 0 -8px 28px #00000040; }
+  body.dark .achievement-badge { border-color: var(--line); background: linear-gradient(160deg, #1c2940, #141e2e 70%); }
+  body.dark .badge-symbol { border-color: #6a548e; color: #c7a8ff; background: #35284b; }
+  body.dark .certificate-preview { border-color: #30425e; background: #0d1624; }
+  body.dark dialog { border-color: #415877; background: #172338; box-shadow: 0 24px 90px #00000080; }
+  body.dark dialog::backdrop { background: #050b16aa; }
+
+  /* The Blockly toolbox keeps the recognizable category colors in darker tones. */
+  body.dark .block-challenge-panel { border-left-color: #ab92e6; }
+  body.dark .block-toolbar { border-color: #304361; background: #152137; box-shadow: 0 4px 16px #00000026; }
+  body.dark .block-toolbar #brun { border-color: #319d80; background: #19644f; color: #effff8; box-shadow: 0 3px 10px #061d1666; }
+  body.dark .block-toolbar #brun:hover { border-color: #62c4a1; background: #22765f; }
+  body.dark .block-toolbar #bpause, body.dark .block-toolbar #bstep { border-color: #766139; background: #3a301f; color: #f1cb82; }
+  body.dark .block-toolbar #bpause:hover, body.dark .block-toolbar #bstep:hover { background: #4b3c25; }
+  body.dark .block-toolbar #bstop { border-color: #774656; background: #3c2330; color: #ffacbf; }
+  body.dark .block-toolbar #bstop:hover { background: #4d2b3b; }
+  body.dark .block-toolbar #bsave { border-color: #4b6493; background: #233756; color: #b4cdff; }
+  body.dark #blocklyDiv { border-color: #344a68; background: #101827; box-shadow: 0 8px 24px #00000030; }
+  body.dark #blocklyDiv .blocklySvg { background: #101827; }
+  body.dark #blocklyDiv .blocklyMainBackground { stroke: #2d405b; }
+  body.dark #blocklyDiv .blocklyToolbox, body.dark #blocklyDiv .blocklyToolboxDiv { border-right-color: #2c405b; background: #141f31; }
+  body.dark #blocklyDiv .blocklyToolboxCategory { border-color: #3b4c67; background: var(--category-fill); box-shadow: 0 2px 6px #00000020; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryLabel, body.dark #blocklyDiv .blocklyTreeLabel { color: #e8eefb; }
+  body.dark #blocklyDiv .blocklyToolboxCategory:hover { filter: brightness(1.16); }
+  body.dark #blocklyDiv .blocklyToolboxCategory.blocklyToolboxSelected { background: var(--category-fill) !important; box-shadow: inset 0 0 0 1px var(--category-line), 0 2px 8px #00000035; filter: brightness(1.18); }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(1) { --category-line: #57cbbc; --category-fill: #163b3b; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(2) { --category-line: #97aeff; --category-fill: #202c50; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(3) { --category-line: #75c6ef; --category-fill: #173749; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(4) { --category-line: #8bce91; --category-fill: #203b2d; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(5) { --category-line: #78d9bd; --category-fill: #173c36; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(6) { --category-line: #b69bec; --category-fill: #2f2948; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(7) { --category-line: #e79ccf; --category-fill: #40283b; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(8) { --category-line: #c39eeb; --category-fill: #332846; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(9) { --category-line: #84bcf2; --category-fill: #1e3351; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(10) { --category-line: #7ed4ae; --category-fill: #173c31; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(11) { --category-line: #c4a7ef; --category-fill: #302644; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(12) { --category-line: #eec274; --category-fill: #3a3020; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(13) { --category-line: #7bd5dc; --category-fill: #183a40; }
+  body.dark #blocklyDiv .blocklyToolboxCategoryContainer:nth-child(14) { --category-line: #d4a2ed; --category-fill: #3c2a47; }
+  body.dark #blocklyDiv .blocklyTreeRow { border-color: #3b4c67; background: #1c2c43; }
+  body.dark #blocklyDiv .blocklyTreeRow:hover { background: #2b3e5c; }
+  body.dark #blocklyDiv .blocklyTreeRow.blocklyTreeSelected { border-color: #799ad2; background: #2c456b !important; }
+  body.dark #blocklyDiv .blocklyFlyoutBackground { fill: #19263a; fill-opacity: 1; }
+  body.dark #blocklyDiv .blocklyScrollbarHandle { fill: #576d8b; }
+  body.dark #blocklyDiv .blocklyScrollbarHandle:hover { fill: #8da6ca; }
+  body.dark #blocklyDiv .blocklyZoom { opacity: .94; }
+  body.dark #blocklyDiv .blocklyZoom image, body.dark #blocklyDiv .blocklyTrash image { filter: invert(.88) hue-rotate(180deg); }
+  body.dark .block-side > div { border-color: #304361; background: #141f31; }
+  body.dark .block-side h3 { color: #a7bddb; }
+  body.dark .stage { border-color: #344a68; background: #101827; }
+  body.dark .block-trace { background: #1b2b41; color: #c2d4ed; }
+  body.dark .block-code-panel .result { border-color: #304866; background: #0c1524; color: #c1d9ff; }
+  body.dark .block-notebook textarea { border-color: #3c5070; background: #101b2c; }
+  body.dark .block input { color: var(--ink); }
+  body.dark .blocklyTooltipDiv { border-color: #4a6386; border-radius: 6px; padding: 7px 9px; background: #19263a; color: #e8eefb; box-shadow: 0 5px 20px #00000059; opacity: 1; }
+  body.dark .blocklyDropDownDiv, body.dark .blocklyWidgetDiv .blocklyMenu { border-color: #49617f !important; border-radius: 7px; background: #19263a !important; color: #e8eefb; box-shadow: 0 7px 25px #00000066; }
+  body.dark .blocklyDropDownDiv .blocklyMenu { border-color: transparent; }
+  body.dark .blocklyMenuItem { color: #e8eefb; }
+  body.dark .blocklyMenuItemDisabled { color: #8494ae; }
+  body.dark .blocklyMenuItemHighlight, body.dark .blocklyMenuItemSelected { background-color: #2b4162; }
+  body.dark .blocklyWidgetDiv input.blocklyHtmlInput { min-height: 0; width: 100%; border: 1px solid #92b3ff; color: #eef3ff; background: #16253e; box-shadow: 0 0 0 2px #92b3ff30; }
+}
 @media (min-width: 1600px) {
   main { padding-right: 48px; padding-left: 48px; }
   .hero { padding: 42px 45px; }
@@ -696,7 +822,24 @@ body[data-page='blocks'] #blockcheck:empty { display: none; }
   body.printing-exam .exam-question details {display:block;}
   body.printing-exam .exam-question details > :not(summary) {display:block;}
 
-  body { color-scheme: light; }
+  body, body.dark {
+    color-scheme: light;
+    --bg: #fff;
+    --paper: #fff;
+    --ink: #192740;
+    --muted: #54637b;
+    --line: #d4ddeb;
+    --accent: #315ce8;
+    --accent-hover: #2349c7;
+    --accent-soft: #e9efff;
+    --soft: #f2f5fa;
+    --purple: #eee9ff;
+    --teal: #007e87;
+    --amber: #c58716;
+    --positive: #087b5e;
+    --negative: #b33143;
+    --shadow: none;
+  }
   .screen-only { display: none !important; }
   .print-only { display: block; }
   body.printing-worksheet { margin: 0; background: white; color: black; font: 12pt/1.5 serif; }

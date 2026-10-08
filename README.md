@@ -1,4 +1,4 @@
-# ELDI EDU 10.2.1 — 1000 tematskih cjelina, zadaci i postignuća
+# ELDI EDU 10.3.0 — Dark Edition
 
 **Matematika i informatika od 5. do 9. razreda kao Windows aplikacija koja radi bez interneta.**
 
@@ -8,8 +8,8 @@ Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanovi�
 
 Otvorite **[najnovije izdanje](https://github.com/elvir585/eldi-edu/releases/latest)**:
 
-- `ELDI-EDU-10.2.1-Portable-x64.exe` — direktno pokretanje bez instalacije.
-- `ELDI-EDU-10.2.1-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
+- `ELDI-EDU-10.3.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
+- `ELDI-EDU-10.3.0-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
 
 Windows 10/11 x64. Paket uključuje nastavni sadržaj, Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za učenje i izvršavanje programa. [GitHub Actions](https://github.com/elvir585/eldi-edu/actions/workflows/build-windows.yml) provjerava i gradi obje EXE datoteke prije objave.
 
@@ -42,9 +42,11 @@ Svaki potpuno tačan zadatak nosi jedan bod. Pomoć i rješenja otvaraju se nako
 
 **16 znački** osvajaju se kroz riješene zadatke, blokovske izazove, programerske testove i provjere. Za prolaznu ocjenu izdaje se diploma, a za ostale rezultate potvrda učešća. Dokument ima ime učenika, predmet, razred, broj zadataka, rezultat, ocjenu, datum, jedinstvenu oznaku, pečat ELDI EDU i stilizovana štampana imena sva četiri autora. Dostupni su pregled, štampanje i čuvanje kao **PDF**. To je potvrda rezultata u aplikaciji, a ne službena školska diploma ili ovjerena ocjena.
 
-## Osvježen blokovski studio
+## Dark Edition i blokovski studio
 
-Nova tamnoplava/kobaltna navigacija, lokalni ELDI znak i ikona aplikacije, kartice gradiva, veliki prikaz ocjene, značke i diplome zamjenjuju prethodni izgled. Blockly ima šarene kategorije lijevo, radnu površinu u sredini i pozornicu, trag vrijednosti, ulaz, konzolu i kod uživo desno.
+Verzija 10.3.0 uvodi tamni izgled cijele aplikacije: duboku tamnoplavu podlogu, čitljive kartice i kontrole, obojene kategorije blokova, tamnu radnu površinu, kod i konzolu. Pozornica koristi tamnu podlogu dok program ne postavi vlastitu boju. Lokalni ELDI znak, ikona, ocjene i značke prate isti izgled. Diplome i radni listovi zadržavaju svijetlu podlogu za štampanje.
+
+Dark Edition se pri prvom pokretanju nadogradnje otvara u tamnoj temi. Dugme „Svijetla tema“ omogućava promjenu; odabir ostaje sačuvan nakon ponovnog pokretanja. Promjena teme ne briše blokove, crtež ili profil. Blockly ima kategorije lijevo, radnu površinu u sredini i pozornicu, trag vrijednosti, ulaz, konzolu i kod uživo desno; raspored ostaje upotrebljiv i na manjim Windows ekranima.
 
 Studio ima **60 provjerljivih izazova**, 12 po razredu, s početnim blokovima, pomoći, riješenim primjerom i provjerom stvarnog izlaza ili geometrije. Podržava ulaz/izlaz, brojeve, logiku, petlje, tekst, liste, varijable i postupke; likove, koordinate, olovku, boje, crtanje, događaje, poruke, klonove i tonove. Standardni ulaz piše se red po red. Kod uživo prikazuje JavaScript ili Python; konzolni Python i uneseni podaci mogu se otvoriti u tekstualnom editoru.
 
@@ -65,3 +67,7 @@ Tekstualni programi rade s pravima Windows korisnika; koristite svoje i provjere
 Node.js 24 ili noviji: `npm ci`, `npm run check`, `npm start`. Sadržaj za renderer generiše se iz verzionisanih JSON kataloga prilikom provjere i prije pokretanja.
 
 Provjere uključuju strukturu svih 1000 cjelina, primjere, matematičko generisanje, tačnost odgovora, sve brojeve zadataka od 1 do 50, granice ocjena, rezultate, diplome i uvoz profila. Blockly testovi stvarno generišu i interpretiraju rješenja izazova. Windows Actions ugrađuje sva četiri jezička alata, provjerava njihov stvarni rad, pokreće desktop i zapakovanu aplikaciju, provjerava korisničke tokove i PDF diplome te objavljuje Portable i Setup EXE uz `SHA256SUMS.txt`.
+
+## Naredno proširenje
+
+Planirani su ZIP paket sa 1000 riješenih blokovskih projekata za različite teme, jednostavan uvoz i dugme „Pitaj AI asistenta“ za objašnjenja i rješenja. To proširenje **nije uključeno u izdanje 10.3.0**. Trenutno je dostupno 60 blokovskih izazova s riješenim primjerima i uvoz pojedinačnih JSON projekata. Pravi AI asistent zahtijeva zasebnu integraciju; postojeća pomoć u zadacima nije AI usluga.

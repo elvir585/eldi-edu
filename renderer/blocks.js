@@ -2,9 +2,51 @@
 window.ELDIBlocks = (() => {
   const JS = javascript.javascriptGenerator, PY = python.pythonGenerator;
   let workspace=null,worker=null,onSave=()=>{},onRun=()=>{},challenge=null;
-  let sprites=[],current=0,trail=[],background='#fffef9',actionQueue=[],allActions=[],finalResult=null;
+  let sprites=[],current=0,trail=[],background=null,actionQueue=[],allActions=[],finalResult=null;
   let runningTimer=null,animTimer=null,paused=false,runResolve=null,audio=null,speed=25;
   const keys=new Set(),mouse={x:0,y:0},$=id=>document.getElementById(id);
+  const palettes={
+    dark:{workspace:'#101827',toolbox:'#141f31',flyout:'#19263a',foreground:'#e8eefb',grid:'#2b3b54',scrollbar:'#516582',stage:'#101827',stageGrid:'#24344c'},
+    light:{workspace:'#f7f9fe',toolbox:'#f0f4fa',flyout:'#e9eef8',foreground:'#22314d',grid:'#cbd5e7',scrollbar:'#99aac7',stage:'#fffef9',stageGrid:'#e5e8dd'}
+  };
+  let themeName='light';
+  const customStyles={210:'edu_motion_blocks',170:'edu_io_blocks',160:'edu_pen_blocks',280:'edu_looks_blocks',45:'edu_event_blocks',190:'edu_sensor_blocks',300:'edu_sound_blocks'};
+  const themes={};
+  const darkColours={
+    math_blocks:'#3e56b5',logic_blocks:'#38699a',loop_blocks:'#267057',text_blocks:'#236f71',list_blocks:'#6350a4',
+    variable_blocks:'#9a3b72',variable_dynamic_blocks:'#8d459c',procedure_blocks:'#7544a9',hat_blocks:'#9a3b72',colour_blocks:'#91602b',
+    edu_motion_blocks:'#316ca8',edu_io_blocks:'#207b6e',edu_pen_blocks:'#267c80',edu_looks_blocks:'#7954a9',
+    edu_event_blocks:'#906021',edu_sensor_blocks:'#26667c',edu_sound_blocks:'#8a439a'
+  };
+  const categoryStyles={
+    edu_io_category:'edu_io_blocks',edu_motion_category:'edu_motion_blocks',edu_pen_category:'edu_pen_blocks',
+    edu_looks_category:'edu_looks_blocks',edu_event_category:'edu_event_blocks',edu_sensor_category:'edu_sensor_blocks',edu_sound_category:'edu_sound_blocks',
+    math_category:'math_blocks',logic_category:'logic_blocks',loop_category:'loop_blocks',text_category:'text_blocks',
+    list_category:'list_blocks',variable_category:'variable_blocks',procedure_category:'procedure_blocks'
+  };
+  for(const name of ['light','dark']){
+    const palette=palettes[name],blockStyles={};
+    for(const [hue,style] of Object.entries(customStyles))blockStyles[style]={colourPrimary:name==='dark'?darkColours[style]:hue};
+    if(name==='dark')for(const [style,colour] of Object.entries(darkColours))blockStyles[style]={colourPrimary:colour};
+    const themedCategories={};
+    for(const [category,style] of Object.entries(categoryStyles))themedCategories[category]={colour:blockStyles[style]?.colourPrimary||Blockly.Themes.Classic.blockStyles[style].colourPrimary};
+    themes[name]=Blockly.Theme.defineTheme('eldi_'+name,{
+      base:Blockly.Themes.Classic,blockStyles,categoryStyles:themedCategories,
+      componentStyles:{workspaceBackgroundColour:palette.workspace,toolboxBackgroundColour:palette.toolbox,toolboxForegroundColour:palette.foreground,
+        flyoutBackgroundColour:palette.flyout,flyoutForegroundColour:palette.foreground,flyoutOpacity:1,scrollbarColour:palette.scrollbar,
+        scrollbarOpacity:.65,insertionMarkerColour:name==='dark'?'#a7c2ff':'#315ce8',insertionMarkerOpacity:.45,cursorColour:name==='dark'?'#a7c2ff':'#315ce8'},
+      fontStyle:{family:'Segoe UI, system-ui, sans-serif',weight:'500',size:11}
+    });
+  }
+  function setTheme(name){
+    themeName=name==='light'?'light':'dark';
+    workspace?.setTheme?.(themes[themeName]);
+    const palette=palettes[themeName],patternId=workspace?.getGrid?.()?.getPatternId?.();
+    if(workspace?.options?.gridOptions)workspace.options.gridOptions.colour=palette.grid;
+    if(patternId)for(const line of workspace.getParentSvg?.()?.querySelectorAll?.(`#${patternId} line`)||[])line.setAttribute('stroke',palette.grid);
+    stage();
+    return themeName;
+  }
   const num=(value=10)=>({block:{type:'math_number',fields:{NUM:value}}}),text=value=>({block:{type:'text',fields:{TEXT:value}}});
   const statement=(type,message,args,colour=210)=>({type,message0:message,args0:args,previousStatement:null,nextStatement:null,colour});
   const input=(name,check)=>({type:'input_value',name,...(check?{check}:{})});
@@ -36,6 +78,7 @@ window.ELDIBlocks = (() => {
     reporter('edu_distance','rastojanje do lika %1',[input('S','Number')],'Number'),
     statement('edu_tone','zvuk • frekvencija %1 Hz • trajanje %2 s',[input('FREQ','Number'),input('DURATION','Number')],300)
   ];
+  for(const definition of defs){definition.style=customStyles[definition.colour];delete definition.colour;}
   Blockly.defineBlocksWithJsonArray(defs);
   const value=(generator,block,name,fallback='0')=>generator.valueToCode(block,name,generator.ORDER_NONE)||fallback;
   for(const generator of [JS,PY]) {
@@ -65,29 +108,32 @@ window.ELDIBlocks = (() => {
     };
   }
   const entries=(...types)=>types.map(type=>({kind:'block',type}));
-  const category=(name,colour,contents)=>({kind:'category',name,colour,contents});
+  const category=(name,categorystyle,contents)=>({kind:'category',name,categorystyle,contents});
   const toolbox={kind:'categoryToolbox',contents:[
-    category('Ulaz / izlaz',170,[{kind:'block',type:'edu_print',inputs:{TEXT:text('Zdravo!')}},{kind:'block',type:'edu_input',inputs:{PROMPT:text('Ime?')}},{kind:'block',type:'edu_number_input',inputs:{PROMPT:text('Broj?')}},...entries('text_print','text_prompt_ext')]),
-    category('Matematika',230,entries('math_number','math_arithmetic','math_single','math_trig','math_constant','math_number_property','math_round','math_on_list','math_modulo','math_constrain','math_random_int','math_random_float','math_atan2')),
-    category('Logika i uslovi',210,entries('controls_if','logic_compare','logic_operation','logic_negate','logic_boolean','logic_null','logic_ternary')),
-    category('Petlje',120,entries('controls_repeat_ext','controls_whileUntil','controls_for','controls_forEach','controls_flow_statements')),
-    category('Tekst',160,entries('text','text_join','text_append','text_length','text_isEmpty','text_indexOf','text_charAt','text_getSubstring','text_changeCase','text_trim','text_count','text_replace','text_reverse')),
-    category('Liste',260,entries('lists_create_with','lists_repeat','lists_length','lists_isEmpty','lists_indexOf','lists_getIndex','lists_setIndex','lists_getSublist','lists_split','lists_sort','lists_reverse')),
-    {kind:'category',name:'Varijable',custom:'VARIABLE',colour:330},
-    {kind:'category',name:'Funkcije i postupci',custom:'PROCEDURE',colour:290},
-    category('Kretanje',210,[{kind:'block',type:'edu_move',inputs:{N:num(40)}},{kind:'block',type:'edu_turn',inputs:{N:num(90)}},{kind:'block',type:'edu_goto',inputs:{X:num(0),Y:num(0)}}]),
-    category('Olovka i oblici',160,[...entries('edu_pen'),{kind:'block',type:'edu_color',inputs:{COLOR:text('#7257c9')}},{kind:'block',type:'edu_width',inputs:{N:num(3)}},{kind:'block',type:'edu_background',inputs:{COLOR:text('#fffef9')}},{kind:'block',type:'edu_circle',inputs:{R:num(40)}},{kind:'block',type:'edu_rectangle',inputs:{W:num(80),H:num(50)}},...entries('edu_clear')]),
-    category('Likovi i izgled',280,[{kind:'block',type:'edu_say',inputs:{TEXT:text('Zdravo!')}},...entries('edu_sprite','edu_visible','edu_clone')]),
-    category('Događaji i vrijeme',45,[{kind:'block',type:'edu_wait',inputs:{N:num(1)}},{kind:'block',type:'edu_message',inputs:{TEXT:text('start')}},...entries('edu_received')]),
-    category('Senzori',190,entries('edu_key','edu_x','edu_y','edu_heading','edu_mouse_x','edu_mouse_y','edu_edge','edu_distance')),
-    category('Zvuk',300,[{kind:'block',type:'edu_tone',inputs:{FREQ:num(440),DURATION:num(.2)}}])
+    category('Ulaz / izlaz','edu_io_category',[{kind:'block',type:'edu_print',inputs:{TEXT:text('Zdravo!')}},{kind:'block',type:'edu_input',inputs:{PROMPT:text('Ime?')}},{kind:'block',type:'edu_number_input',inputs:{PROMPT:text('Broj?')}},...entries('text_print','text_prompt_ext')]),
+    category('Matematika','math_category',entries('math_number','math_arithmetic','math_single','math_trig','math_constant','math_number_property','math_round','math_on_list','math_modulo','math_constrain','math_random_int','math_random_float','math_atan2')),
+    category('Logika i uslovi','logic_category',entries('controls_if','logic_compare','logic_operation','logic_negate','logic_boolean','logic_null','logic_ternary')),
+    category('Petlje','loop_category',entries('controls_repeat_ext','controls_whileUntil','controls_for','controls_forEach','controls_flow_statements')),
+    category('Tekst','text_category',entries('text','text_join','text_append','text_length','text_isEmpty','text_indexOf','text_charAt','text_getSubstring','text_changeCase','text_trim','text_count','text_replace','text_reverse')),
+    category('Liste','list_category',entries('lists_create_with','lists_repeat','lists_length','lists_isEmpty','lists_indexOf','lists_getIndex','lists_setIndex','lists_getSublist','lists_split','lists_sort','lists_reverse')),
+    {kind:'category',name:'Varijable',custom:'VARIABLE',categorystyle:'variable_category'},
+    {kind:'category',name:'Funkcije i postupci',custom:'PROCEDURE',categorystyle:'procedure_category'},
+    category('Kretanje','edu_motion_category',[{kind:'block',type:'edu_move',inputs:{N:num(40)}},{kind:'block',type:'edu_turn',inputs:{N:num(90)}},{kind:'block',type:'edu_goto',inputs:{X:num(0),Y:num(0)}}]),
+    category('Olovka i oblici','edu_pen_category',[...entries('edu_pen'),{kind:'block',type:'edu_color',inputs:{COLOR:text('#7257c9')}},{kind:'block',type:'edu_width',inputs:{N:num(3)}},{kind:'block',type:'edu_background',inputs:{COLOR:text('#fffef9')}},{kind:'block',type:'edu_circle',inputs:{R:num(40)}},{kind:'block',type:'edu_rectangle',inputs:{W:num(80),H:num(50)}},...entries('edu_clear')]),
+    category('Likovi i izgled','edu_looks_category',[{kind:'block',type:'edu_say',inputs:{TEXT:text('Zdravo!')}},...entries('edu_sprite','edu_visible','edu_clone')]),
+    category('Događaji i vrijeme','edu_event_category',[{kind:'block',type:'edu_wait',inputs:{N:num(1)}},{kind:'block',type:'edu_message',inputs:{TEXT:text('start')}},...entries('edu_received')]),
+    category('Senzori','edu_sensor_category',entries('edu_key','edu_x','edu_y','edu_heading','edu_mouse_x','edu_mouse_y','edu_edge','edu_distance')),
+    category('Zvuk','edu_sound_category',[{kind:'block',type:'edu_tone',inputs:{FREQ:num(440),DURATION:num(.2)}}])
   ]};
   const keydown=event=>keys.add(event.key),keyup=event=>keys.delete(event.key);
   const mousemove=event=>{const c=$('stage');if(!c)return;const rect=c.getBoundingClientRect();mouse.x=(event.clientX-rect.left)*480/rect.width-240;mouse.y=180-(event.clientY-rect.top)*360/rect.height;};
-  function reset(){sprites=[{x:0,y:0,angle:0,color:'#8870c5',width:2,pen:true,visible:true},{x:-120,y:0,angle:0,color:'#829e3e',width:2,pen:true,visible:true},{x:120,y:0,angle:0,color:'#de8b5d',width:2,pen:true,visible:true}];current=0;trail=[];background='#fffef9';stage();}
+  function reset(){sprites=[{x:0,y:0,angle:0,color:'#8870c5',width:2,pen:true,visible:true},{x:-120,y:0,angle:0,color:'#829e3e',width:2,pen:true,visible:true},{x:120,y:0,angle:0,color:'#de8b5d',width:2,pen:true,visible:true}];current=0;trail=[];background=null;stage();}
   function stage(){
     const context=$('stage')?.getContext('2d');if(!context)return;
-    context.fillStyle=background;context.fillRect(0,0,480,360);context.strokeStyle='#e5e8dd';context.lineWidth=1;context.beginPath();
+    const palette=palettes[themeName],fill=background??palette.stage;
+    const hex=/^#([\da-f]{3}|[\da-f]{6})$/i.exec(fill),rgb=hex?hex[1].length===3?hex[1].split('').map(digit=>parseInt(digit+digit,16)):[0,2,4].map(offset=>parseInt(hex[1].slice(offset,offset+2),16)):null;
+    const darkFill=rgb?(.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2])<110:themeName==='dark';
+    context.fillStyle=fill;context.fillRect(0,0,480,360);context.strokeStyle=darkFill?palettes.dark.stageGrid:palettes.light.stageGrid;context.lineWidth=1;context.beginPath();
     for(let x=0;x<480;x+=20){context.moveTo(x,0);context.lineTo(x,360);}for(let y=0;y<360;y+=20){context.moveTo(0,y);context.lineTo(480,y);}context.stroke();
     for(const line of trail){context.strokeStyle=line.color;context.lineWidth=line.width||2;context.beginPath();if(line.kind==='circle'){context.arc(240+line.x,180-line.y,line.r,0,2*Math.PI);}else if(line.kind==='rectangle'){context.save();context.translate(240+line.x,180-line.y);context.rotate(line.angle*Math.PI/180);context.rect(0,0,line.w,line.h);context.stroke();context.restore();continue;}else{context.moveTo(240+line.x1,180-line.y1);context.lineTo(240+line.x2,180-line.y2);}context.stroke();}
     sprites.forEach((s,index)=>{if(!s.visible)return;context.save();context.translate(240+s.x,180-s.y);context.rotate(s.angle*Math.PI/180);context.fillStyle=s.color;context.beginPath();context.moveTo(12,0);context.lineTo(-8,-8);context.lineTo(-8,8);context.closePath();context.fill();context.restore();context.fillStyle=s.color;context.font='12px system-ui';context.fillText(String(index+1),250+s.x,170-s.y);});
@@ -176,11 +222,11 @@ window.ELDIBlocks = (() => {
     load({format:'ELDI-BLOCKS-1',workspace:type==='square'?square:count});
   }
   return {
-    init(options={}){onSave=options.onSave||(()=>{});onRun=options.onRun||(()=>{});document.addEventListener('keydown',keydown);document.addEventListener('keyup',keyup);$('stage')?.addEventListener?.('mousemove',mousemove);workspace=Blockly.inject('blocklyDiv',{toolbox,media:'vendor/media/',trashcan:true,scrollbars:true,zoom:{controls:true,wheel:true,startScale:.8},grid:{spacing:20,length:2,colour:'#cbd5e7',snap:true}});workspace.addChangeListener(update);reset();if(options.initial)try{load(options.initial);}catch(error){workspace.clear();if($('blockout'))$('blockout').textContent='Prethodni projekat nije učitan: '+error.message;}update();},
+    init(options={}){onSave=options.onSave||(()=>{});onRun=options.onRun||(()=>{});themeName=document.body?.classList?.contains('dark')?'dark':'light';document.addEventListener('keydown',keydown);document.addEventListener('keyup',keyup);$('stage')?.addEventListener?.('mousemove',mousemove);workspace=Blockly.inject('blocklyDiv',{toolbox,theme:themes[themeName],media:'vendor/media/',trashcan:true,scrollbars:true,zoom:{controls:true,wheel:true,startScale:.8},grid:{spacing:20,length:2,colour:palettes[themeName].grid,snap:true}});workspace.addChangeListener(update);reset();if(options.initial)try{load(options.initial);}catch(error){workspace.clear();if($('blockout'))$('blockout').textContent='Prethodni projekat nije učitan: '+error.message;}update();},
     destroy(){stop();document.removeEventListener('keydown',keydown);document.removeEventListener('keyup',keyup);$('stage')?.removeEventListener?.('mousemove',mousemove);keys.clear();workspace?.dispose();workspace=null;audio?.close?.();audio=null;challenge=null;},
-    run,stop,pause,resume,step,load,serialize,update,code,example,matchCheck,
+    run,stop,pause,resume,step,load,serialize,update,code,example,matchCheck,setTheme,
     setChallenge(value){challenge=value||null;if($('blockcheck'))$('blockcheck').textContent='';},
     clear(){stop();workspace.clear();update();},select(index){current=Math.max(0,Math.min(sprites.length-1,Math.trunc(Number(index)||0)));stage();},
-    getToolbox(){return toolbox;},getState(){return {paused,running:!!worker||!!finalResult||actionQueue.length>0,queue:actionQueue.length};}
+    getToolbox(){return toolbox;},getTheme(){return themeName;},getState(){return {paused,running:!!worker||!!finalResult||actionQueue.length>0,queue:actionQueue.length};}
   };
 })();

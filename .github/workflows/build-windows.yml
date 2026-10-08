@@ -81,7 +81,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-10.2.1-Visual-QA
+          name: ELDI-EDU-10.3.0-Visual-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
@@ -100,19 +100,23 @@ jobs:
       - name: Objavi izdanje na GitHubu
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.2.1' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.3.0' }}
           target_commitish: ${{ github.sha }}
-          name: ELDI EDU 10.2.1 — Windows (build ${{ github.run_number }})
+          name: ELDI EDU 10.3.0 — Dark Edition (Windows, build ${{ github.run_number }})
           body: |
-            Preuzmite **ELDI-EDU-10.2.1-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.2.1-Setup-x64.exe** za instalaciju.
+            Preuzmite **ELDI-EDU-10.3.0-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.3.0-Setup-x64.exe** za instalaciju.
 
-            Novo grafičko okruženje, 500 matematičkih i 500 informatičkih tematskih cjelina i vještina s objašnjenjima, primjerima i praktičnim zadacima. Matematička zbirka omogućava 100.000 indeksiranih generisanja (500 vještina × 200 indeksa); indeksi ne znače 100.000 sadržajno različitih zadataka.
+            **Dark Edition** donosi tamnije pozadine, jasnije boje kategorija blokova i usklađen izgled radnog prostora, pozornice, konzole i prikaza koda. Tamna tema je početni izbor ovog izdanja; dugme teme omogućava prelazak na svijetli izgled bez promjene složenog programa ili rada učenika.
+
+            500 matematičkih i 500 informatičkih tematskih cjelina i vještina s objašnjenjima, primjerima i praktičnim zadacima. Matematička zbirka omogućava 100.000 indeksiranih generisanja (500 vještina × 200 indeksa); indeksi ne znače 100.000 sadržajno različitih zadataka.
 
             Radni listovi i provjere do 50 zadataka, prilagodljivi pragovi ocjena, značke i diploma s rezultatom, imenima četiri autora i pečatom aplikacije. Diplomom se potvrđuje rezultat u aplikaciji.
 
             Blokovski studio ima 60 praktičnih izazova, 14 kategorija, konzolu, pozornicu i prikaz koda. Sadržaj obuhvata 5–9. razred; broj cjelina označava izdvojene vještine i nije tvrdnja o 500 zasebnih školskih nastavnih oblasti.
 
-            Izdanje 10.2.1 poboljšava prvi prikaz blokovskog studija na manjim Windows ekranima: blokovi, kod, konzola i pozornica ostaju zajedno, a izbor izazova otvara se prema potrebi.
+            Blokovi, kod, konzola i pozornica ostaju zajedno i na manjim Windows ekranima, a izbor izazova otvara se prema potrebi. Diplome zadržavaju svijetli papir za štampu i izvoz u PDF.
+
+            Paket od 1.000 riješenih blokovskih projekata i AI asistent planirani su za naredno proširenje i nisu uključeni u ovo izdanje.
 
             Windows 10/11 x64. Python, GCC/G++ i Java JDK ugrađeni su u aplikaciju. Internet nije potreban za nastavu i izvršavanje školskih programa.
 

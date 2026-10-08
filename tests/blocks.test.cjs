@@ -11,8 +11,9 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 // The real Blockly libraries and the real generator are loaded headlessly.
 // Only canvas drawing and browser element lookup are stubbed; serialization,
 // Blockly loop generation and worker interpretation remain production code.
-function studio() {
-  const paint = new Proxy({}, { get: () => () => {}, set: () => true });
+function studio({dark=false}={}) {
+  const fills=[],paintTarget={fillRect(){fills.push(this.fillStyle);}};
+  const paint = new Proxy(paintTarget, { get: (target,name) => target[name]??(()=>{}), set: (target,name,value) => {target[name]=value;return true;} });
   const elements = {
     stage: { getContext: () => paint }, blockcode: { textContent: '' },
     blocklang: { value: 'js' }, blockout: { textContent: '' }, sprite: { value: '0' },
@@ -22,6 +23,7 @@ function studio() {
   document.getElementById = id => elements[id];
   document.addEventListener = () => {};
   document.removeEventListener = () => {};
+  document.body={classList:{contains:name=>dark&&name==='dark'}};
   const context = vm.createContext({
     console, setTimeout, clearTimeout, navigator: {},
     document, DOMParser, XMLSerializer
@@ -31,9 +33,15 @@ function studio() {
     vm.runInContext(read('renderer/vendor/' + file), context, { filename: file });
   }
   vm.runInContext(read('renderer/blocks.js'), context, { filename: 'blocks.js' });
-  context.Blockly.inject = () => new context.Blockly.Workspace();
+  context.Blockly.inject = (element,options) => {
+    context.injectOptions=options;
+    const workspace=new context.Blockly.Workspace();
+    workspace.setTheme=theme=>{context.appliedTheme=theme;};
+    return workspace;
+  };
   context.ELDIBlocks.init({ onSave() {} });
   context.ELDIBlocks.testContext = context;
+  context.stageFills=fills;
   return context.ELDIBlocks;
 }
 
@@ -69,6 +77,61 @@ test('Counting example produces an introduction and three repeated messages', ()
     assert.doesNotMatch(blocks.code('py'), /import turtle/);
     assert.match(blocks.code('py'), /print\('Učim!'\)/);
   } finally { blocks.destroy(); }
+});
+
+test('The studio starts with the selected visual theme and theme changes preserve the loaded program', () => {
+  for(const dark of [false,true]){
+    const blocks=studio({dark});
+    try{
+      const context=blocks.testContext,initial=context.injectOptions.theme;
+      assert.equal(blocks.getTheme(),dark?'dark':'light');
+      assert.equal(initial.name,dark?'eldi_dark':'eldi_light');
+      assert.equal(context.stageFills.at(-1),dark?'#101827':'#fffef9');
+      blocks.example('square');
+      const saved=JSON.stringify(blocks.serialize()),js=blocks.code('js'),py=blocks.code('py');
+      blocks.setTheme(dark?'light':'dark');
+      assert.equal(context.appliedTheme.name,dark?'eldi_light':'eldi_dark');
+      assert.equal(JSON.stringify(blocks.serialize()),saved);
+      assert.equal(blocks.code('js'),js);
+      assert.equal(blocks.code('py'),py);
+      assert.equal(context.stageFills.at(-1),dark?'#fffef9':'#101827');
+      const execution=execute(blocks.code('js'));
+      assert.equal(execution.last.type,'done');
+      assert.equal(execution.last.result.stage.trailCount,4);
+    }finally{blocks.destroy();}
+  }
+});
+
+test('Theme changes keep paused playback and a program-selected stage background', async () => {
+  const blocks=studio({dark:true});
+  try{
+    const context=blocks.testContext;
+    context.Worker=class {
+      constructor(){this.terminated=false;}
+      postMessage(request){setTimeout(()=>{if(this.terminated)return;const run=execute(request.code,request.keys,request);for(const message of run.messages){if(this.terminated)break;this.onmessage({data:message});}},0);}
+      terminate(){this.terminated=true;}
+    };
+    blocks.load({format:'ELDI-BLOCKS-1',workspace:{blocks:{languageVersion:0,blocks:[
+      {type:'edu_background',inputs:{COLOR:{block:{type:'text',fields:{TEXT:'#082a3e'}}}},next:{block:{type:'edu_move',inputs:{N:{block:{type:'math_number',fields:{NUM:20}}}}}}}
+    ]}}});
+    const saved=JSON.stringify(blocks.serialize()),running=blocks.run({paused:true,speed:0});
+    await new Promise(resolve=>setTimeout(resolve,20));
+    const before=JSON.stringify(blocks.getState());
+    assert.ok(blocks.getState().queue>0);
+    blocks.setTheme('light');
+    assert.equal(JSON.stringify(blocks.getState()),before);
+    assert.equal(JSON.stringify(blocks.serialize()),saved);
+    while(blocks.getState().queue)blocks.step();
+    const result=await running;
+    assert.equal(result.ok,true);
+    assert.equal(result.stage.x,20);
+    assert.equal(context.stageFills.at(-1),'#082a3e');
+    blocks.setTheme('dark');
+    assert.equal(context.stageFills.at(-1),'#082a3e');
+    blocks.setTheme('light');
+    assert.equal(context.stageFills.at(-1),'#082a3e');
+    assert.equal(JSON.stringify(blocks.serialize()),saved);
+  }finally{blocks.destroy();}
 });
 
 test('Broadcast invokes its interpreter callback and nested broadcasts stop at the depth bound', () => {
