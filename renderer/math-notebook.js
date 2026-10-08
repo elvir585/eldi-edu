@@ -19,8 +19,13 @@ window.ELDIMathNotebook=(()=>{
     }
     return s.attempts[task.id];
   }
-  function persist(){attempt().updatedAt=new Date().toISOString();context.save();}
-  function savedInfo(){const total=summary(context.profile());return `${total.complete} završenih postupaka · ${total.independent} samostalno · rad ostaje na ovom profilu`;}
+  function persist(){attempt().updatedAt=new Date().toISOString();context.save();updateSummary();}
+  function savedInfo(total=summary(context.profile())){return `${total.complete} završenih postupaka · ${total.independent} samostalno · rad ostaje na ovom profilu`;}
+  function updateSummary(){
+    const total=summary(context.profile()),counter=context.root.querySelector('.mn-hero-score strong'),note=context.root.querySelector('.mn-storage-note');
+    if(counter)counter.textContent=String(total.complete);
+    if(note)note.textContent=savedInfo(total)+'. Uvoz profila čuva i svesku.';
+  }
   function render(){
     const s=state();task=engine().generateTask(s.grade,s.type,s.seed);
     context.root.innerHTML=`<div class="math-notebook"><div class="mn-interactive"><div class="mn-hero"><div><div class="eyebrow">MATEMATIKA / DIGITALNA SVESKA</div><h1>Svaki korak ima smisla.</h1><p>Piši postupak, provjeri jednakost i nacrtaj ono što računaš.</p></div><div class="mn-hero-score"><strong>${summary(context.profile()).complete}</strong><span>završenih postupaka</span></div></div><div class="mn-tabs row" role="group" aria-label="Dijelovi sveske"><button id="mn-tab-working" class="${tab==='working'?'primary':''}">✎ Moji koraci</button><button id="mn-tab-geometry" class="${tab==='geometry'?'primary':''}">◇ Crtanje i grafikoni</button><button id="mn-tab-history" class="${tab==='history'?'primary':''}">◷ Sačuvani radovi</button></div><div id="mn-content"></div><p id="mn-message" role="status" aria-live="polite"></p><p class="mn-storage-note">${esc(savedInfo())}. Uvoz profila čuva i svesku.</p></div><div id="mn-print-sheet" class="mn-print-sheet"></div></div>`;
@@ -59,7 +64,6 @@ window.ELDIMathNotebook=(()=>{
   function renderFeedback(){
     currentResult.rows.forEach((row,i)=>{const node=q('mn-feedback-'+i);if(!node)return;node.textContent=(row.valid===null?'':row.valid?'✓ ':'! ')+row.message;node.className='mn-feedback '+(row.valid===null?'':row.valid?'success':'error');});
     q('mn-result').innerHTML=`<div class="mn-result ${currentResult.complete?'mn-complete':''}"><strong>${currentResult.score}<small>/100</small></strong><div><b>${esc(currentResult.message)}</b><p>Postupak ${currentResult.processPoints}/60 · odgovor ${currentResult.answerPoints}/40${attempt().assisted?' · uz pomoć':''}</p></div></div>`;
-    context.root.querySelector('.mn-storage-note').textContent=savedInfo()+'. Uvoz profila čuva i svesku.';
   }
   function message(text){q('mn-message').textContent=text;}
   function exportNotebook(){

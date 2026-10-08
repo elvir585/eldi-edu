@@ -30,6 +30,25 @@ async function main(){
   await test('šest stvarnih .sb3 ZIP projekata uključuje sve kostime i zvukove',async()=>{
     for(const item of P.examples){const bytes=fs.readFileSync(path.join(dir,'examples',item.id+'.sb3'));const budget=P.validateArchive(bytes);assert.ok(budget.files>=4&&budget.expandedBytes>0&&budget.projectBytes>0);const zip=await JSZip.loadAsync(bytes,{checkCRC32:true});const project=JSON.parse(await zip.file('project.json').async('string'));assert.deepEqual(project,P.buildProject(item.id));for(const asset of P.assetsForProject(project)){assert.ok(zip.file(asset));assert.equal(hash(await zip.file(asset).async('nodebuffer'),'md5'),asset.split('.')[0]);}const script=fs.readFileSync(path.join(dir,'examples',item.id+'.js'),'utf8');const base64=JSON.parse(script.slice(script.indexOf('=')+1).replace(/;\s*$/,''));assert.equal(hash(Buffer.from(base64,'base64')),hash(bytes));}
   });
+  await test('službeni Scratch VM učitava i ponovno izvozi svih šest projekata',async()=>{
+    // The upstream Node bundle embeds jsdom but resolves its stylesheet next to
+    // the bundle. Use jsdom's own installed stylesheet for this one require.
+    // The VM remains headless here; the Windows smoke exercises real WebGL/audio.
+    const read=fs.readFileSync,stylesheet=path.join(root,'scratch-editor','node_modules','jsdom','lib','jsdom','browser','default-stylesheet.css');let VM;
+    fs.readFileSync=(file,...args)=>String(file).replace(/\\/g,'/').endsWith('/browser/default-stylesheet.css')&&!fs.existsSync(file)?read(stylesheet,...args):read(file,...args);
+    try{VM=require(path.join(root,'scratch-editor','node_modules','@scratch','scratch-vm'));}finally{fs.readFileSync=read;}
+    const {ScratchStorage}=require(path.join(root,'scratch-editor','node_modules','@scratch','scratch-storage')),vm=new VM();vm.attachStorage(new ScratchStorage());
+    try{for(const item of P.examples){await vm.loadProject(fs.readFileSync(path.join(dir,'examples',item.id+'.sb3')));assert.equal(vm.runtime.getTargetForStage().getName(),'Stage');assert.equal(vm.runtime.targets.length,P.buildProject(item.id).targets.length);const sprite=vm.runtime.targets.find(target=>!target.isStage);assert.equal(sprite.getCostumes().length,2);assert.ok(sprite.getCostumes().every(costume=>costume.asset?.data?.length>0));assert.ok(sprite.getSounds()[0]?.asset?.data?.length>0);const saved=await vm.saveProjectSb3();assert.ok(saved.size>1000);const bytes=new Uint8Array(await saved.arrayBuffer());P.validateArchive(bytes);await vm.loadProject(bytes);assert.equal(vm.runtime.targets.length,P.buildProject(item.id).targets.length);assert.ok(vm.runtime.targets.find(target=>!target.isStage).getSounds()[0]?.asset?.data?.length>0);}}
+    finally{vm.quit();}
+  });
+  await test('službeni Redux prelaz uvoza koristi trenutno stanje i ne stvara serverski projekat',()=>{
+    const upstream=path.join(root,'scratch-editor','node_modules','@scratch','scratch-gui','src','reducers','project-state.js'),module={exports:{}};
+    const source=fs.readFileSync(upstream,'utf8').replace(/^import keyMirror from 'keymirror';/,'const keyMirror=require("keymirror");').replace(/export \{[\s\S]*$/,'module.exports={requestProjectUpload,onLoadedProject,reducer};');
+    new Function('require','module',source)(require('node:module').createRequire(upstream),module);const official=module.exports;
+    assert.equal(official.requestProjectUpload(),undefined);
+    for(const loadingState of ['NOT_LOADED','SHOWING_WITH_ID','SHOWING_WITHOUT_ID']){const uploading=official.reducer({loadingState},official.requestProjectUpload(loadingState));assert.equal(uploading.loadingState,'LOADING_VM_FILE_UPLOAD');assert.equal(official.reducer(uploading,official.onLoadedProject(uploading.loadingState,false,true)).loadingState,'SHOWING_WITHOUT_ID');}
+    const bootstrap=fs.readFileSync(path.join(root,'scratch-editor','bootstrap.js'),'utf8');assert.match(bootstrap,/GUI\.requestProjectUpload\(editor\.store\.getState\(\)\.scratchGui\.projectState\.loadingState\)/);assert.match(bootstrap,/canCreateNew:false/);
+  });
   await test('normalizacija profila ograničava veliki i neispravan sadržaj',()=>{
     const base64=fs.readFileSync(path.join(dir,'examples','kviz.sb3')).toString('base64');assert.equal(P.normalizeState({name:'Test',base64,exampleId:'kviz'}).name,'Test');assert.throws(()=>P.normalizeState({base64:'dGV4dA=='}),/neispravan/);assert.throws(()=>P.normalizeState({base64:'UEsDinvalid!'}),/neispravan/);assert.throws(()=>P.normalizeState({base64:'UEsD'+'A'.repeat(P.MAX_PROJECT_BYTES*2)}),/prevelik/);assert.equal(P.normalizeState(null),null);assert.equal(P.normalizeState(undefined),null);assert.equal(P.validDraft({base64:'bad'}),null);assert.equal(P.normalizeState({base64,exampleId:'bad',extra:'ignored'}).exampleId,null);assert.equal(P.normalizeState({base64,name:'A'.repeat(1000)}).name.length,120);
   });

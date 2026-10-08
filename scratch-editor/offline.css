@@ -2,3 +2,145 @@ html,body,#scratch-root{width:100%;height:100%;margin:0;overflow:hidden;font-fam
 /* Original Scratch block/category colors are retained for category recognition. */
 body [class*="gui_body-wrapper"],body [class*="gui_tab-panel"],body [class*="sprite-selector_wrapper"],body [class*="sprite-selector_scroll-wrapper"],body [class*="target-pane_stage-selector-wrapper"]{background:#162238!important;color:#e2eafa!important}body [class*="menu-bar_menu-bar"]{background:#223958!important}body [class*="gui_tab_"]{background:#23334d!important;color:#e2eafa!important}body [class*="gui_tab-is-selected"]{background:#354b6c!important}body [class*="gui_tabs"]{border-bottom-color:#394963!important}body [class*="sprite-info_sprite-info"],body [class*="stage-header_stage-header-wrapper"]{background:#23334d!important;color:#e2eafa!important}body [class*="sprite-info_sprite-info"] label{color:#e2eafa!important}body [class*="stage-selector_stage-selector"],body [class*="sprite-selector-item_sprite-selector-item"]{background:#23334d!important;color:#e2eafa!important}body [class*="sprite-selector-item_sprite-name"]{color:#e2eafa!important}body [class*="asset-panel_wrapper"]{background:#17243b!important}body [class*="asset-panel_selector"]{background:#22334b!important}body [class*="selector_wrapper"]{background:#22334b!important;color:#e2eafa!important}body [class*="costume-tab_paint-editor"]{background:#22334b!important}body [class*="sound-editor_editor-container"]{background:#22334b!important;color:#e2eafa!important}body [class*="stage-header_stage-menu-wrapper"]{color:#e2eafa!important}
 body .blocklyMainBackground{fill:#17253b!important;stroke:#3a4b63!important}body .blocklySvg{background:#17253b!important}body .blocklyFlyoutBackground{fill:#20324c!important;fill-opacity:1!important}body .blocklyToolbox{background:#1b2a42!important;color:#e5eefb!important}body .blocklyToolboxCategoryLabel{color:#e5eefb!important}body .blocklyToolboxSelected{background:#3a4c66!important}body .blocklyFlyoutLabelText{fill:#dbe8f8!important}body .blocklyScrollbarHandle{fill:#587498!important}body .blocklyScrollbarBackground{fill:#17253b!important}
+
+/* The upstream editor reserves a 598px code column for a 1024px page.
+ * ELDI's normal desktop view hosts it in a ~720px iframe. Let the real
+ * workspace use the remaining width beside the Redux-selected small stage;
+ * do not scale the page or canvas, which would misalign pointer coordinates. */
+body [class*="gui_editor-wrapper"] {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+}
+body [class*="gui_flex-wrapper"],
+body [class*="gui_tabs"],
+body [class*="gui_tab-panel"],
+body [class*="gui_blocks-wrapper"],
+body [class*="asset-panel_wrapper"],
+body [class*="asset-panel_detail-area"] {
+  min-width: 0 !important;
+}
+body [class*="gui_stage-and-target-wrapper"] {
+  flex-shrink: 0;
+}
+
+/* Paint uses an actual responsive Paper.js canvas (resize=true). Its upstream
+ * 524px row / 402px canvas minima must not push the stage outside the iframe.
+ * Keep every drawing mode, toolbar group, zoom control and conversion button.
+ * The costume strip remains separate and scrollable at its official width. */
+@media (max-width: 1100px) {
+  body [class*="asset-panel_wrapper"] > [class*="selector_wrapper"] {
+    flex: 0 0 80px;
+    width: 80px;
+  }
+  body [class*="asset-panel_detail-area"] {
+    flex: 1 1 0;
+  }
+  body [class*="paint-editor_editor-container"] {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 8px !important;
+    color: #e2eafa;
+    background: #1a2b43;
+  }
+  body [class*="paint-editor_editor-container-top"] {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding-bottom: 8px;
+    border-bottom-color: #435774;
+  }
+  body [class*="paint-editor_editor-container-top"] > [class*="paint-editor_row"],
+  body [class*="fixed-tools_row"],
+  body [class*="mode-tools_mode-tools"],
+  body [class*="paint-editor_mod-mode-tools"] {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    gap: 4px;
+  }
+  body [class*="paint-editor_editor-container-top"] [class*="input-group_input-group"] {
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+  body [class*="fixed-tools_costume-input"] {
+    width: 7rem;
+    max-width: 100%;
+  }
+  body [class*="paint-editor_top-align-row"] {
+    flex: 1 1 0;
+    min-width: 0 !important;
+    min-height: 0;
+    height: auto !important;
+    padding-top: 8px;
+    align-items: stretch;
+  }
+  body [class*="paint-editor_mode-selector"] {
+    flex: 0 0 70px;
+    width: 70px;
+    max-width: 70px;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    gap: 2px;
+  }
+  body [class*="paint-editor_mode-selector"] [class*="tool-select-base_mod-tool-select"] {
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 4px;
+  }
+  body [class*="paint-editor_mode-selector"] [class*="tool-select-base_tool-select-icon"] {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(.9);
+  }
+  body [class*="paint-editor_controls-container"] {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    margin-inline: 4px;
+  }
+  body [class*="paint-editor_canvas-container"] {
+    flex: 1 1 0;
+    width: 100%;
+    min-width: 0 !important;
+    min-height: 140px;
+    box-sizing: border-box;
+    border-color: #526786;
+  }
+  body [class*="paint-editor_canvas-controls"] {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    min-width: 0;
+    min-height: 36px;
+    height: auto;
+    gap: 4px;
+  }
+  body [class*="paint-editor_bitmap-button"] {
+    padding: 6px;
+    min-height: 30px;
+    max-width: 100%;
+    font-size: 10px;
+  }
+  body [class*="paint-editor_bitmap-button"] [class*="paint-editor_button-text"] {
+    white-space: normal;
+  }
+  body [class*="paint-editor_editor-container"] [class*="input_input-form"] {
+    color: #e8effb;
+    background: #243952;
+    border-color: #58708e;
+  }
+  body [class*="paint-editor_editor-container"] [class*="label_input-label"],
+  body [class*="paint-editor_editor-container"] [class*="labeled-icon-button_edit-field-title"] {
+    color: #d3e1f3;
+  }
+  body [class*="paint-editor_editor-container"] [class*="fixed-tools_button-group-button-icon"],
+  body [class*="paint-editor_editor-container"] [class*="mode-tools_mode-tools-icon"],
+  body [class*="paint-editor_editor-container"] [class*="labeled-icon-button_edit-field-icon"] {
+    filter: brightness(0) invert(.9);
+  }
+}

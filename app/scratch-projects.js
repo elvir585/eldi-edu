@@ -17,7 +17,7 @@
   const clone = value => JSON.parse(JSON.stringify(value));
   function defaultProject() {
     const costume = (id,name,cx,cy) => ({assetId:id,name,bitmapResolution:1,md5ext:id+'.svg',dataFormat:'svg',rotationCenterX:cx,rotationCenterY:cy});
-    const stage = {isStage:true,name:'Pozornica',variables:{},lists:{},broadcasts:{},blocks:{},comments:{},currentCostume:0,costumes:[costume('cd21514d0531fdffb22204e0ec5ed84a','Pozadina',240,180)],sounds:[],volume:100,layerOrder:0,tempo:60,videoTransparency:50,videoState:'off',textToSpeechLanguage:null};
+    const stage = {isStage:true,name:'Stage',variables:{},lists:{},broadcasts:{},blocks:{},comments:{},currentCostume:0,costumes:[costume('cd21514d0531fdffb22204e0ec5ed84a','Pozadina',240,180)],sounds:[],volume:100,layerOrder:0,tempo:60,videoTransparency:50,videoState:'off',textToSpeechLanguage:null};
     const sprite = {isStage:false,name:'Lik',variables:{},lists:{},broadcasts:{},blocks:{},comments:{},currentCostume:0,costumes:[costume('bcf454acf82e4504149f7ffe07081dbc','Kostim 1',48,50),costume('0fb9be3e8397c983338cb71dc84d0b25','Kostim 2',46,53)],sounds:[{assetId:'83c36d806dc92327b9e7049a565c6bff',name:'Mjau',dataFormat:'wav',format:'',rate:22050,sampleCount:18688,md5ext:'83c36d806dc92327b9e7049a565c6bff.wav'}],volume:100,layerOrder:1,visible:true,x:0,y:0,size:65,direction:90,draggable:false,rotationStyle:'all around'};
     return {targets:[stage,sprite],monitors:[],extensions:[],meta:{semver:'3.0.0',vm:'15.2.0',agent:'ELDI EDU original learning project'}};
   }

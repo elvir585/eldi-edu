@@ -5,7 +5,7 @@ async function runScratchSmoke({stage,capture,evaluate,window}){
   await stage('official offline Scratch editor startup',`
     await go('scratch');const deadline=Date.now()+60000;while(!ELDIScratchStudio.ready()&&Date.now()<deadline)await wait(100);
     ensure(ELDIScratchStudio.ready(),'Službeni Scratch editor nije spreman: '+$('scratch-status').innerText);
-    await ELDIScratchStudio.chooseExample('strelice');ensure(state().scratchWork?.exampleId==='strelice','Scratch primjer nije sačuvan u profilu.');
+    await ELDIScratchStudio.chooseExample('strelice');ensure(state().scratchWork?.exampleId==='strelice','Scratch primjer nije sačuvan u profilu: '+$('scratch-status').textContent);
     const box=$('scratch-viewport').getBoundingClientRect();ensure(box.width>=600,'Scratch radni prostor je preuzak: '+box.width);ensure(box.top>=0&&box.bottom<=innerHeight+4,'Cijeli Scratch editor mora biti vidljiv: '+box.top+'–'+box.bottom+'/'+innerHeight);
   `);
   await inFrame(`
