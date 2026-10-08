@@ -80,7 +80,18 @@ jobs:
       - name: Izradi instalacijski i prenosivi EXE
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npm run build:win
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          for ($buildAttempt = 1; $buildAttempt -le 3; $buildAttempt++) {
+            & npm run build:win 2>&1 | Tee-Object -Variable buildOutput
+            $buildExit = $LASTEXITCODE
+            if ($buildExit -eq 0) { exit 0 }
+            $transientDownload = ($buildOutput -join "`n") -match 'Response code 5\d\d|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up'
+            if (-not $transientDownload -or $buildAttempt -eq 3) { exit $buildExit }
+            Write-Warning "Privremena greška preuzimanja alata; ponavljanje izrade ($buildAttempt/3)."
+            Start-Sleep -Seconds 15
+          }
       - name: Provjeri zapakovanu aplikaciju i pripremi ZIP pakete
         shell: pwsh
         run: |
