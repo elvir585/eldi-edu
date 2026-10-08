@@ -35,7 +35,7 @@ body [class*="gui_stage-and-target-wrapper"] {
   body [class*="asset-panel_detail-area"] {
     flex: 1 1 0;
   }
-  body [class*="paint-editor_editor-container"] {
+  body [class*="paint-editor_editor-container_"] {
     width: 100%;
     min-width: 0;
     min-height: 0;
@@ -107,7 +107,7 @@ body [class*="gui_stage-and-target-wrapper"] {
     flex: 1 1 0;
     width: 100%;
     min-width: 0 !important;
-    min-height: 140px;
+    min-height: 170px;
     box-sizing: border-box;
     border-color: #526786;
   }
@@ -129,18 +129,47 @@ body [class*="gui_stage-and-target-wrapper"] {
   body [class*="paint-editor_bitmap-button"] [class*="paint-editor_button-text"] {
     white-space: normal;
   }
-  body [class*="paint-editor_editor-container"] [class*="input_input-form"] {
+  body [class*="paint-editor_editor-container_"] [class*="input_input-form"] {
     color: #e8effb;
     background: #243952;
     border-color: #58708e;
   }
-  body [class*="paint-editor_editor-container"] [class*="label_input-label"],
-  body [class*="paint-editor_editor-container"] [class*="labeled-icon-button_edit-field-title"] {
+  body [class*="paint-editor_editor-container_"] [class*="label_input-label"],
+  body [class*="paint-editor_editor-container_"] [class*="labeled-icon-button_edit-field-title"] {
     color: #d3e1f3;
   }
-  body [class*="paint-editor_editor-container"] [class*="fixed-tools_button-group-button-icon"],
-  body [class*="paint-editor_editor-container"] [class*="mode-tools_mode-tools-icon"],
-  body [class*="paint-editor_editor-container"] [class*="labeled-icon-button_edit-field-icon"] {
+  body [class*="paint-editor_editor-container_"] [class*="fixed-tools_button-group-button-icon"],
+  body [class*="paint-editor_editor-container_"] [class*="mode-tools_mode-tools-icon"],
+  body [class*="paint-editor_editor-container_"] [class*="labeled-icon-button_edit-field-icon"] {
     filter: brightness(0) invert(.9);
+  }
+}
+
+/* Compact icon actions keep their image alt text and title tooltips, as the
+ * upstream hideLabel option does. Two short toolbar rows leave enough room
+ * for the real paint viewport and its zoom/conversion controls at 720px. */
+@media (max-width: 959px) {
+  body [class*="paint-editor_editor-container_"] [class*="labeled-icon-button_edit-field-title"] {
+    display: none;
+  }
+  body [class*="paint-editor_editor-container_"] [class*="labeled-icon-button_mod-edit-field"] {
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+  }
+  body [class*="paint-editor_editor-container_"] [class*="input-group_input-group"] + [class*="input-group_input-group"] {
+    margin-inline-start: 4px;
+  }
+  body [class*="paint-editor_editor-container_"] [class*="fixed-tools_mod-dashed-border"],
+  body [class*="paint-editor_editor-container_"] [class*="paint-editor_mod-dashed-border"] {
+    padding-inline-end: 4px;
+  }
+  body [class*="paint-editor_editor-container_"] [class*="mode-tools_mode-tools"] {
+    min-height: 32px;
+    gap: 0;
+  }
+  body [class*="paint-editor_editor-container_"] [class*="fixed-tools_costume-input"] {
+    width: 6rem;
   }
 }

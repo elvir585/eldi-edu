@@ -12,7 +12,7 @@
   const error=message=>{status.hidden=false;status.textContent=String(message);send('error',{message:String(message)});};
   const bytesToBase64=bytes=>{let text='';for(let i=0;i<bytes.length;i+=0x8000)text+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(text);};
   const fromBase64=text=>Uint8Array.from(atob(text),char=>char.charCodeAt(0));
-  function fitStage(){if(!editor||disposed)return;const mode=window.innerWidth<960?'small':'large';if(mode!==stageMode){stageMode=mode;editor.dispatch(GUI.setStageSize(mode));}}
+  function fitStage(){if(!editor||disposed)return;const mode=window.innerWidth<1096?'small':'large';if(mode!==stageMode){stageMode=mode;editor.dispatch(GUI.setStageSize(mode));}}
   const assetLoads=new Map();window.ELDI_SCRATCH_ASSETS=Object.create(null);
   function loadLocalAsset(md5ext) {
     if(!/^[a-f0-9]{32}\.(svg|png|jpg|jpeg|wav|mp3)$/.test(md5ext))return Promise.reject(new Error('Nepodržana lokalna datoteka.'));

@@ -56,4 +56,6 @@ Roditeljski renderer poziva `ELDIScratchStudio.mount({root, profile, save, expor
 
 Iframe prihvata poruke samo iz roditeljskog prozora i sa tokenom trenutne sesije; roditelj dodatno provjerava tačan iframe kao pošiljaoca. Uvoz i izvoz koriste stvarni `vm.loadProject` i `vm.saveProjectSb3`. Program se pokreće stvarnim Scratch VM-om, sa događajima tastature i miša iz službenog GUI-a.
 
+Zasebna komponenta dopušta inline skripte jer službeni Paper/SVG sandbox na `file://` koristi tekstualne skripte u `srcdoc` okviru koji nasljeđuje CSP. Sam taj unutrašnji sandbox zadržava službeni CSP sa jednokratnim nonce oznakama, `default-src 'none'`, bez `unsafe-eval` i bez pristupa DOM-u roditelja. Glavni renderer zadržava svoj odvojeni CSP i IPC dozvole; lokalni Scratch okvir nema IPC pristup. Uvoz SVG-a prolazi službenu sanitizaciju.
+
 Native QA može sačekati `ELDIScratchStudio.ready()`, pronaći `#scratch-frame` i u njegovom okviru provjeriti `window.ELDI_SCRATCH_READY`, `window.ELDI_SCRATCH_VM` i `window.ELDI_SCRATCH_EDITOR`. Test treba obuhvatiti stvarno pokretanje, `.sb3` učitavanje/ponovno čuvanje, promjenu kostima, zvukove i tastaturu. Statički test provjerava sve materijale, lokalnu građu `.sb3` projekata, povezane blokove, licence i izvorni manifest.

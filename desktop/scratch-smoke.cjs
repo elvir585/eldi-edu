@@ -1,7 +1,10 @@
 'use strict';
 async function runScratchSmoke({stage,capture,evaluate,window}){
   const frame=()=>window.webContents.mainFrame.framesInSubtree.find(item=>item.url.includes('/vendor/scratch/index.html'));
-  const inFrame=async code=>{const item=frame();if(!item)throw new Error('Scratch iframe nije pronađen.');return item.executeJavaScript('(async()=>{const ensure=(condition,message)=>{if(!condition)throw new Error(message);};const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));'+code+'})()');};
+  const frameHelpers=`const ensure=(condition,message)=>{if(!condition)throw new Error(message);};const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    if(!window.__ELDI_SCRATCH_QA_ERRORS){window.__ELDI_SCRATCH_QA_ERRORS=[];const record=value=>{if(window.__ELDI_SCRATCH_QA_ERRORS.length<20)window.__ELDI_SCRATCH_QA_ERRORS.push(String(value).slice(0,1500));};window.addEventListener('error',event=>record(event.error?.stack||event.message));window.addEventListener('unhandledrejection',event=>record(event.reason?.stack||event.reason));const previous=console.error;console.error=(...args)=>{record(args.map(value=>String(value?.stack||value)).join(' '));previous.apply(console,args);};}
+  `;
+  const inFrame=async code=>{const item=frame();if(!item)throw new Error('Scratch iframe nije pronađen.');try{return await item.executeJavaScript('(async()=>{'+frameHelpers+code+'})()');}catch(error){try{await capture('FAILED-Scratch-frame');}catch(captureError){console.error('Scratch failure screenshot:',captureError.message);}throw error;}};
   await stage('official offline Scratch editor startup',`
     await go('scratch');const deadline=Date.now()+60000;while(!ELDIScratchStudio.ready()&&Date.now()<deadline)await wait(100);
     ensure(ELDIScratchStudio.ready(),'Službeni Scratch editor nije spreman: '+$('scratch-status').innerText);
@@ -24,10 +27,21 @@ async function runScratchSmoke({stage,capture,evaluate,window}){
     ensure(sprite&&Object.values(sprite.blocks._blocks).some(block=>block.opcode==='event_whenkeypressed'),'Sačuvani blokovi nisu vraćeni.');ensure(vm.runtime.threads.length===0,'Uvoz sačuvanog .sb3 ne smije automatski pokrenuti program.');
     vm.setEditingTarget(sprite.id);const tab=[...document.querySelectorAll('[role="tab"]')].find(item=>/kostim|costume/i.test(item.textContent));ensure(tab,'Nedostaje kartica kostima.');tab.click();await wait(700);
     ensure(window.ELDI_SCRATCH_EDITOR.store.getState().scratchGui.editorTab.activeTabIndex===1,'Službeni editor kostima nije otvoren.');const paintDeadline=Date.now()+8000;let canvas=document.querySelector('canvas[class*="paper-canvas"]');while(!canvas&&Date.now()<paintDeadline){await wait(100);canvas=document.querySelector('canvas[class*="paper-canvas"]');}ensure(canvas&&canvas.width>0&&canvas.height>0,'Službeni Paper editor nema aktivno platno.');ensure(canvas.getContext('2d'),'Platno za uređivanje kostima nema stvarni kontekst.');
+    const paintedOrange=()=>{const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let orange=0;for(let i=0;i<pixels.length;i+=8)if(pixels[i]>180&&pixels[i+1]>65&&pixels[i+1]<200&&pixels[i+2]<95&&pixels[i+3]>150)orange++;return orange;};let orange=paintedOrange();while(orange<20&&Date.now()<paintDeadline){await wait(100);orange=paintedOrange();}ensure(orange>=20,'Paper editor nije iscrtao stvarni narandžasti kostim: '+orange+' piksela; '+JSON.stringify((window.__ELDI_SCRATCH_QA_ERRORS||[]).slice(-4)));
   `);
   await capture('19-scratch-costumes');
+  const soundTabPoint=await inFrame(`
+    const tab=[...document.querySelectorAll('[role="tab"]')].find(item=>/zvuk|sound/i.test(item.textContent));ensure(tab,'Nedostaje kartica zvukova.');const box=tab.getBoundingClientRect();return{x:box.left+box.width/2,y:box.top+box.height/2};
+  `);
+  const iframePoint=await evaluate("const box=$('scratch-frame').getBoundingClientRect();return{x:box.left,y:box.top};");
+  const soundPoint={x:Math.round(iframePoint.x+soundTabPoint.x),y:Math.round(iframePoint.y+soundTabPoint.y),button:'left',clickCount:1};
+  // Scratch's shared sound-editor AudioContext initializes on actual mousedown,
+  // touchstart or keydown. HTMLElement.click() skips these input events.
+  window.webContents.sendInputEvent({type:'mouseMove',...soundPoint});window.webContents.sendInputEvent({type:'mouseDown',...soundPoint});window.webContents.sendInputEvent({type:'mouseUp',...soundPoint});
   await inFrame(`
-    const tab=[...document.querySelectorAll('[role="tab"]')].find(item=>/zvuk|sound/i.test(item.textContent));ensure(tab,'Nedostaje kartica zvukova.');tab.click();await wait(500);ensure(window.ELDI_SCRATCH_EDITOR.store.getState().scratchGui.editorTab.activeTabIndex===2,'Službeni editor zvukova nije otvoren.');ensure(document.querySelector('[class*="sound-editor"]'),'Službeni editor zvukova nije prikazan.');
+    const vm=window.ELDI_SCRATCH_VM,deadline=Date.now()+8000;let editor=document.querySelector('[class*="sound-editor_editor-container"]');while(!editor&&Date.now()<deadline){await wait(100);editor=document.querySelector('[class*="sound-editor_editor-container"]');}
+    const target=vm.editingTarget,sounds=target?.getSounds()||[],buffer=sounds.length?vm.getSoundBuffer(0):null,diagnostic=JSON.stringify({target:target?.getName(),sounds:sounds.map(sound=>({name:sound.name,soundId:sound.soundId,assetBytes:sound.asset?.data?.length})),audio:!!vm.runtime.audioEngine,audioState:vm.runtime.audioEngine?.audioContext?.state,decodedSamples:buffer?.length,errors:(window.__ELDI_SCRATCH_QA_ERRORS||[]).slice(-4),dom:document.body.innerText.slice(-800)});
+    ensure(window.ELDI_SCRATCH_EDITOR.store.getState().scratchGui.editorTab.activeTabIndex===2,'Službeni editor zvukova nije otvoren: '+diagnostic);ensure(editor,'Službeni editor zvukova nije prikazan: '+diagnostic);ensure(buffer?.length>1000,'Zvuk nema stvarne dekodirane uzorke: '+diagnostic);const waveform=editor.querySelector('[class*="waveform_waveform-path"]');ensure(waveform?.getAttribute('d')?.length>30,'Editor nema nacrtan valni oblik zvuka: '+diagnostic);
   `);
   await capture('19b-scratch-sounds');
   await stage('Scratch solved learning example files',`
