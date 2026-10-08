@@ -29,7 +29,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 10.0 — Matematika i informatika', show: !smokeTest,
+      title: 'ELDI EDU 10.1 — Matematika i informatika', show: !smokeTest,
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false }
     });
     Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -48,20 +48,44 @@ else {
     ipcMain.handle('eldi:print-page', event => { trusted(event); return new Promise(resolve => mainWindow.webContents.print({ silent: false, printBackground: true }, (success, failureReason) => resolve({ success, failureReason }))); });
     mainWindow.loadFile(entry).catch(error => { console.error(error); if (smokeTest) app.exit(1); });
     if (smokeTest) {
-      const timer = setTimeout(() => { console.error('Desktop smoke test timeout.'); app.exit(1); }, 30000);
+      const timer = setTimeout(() => { console.error('Desktop smoke test timeout.'); app.exit(1); }, 60000);
       mainWindow.webContents.once('did-finish-load', async () => {
         try {
           const result = await mainWindow.webContents.executeJavaScript(`(async () => {
-            if (!window.eldiDesktop || !window.EduMath || !window.ELDIBlocks) throw new Error('Desktop API ili laboratorij nisu učitani.');
+            if (!window.eldiDesktop || !window.EduMath || !window.EduExercises || !window.ELDICollection || !window.ELDIBlocks) throw new Error('Desktop API ili laboratorij nisu učitani.');
             if (!window.ELDI_CONTENT || window.ELDI_CONTENT.length < 100 || !window.ELDI_TASKS || window.ELDI_TASKS.length < 10) throw new Error('Lekcije ili zadaci nisu učitani.');
             const visited = [];
-            for (const name of ['home', 'lessons', 'math', 'blocks', 'code', 'progress', 'about']) {
+            for (const name of ['home', 'lessons', 'collection', 'math', 'blocks', 'code', 'progress', 'about']) {
               go(name);
               if (document.getElementById('view').innerText.length < 20) throw new Error('Prazna stranica: ' + name);
               visited.push(name);
             }
             if (window.EduMath.evaluate('1/2+1/3').exact !== '5/6') throw new Error('Računanje razlomaka nije tačno.');
+            if(EduExercises.topics.length < 70 || ELDI_MATH_PROJECTS.length < 35 || ELDI_BLOCK_CHALLENGES.length < 50) throw new Error('Proširena zbirka nije učitana.');
+            go('collection');
+            const topic=EduExercises.topics.find(t=>t.grade===5);
+            ELDICollection.startTopic(topic.id,17);
+            document.getElementById('sheet-check').click();
+            if(!document.getElementById('sheet-status').textContent.includes('0/1')) throw new Error('Prazni odgovori nisu odbijeni.');
+            const exercise=EduExercises.generate(topic.id,17,'medium');
+            exercise.fields.forEach((field,index)=>{const input=document.getElementById('task-0-field-'+index);input.value=field.answer;input.oninput();});
+            const notes=document.querySelector('[data-notes]');notes.value='Moj račun: provjera paketa';notes.oninput();
+            document.getElementById('sheet-check').click();
+            if(!document.getElementById('sheet-status').textContent.includes('1/1') || !state().mathWork.results[exercise.id].correct) throw new Error('Provjera unesenih matematičkih odgovora nije uspjela.');
+            go('collection');document.getElementById('collection-resume').click();
+            if(document.querySelector('[data-notes]').value !== 'Moj račun: provjera paketa') throw new Error('Pisani postupak nije sačuvan.');
+            go('collection');document.getElementById('collection-mixed').click();document.getElementById('sheet-create').click();
+            const worksheet=state().mathWork.session;
+            if(worksheet.length!==10 || document.querySelectorAll('.solving-task').length!==10) throw new Error('Radni list nije napravljen.');
+            worksheet.forEach((ref,i)=>{const task=EduExercises.generate(ref.topicId,ref.seed,ref.difficulty);task.fields.forEach((field,j)=>{const input=document.getElementById('task-'+i+'-field-'+j);input.value=field.answer;input.oninput();});});
+            document.getElementById('sheet-check').click();
+            if(!document.getElementById('sheet-status').textContent.includes('10/10')) throw new Error('Mješoviti radni list nije ispravno provjeren.');
             go('blocks');
+            const challenge=ELDI_BLOCK_CHALLENGES.find(c=>c.check.type==='output');
+            document.getElementById('block-challenge').value=challenge.id;document.getElementById('block-challenge').onchange();
+            document.getElementById('challenge-solution').click();
+            const blockResult=await ELDIBlocks.run({input:challenge.input||'',speed:0});
+            if(!blockResult.ok || !blockResult.challenge?.correct || !state().blockResults[challenge.id]?.correct) throw new Error('Praktični blokovski izazov nije provjeren: '+JSON.stringify(blockResult));
             window.ELDIBlocks.example('square');
             const squareCode = window.ELDIBlocks.code('js');
             const squareActions = await new Promise((resolve,reject) => {
@@ -77,6 +101,27 @@ else {
               worker.postMessage({code:squareCode,keys:[],sprite:0});
             });
             if (squareActions.filter(action => action.type === 'move').length !== 4 || squareActions.filter(action => action.type === 'turn').length !== 4) throw new Error('Blokovsko crtanje kvadrata nije uspjelo.');
+            go('home');
+            document.getElementById('new-profile').click();
+            document.getElementById('profile-name').value='Provjera paketa';
+            document.getElementById('profile-create').click();
+            if(document.getElementById('profile').selectedOptions[0].textContent!=='Provjera paketa') throw new Error('Kreiranje profila nije uspjelo.');
+            go('math'); mathTool('div'); document.getElementById('calculate').click();
+            if(!document.getElementById('result').textContent.includes('NZD = 24')) throw new Error('Matematički laboratorij nije prikazao NZD.');
+            mathTool('geo');
+            for(const shape of ['rectangle','square','triangle','circle','cuboid','cube','prism','pyramid','cylinder','cone','sphere']) {
+              document.getElementById('shape').value=shape;document.getElementById('calculate').click();
+              if(!/(Površina|Zapremina)/.test(document.getElementById('result').textContent)) throw new Error('Geometrijski alat: '+shape+' '+document.getElementById('result').textContent);
+            }
+            go('code');
+            for(const language of ['python','c','cpp','java']) {
+              document.getElementById('lang').value=language;document.getElementById('lang').onchange();
+              document.getElementById('input').value='1000000000 1000000000';
+              document.getElementById('run').click();
+              const deadline=Date.now()+25000;
+              while(document.getElementById('output').textContent==='Pokretanje…'&&Date.now()<deadline) await new Promise(resolve=>setTimeout(resolve,50));
+              if(!document.getElementById('output').textContent.includes('2000000000')||!document.getElementById('output').textContent.includes('Program završen.')) throw new Error('Desktop '+language+': '+document.getElementById('output').textContent);
+            }
             go('lessons');
             openLesson(window.ELDI_CONTENT[0].id);
             if (!document.getElementById('view').innerText.includes(window.ELDI_CONTENT[0].title)) throw new Error('Lekcija nije otvorena.');

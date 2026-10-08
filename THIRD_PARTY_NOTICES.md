@@ -8,3 +8,5 @@
 - Eclipse Temurin OpenJDK: GPL v2 with Classpath Exception. Priloženi JDK legal/ i LICENSE ostaju u paketu. Izvori za odgovarajuće verzije: https://github.com/adoptium/temurin25-binaries/releases i https://github.com/openjdk/jdk25u.
 
 Izvršna datoteka i sav nastavni sadržaj pripadaju ovom projektu; licence gore odnose se na navedene zavisnosti. Prije dalje distribucije zadržite pripadajuće licence i obavijesti.
+
+Razvojni testovi koriste @xmldom/xmldom 0.9.12 (MIT) za XML DOM u Blockly provjerama; ova razvojna zavisnost nije ugrađena u korisnički EXE.

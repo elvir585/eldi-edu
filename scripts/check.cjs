@@ -10,7 +10,12 @@ function filesIn(directory) {
   return fs.existsSync(directory) ? fs.readdirSync(directory, { withFileTypes: true }).flatMap(item => item.isDirectory() ? filesIn(path.join(directory, item.name)) : [path.join(directory, item.name)]) : [];
 }
 async function main() {
-  for (const relative of ['desktop/main.cjs', 'desktop/preload.cjs', 'desktop/runner.cjs', 'renderer/index.html', 'app/math-engine.js', 'content/curriculum.json', 'content/tasks.json', 'package.json', '.github/workflows/build-windows.yml']) assert.ok(fs.existsSync(path.join(root, relative)), `Nedostaje ${relative}`);
+  for (const relative of ['desktop/main.cjs', 'desktop/preload.cjs', 'desktop/runner.cjs', 'renderer/index.html', 'app/math-engine.js', 'app/exercise-engine.js', 'renderer/collection.js', 'content/math-projects.js', 'content/block-challenges.js', 'content/curriculum.json', 'content/tasks.json', 'package.json', '.github/workflows/build-windows.yml']) assert.ok(fs.existsSync(path.join(root, relative)), `Nedostaje ${relative}`);
+  const collection = require('../app/exercise-engine.js');
+  const projects = require('../content/math-projects.js');
+  assert.ok(collection.topics.length >= 95 && collection.variantsPerTopic === 200, 'Nedostaje proširena zbirka.');
+  assert.ok(projects.length >= 40, 'Nedostaju složeni problemski zadaci.');
+  for (const grade of [5,6,7,8,9]) assert.ok(projects.filter(task => task.grade === grade).length >= 8, `Nedostaju problemski zadaci za ${grade}. razred.`);
   const curriculum = JSON.parse(fs.readFileSync(path.join(root, 'content/curriculum.json'), 'utf8'));
   const tasks = JSON.parse(fs.readFileSync(path.join(root, 'content/tasks.json'), 'utf8'));
   assert.ok(Array.isArray(curriculum) && curriculum.length >= 100, 'Nedostaje zbirka tematskih lekcija.');
@@ -24,7 +29,8 @@ async function main() {
   assert.throws(() => validateRequest({ language: 'python', code: 'x'.repeat(SOURCE_LIMIT + 1) }));
   assert.throws(() => validateRequest({ language: 'python', code: '' }));
   assert.throws(() => validateRequest({ language: 'python', code: 'print(1)', input: [] }));
-  execFileSync(process.execPath, ['--test', path.join(root, 'tests/math.test.cjs'), path.join(root, 'tests/blocks.test.cjs')], { stdio: 'inherit' });
+  const tests = filesIn(path.join(root, 'tests')).filter(file => /\.test\.cjs$/.test(file));
+  execFileSync(process.execPath, ['--test', ...tests], { stdio: 'inherit' });
   console.log('Struktura, JavaScript sintaksa i validacija: OK.');
   if (!process.argv.includes('--runtime') && !process.argv.includes('--bundled')) return;
   const bundled = process.argv.includes('--bundled');

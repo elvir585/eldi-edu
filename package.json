@@ -1,12 +1,14 @@
 {
   "name": "eldi-edu",
-  "version": "10.0.0",
+  "version": "10.1.0",
   "private": true,
   "description": "ELDI EDU — desktop aplikacija za matematiku i informatiku od 5. do 9. razreda",
   "main": "desktop/main.cjs",
   "author": "Dino Isanović, Elvir Čajić, Damir Bajrić i Jasmin Suljkanović",
   "license": "UNLICENSED",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "electron .",
     "check": "node scripts/check.cjs",
@@ -15,18 +17,57 @@
     "build:win": "electron-builder --win nsis portable --x64 --publish never",
     "smoke": "electron . --smoke-test"
   },
-  "devDependencies": { "electron": "44.6.0", "electron-builder": "26.17.0" },
+  "devDependencies": {
+    "@xmldom/xmldom": "0.9.12",
+    "electron": "44.6.0",
+    "electron-builder": "26.17.0"
+  },
   "build": {
     "appId": "ba.eldi.edu.desktop",
     "productName": "ELDI EDU",
-    "directories": { "output": "release" },
-    "files": ["desktop/**/*", "renderer/**/*", "app/**/*", "content/**/*", "package.json", "README.md", "THIRD_PARTY_NOTICES.md"],
-    "extraResources": [{ "from": "runtimes", "to": "runtimes", "filter": ["**/*"] }],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**/*",
+      "renderer/**/*",
+      "app/**/*",
+      "content/**/*",
+      "package.json",
+      "README.md",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "extraResources": [
+      {
+        "from": "runtimes",
+        "to": "runtimes",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
     "asar": true,
     "compression": "maximum",
     "npmRebuild": false,
-    "win": { "target": ["nsis", "portable"], "signAndEditExecutable": false, "artifactName": "ELDI-EDU-${version}-${arch}.${ext}" },
-    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "createStartMenuShortcut": true, "shortcutName": "ELDI EDU 10.0", "artifactName": "ELDI-EDU-${version}-Setup-${arch}.${ext}" },
-    "portable": { "artifactName": "ELDI-EDU-${version}-Portable-${arch}.${ext}" }
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "ELDI-EDU-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ELDI EDU",
+      "artifactName": "ELDI-EDU-${version}-Setup-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "ELDI-EDU-${version}-Portable-${arch}.${ext}"
+    }
   }
 }

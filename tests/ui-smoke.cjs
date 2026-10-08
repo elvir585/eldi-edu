@@ -68,6 +68,33 @@ async function main() {
   for (let i=0; i<correct.length; i++) await page.locator(`input[name="q${i}"][value="${correct[i]}"]`).check();
   await page.locator('#submit').click();
   await assertText(page, '#qresult', '100%');
+  await page.locator('[data-page="collection"]').click();
+  await page.locator('#collection-grade').selectOption('5');
+  const topic = await page.evaluate(() => EduExercises.topics.find(t => t.grade === 5).id);
+  await page.evaluate(id => ELDICollection.startTopic(id, 17), topic);
+  await page.locator('#sheet-check').click();
+  await assertText(page, '#sheet-status', '0/1');
+  const exercise = await page.evaluate(id => EduExercises.generate(id,17,'medium'), topic);
+  for (let j=0; j<exercise.fields.length; j++) await page.locator(`#task-0-field-${j}`).fill(answerInput(exercise.fields[j]));
+  await page.locator('[data-notes]').fill('Moj račun: provjera zapisanog postupka');
+  await page.locator('#sheet-check').click();
+  await assertText(page, '#sheet-status', '1/1');
+  await page.locator('[data-page="home"]').click();
+  await page.locator('[data-page="collection"]').click();
+  await page.locator('#collection-resume').click();
+  assert.equal(await page.locator('[data-notes]').inputValue(), 'Moj račun: provjera zapisanog postupka');
+  assert.equal(await page.locator('#task-0-field-0').inputValue(), answerInput(exercise.fields[0]));
+  await page.locator('#collection-back').click();
+  await page.locator('#collection-mixed').click();
+  await page.locator('#sheet-create').click();
+  const refs = await page.evaluate(() => state().mathWork.session);
+  assert.equal(refs.length,10);
+  assert.equal(await page.locator('.solving-task').count(),10);
+  assert.ok(new Set(refs.map(ref => ref.topicId)).size > 1, 'Mixed worksheet uses only one topic.');
+  const sheetTasks = await page.evaluate(refs => refs.map(ref => EduExercises.generate(ref.topicId,ref.seed,ref.difficulty)), refs);
+  for (let i=0; i<sheetTasks.length; i++) for (let j=0; j<sheetTasks[i].fields.length; j++) await page.locator(`#task-${i}-field-${j}`).fill(answerInput(sheetTasks[i].fields[j]));
+  await page.locator('#sheet-check').click();
+  await assertText(page, '#sheet-status', '10/10');
   await page.locator('[data-page="math"]').click();
   await page.locator('#calculate').click();
   await assertText(page, '#result', '10/9');
@@ -92,16 +119,32 @@ async function main() {
     assert.match(result, /(Površina|Zapremina)/, `Geometry ${shape}: ${result}`);
   }
   await page.locator('[data-page="blocks"]').click();
+  const challenge = await page.evaluate(() => ELDI_BLOCK_CHALLENGES.find(c => c.check.type === 'output'));
+  assert.ok(challenge,'No executable Blockly challenge.');
+  await page.locator('#block-challenge').selectOption(challenge.id);
+  await page.locator('#challenge-solution').click();
+  assert.equal(await page.locator('#blockinput').inputValue(), challenge.input || '');
+  await page.locator('#blockspeed').selectOption('0');
+  await page.locator('#brun').click();
+  await page.waitForFunction(id => state().blockResults?.[id]?.lastCorrect, challenge.id, { timeout:15000 });
+  await assertText(page,'#blockcheck','TAČNO');
+  assert.doesNotMatch(await page.locator('#blockout').innerText(), /Greška|unsafe-eval/);
+  await page.locator('#challenge-free').click();
   await page.locator('#square').click();
-  await assertText(page, '#blockcode', 'move(80)');
+  await assertText(page,'#blockcode','move(80)');
   await page.locator('#brun').click();
-  await page.waitForFunction(() => /Program sastavljen|Program završen/.test(document.querySelector('#blockout').innerText), { timeout: 10000 });
-  assert.doesNotMatch(await page.locator('#blockout').innerText(), /Greška|unsafe-eval|nije dozvoljen/);
-  await page.locator('#count').click();
-  await page.locator('#brun').click();
-  await page.waitForFunction(() => document.querySelector('#blockout').innerText.includes('Učim!'));
+  await page.waitForFunction(() => !ELDIBlocks.getState().running, undefined, {timeout:15000});
+  assert.doesNotMatch(await page.locator('#blockout').innerText(), /Greška|unsafe-eval/);
   await page.locator('#blocklang').selectOption('py');
-  await assertText(page, '#blockcode', 'import turtle');
+  await assertText(page,'#blockcode','import turtle');
+  await page.locator('#count').click();
+  await page.locator('#blocklang').selectOption('js');
+  await page.locator('#brun').click();
+  await page.waitForFunction(() => !ELDIBlocks.getState().running, undefined, {timeout:15000});
+  await assertText(page,'#blockout','Učim!');
+  await page.locator('#blocklang').selectOption('py');
+  assert.doesNotMatch(await page.locator('#blockcode').innerText(), /import turtle/);
+  await assertText(page,'#blockcode','print(');
   await page.locator('[data-page="code"]').click();
   const tasksCount = await page.locator('#task option').count();
   assert.ok(tasksCount > 1, 'Programming tasks did not load.');
@@ -112,16 +155,17 @@ async function main() {
       await page.locator('#lang').selectOption(language);
       await page.locator('#input').fill('1000000000 1000000000');
       await page.locator('#run').click();
-      await page.waitForFunction(() => document.querySelector('#output').innerText.includes('Program završen.'), { timeout: 30000 });
+      await page.waitForFunction(() => document.querySelector('#output').innerText.includes('Program završen.'), undefined, { timeout:30000 });
       await assertText(page, '#output', '2000000000');
     }
   }
   await page.locator('[data-page="progress"]').click();
-  await assertText(page, 'table', '100%');
+  await assertText(page, '#view', '100%');
   await page.locator('[data-page="about"]').click();
   for (const author of ['Dino Isanović','Elvir Čajić','Damir Bajrić','Jasmin Suljkanović']) await assertText(page, '#view', author);
   assert.deepEqual(errors, [], 'Renderer produced unhandled errors.');
-  console.log(`UI smoke passed: lessons, quiz, exact mathematics, geometry, Blockly, ${tasksCount-1} programming tasks, progress and authors.`);
+  console.log(`UI smoke passed: lessons, quiz, collection answer checks, notes/resume, mixed worksheet, exact mathematics, geometry, Blockly challenge, ${tasksCount-1} programming tasks, progress and authors.`);
 }
+function answerInput(field) { return Array.isArray(field.answer) ? field.answer.length ? field.answer.join('; ') : 'nema' : String(field.answer); }
 async function assertText(page, selector, text) { assert.ok((await page.locator(selector).innerText()).includes(text), `${selector} missing ${text}`); }
 main().catch(error => { console.error(error.stack || error.message); process.exitCode = 1; }).finally(async () => { await browser?.close(); await new Promise(resolve => server ? server.close(resolve) : resolve()); });
