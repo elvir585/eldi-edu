@@ -14,6 +14,12 @@ const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
 let mainWindow;
 
 app.setName('ELDI EDU');
+// Development and packaged checks must each start with an empty test profile.
+// Production upgrades keep the normal userData directory and existing work.
+if (smokeTest) {
+  const fs = require('node:fs');
+  app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'eldi-smoke-')));
+}
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); } });
