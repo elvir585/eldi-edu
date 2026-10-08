@@ -71,11 +71,20 @@ jobs:
         shell: pwsh
         run: |
           $application = Join-Path $PWD 'release/win-unpacked/ELDI EDU.exe'
-          $process = Start-Process -FilePath $application -ArgumentList '--smoke-test' -PassThru -Wait
+          $process = Start-Process -FilePath $application -ArgumentList '--smoke-test' -WorkingDirectory $PWD -PassThru -Wait
           if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
           $executables = Get-ChildItem release -Filter '*.exe'
           if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }
           $executables | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content release/SHA256SUMS.txt
+
+      - name: Sačuvaj provjere izgleda i PDF diplomu
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ELDI-EDU-10.2-Visual-QA
+          path: smoke-previews/
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Sačuvaj Windows EXE
         uses: actions/upload-artifact@v7
@@ -91,13 +100,17 @@ jobs:
       - name: Objavi izdanje na GitHubu
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.1.0' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.2.0' }}
           target_commitish: ${{ github.sha }}
-          name: ELDI EDU 10.1 — Windows (build ${{ github.run_number }})
+          name: ELDI EDU 10.2 — Windows (build ${{ github.run_number }})
           body: |
-            Preuzmite **ELDI-EDU-10.1.0-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.1.0-Setup-x64.exe** za instalaciju.
+            Preuzmite **ELDI-EDU-10.2.0-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.2.0-Setup-x64.exe** za instalaciju.
 
-            Proširena zbirka: 95 matematičkih oblasti i 19.000 generisanih varijanti, 41 složen problemski zadatak, samostalno rješavanje s provjerom i postupcima, radni listovi i 60 blokovskih izazova u 14 kategorija.
+            Novo grafičko okruženje, 500 matematičkih i 500 informatičkih tematskih cjelina i vještina s objašnjenjima, primjerima i praktičnim zadacima. Matematička zbirka omogućava 100.000 indeksiranih generisanja (500 vještina × 200 indeksa); indeksi ne znače 100.000 sadržajno različitih zadataka.
+
+            Radni listovi i provjere do 50 zadataka, prilagodljivi pragovi ocjena, značke i diploma s rezultatom, imenima četiri autora i pečatom aplikacije. Diplomom se potvrđuje rezultat u aplikaciji.
+
+            Blokovski studio ima 60 praktičnih izazova, 14 kategorija, konzolu, pozornicu i prikaz koda. Sadržaj obuhvata 5–9. razred; broj cjelina označava izdvojene vještine i nije tvrdnja o 500 zasebnih školskih nastavnih oblasti.
 
             Windows 10/11 x64. Python, GCC/G++ i Java JDK ugrađeni su u aplikaciju. Internet nije potreban za nastavu i izvršavanje školskih programa.
 

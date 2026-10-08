@@ -10,6 +10,10 @@ function filesIn(directory) {
   return fs.existsSync(directory) ? fs.readdirSync(directory, { withFileTypes: true }).flatMap(item => item.isDirectory() ? filesIn(path.join(directory, item.name)) : [path.join(directory, item.name)]) : [];
 }
 async function main() {
+  const {maths,info}=require('./generate-content.cjs')();
+  const practice=require('../app/practice-engine.js');
+  assert.equal(practice.topics.length,500);
+  assert.equal(maths.length+info.length,1000);
   for (const relative of ['desktop/main.cjs', 'desktop/preload.cjs', 'desktop/runner.cjs', 'renderer/index.html', 'app/math-engine.js', 'app/exercise-engine.js', 'renderer/collection.js', 'content/math-projects.js', 'content/block-challenges.js', 'content/curriculum.json', 'content/tasks.json', 'package.json', '.github/workflows/build-windows.yml']) assert.ok(fs.existsSync(path.join(root, relative)), `Nedostaje ${relative}`);
   const collection = require('../app/exercise-engine.js');
   const projects = require('../content/math-projects.js');

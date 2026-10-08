@@ -70,11 +70,11 @@ async function main() {
   await assertText(page, '#qresult', '100%');
   await page.locator('[data-page="collection"]').click();
   await page.locator('#collection-grade').selectOption('5');
-  const topic = await page.evaluate(() => EduExercises.topics.find(t => t.grade === 5).id);
+  const topic = await page.evaluate(() => EduPractice.topics.find(t => t.grade === 5).id);
   await page.evaluate(id => ELDICollection.startTopic(id, 17), topic);
   await page.locator('#sheet-check').click();
   await assertText(page, '#sheet-status', '0/1');
-  const exercise = await page.evaluate(id => EduExercises.generate(id,17,'medium'), topic);
+  const exercise = await page.evaluate(id => EduPractice.generate(id,17,'medium'), topic);
   for (let j=0; j<exercise.fields.length; j++) await page.locator(`#task-0-field-${j}`).fill(answerInput(exercise.fields[j]));
   await page.locator('[data-notes]').fill('Moj račun: provjera zapisanog postupka');
   await page.locator('#sheet-check').click();
@@ -91,7 +91,7 @@ async function main() {
   assert.equal(refs.length,10);
   assert.equal(await page.locator('.solving-task').count(),10);
   assert.ok(new Set(refs.map(ref => ref.topicId)).size > 1, 'Mixed worksheet uses only one topic.');
-  const sheetTasks = await page.evaluate(refs => refs.map(ref => EduExercises.generate(ref.topicId,ref.seed,ref.difficulty)), refs);
+  const sheetTasks = await page.evaluate(refs => refs.map(ref => EduPractice.generate(ref.topicId,ref.seed,ref.difficulty)), refs);
   for (let i=0; i<sheetTasks.length; i++) for (let j=0; j<sheetTasks[i].fields.length; j++) await page.locator(`#task-${i}-field-${j}`).fill(answerInput(sheetTasks[i].fields[j]));
   await page.locator('#sheet-check').click();
   await assertText(page, '#sheet-status', '10/10');

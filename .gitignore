@@ -2,3 +2,5 @@ node_modules/
 runtimes/
 release/
 *.log
+content/catalog-data.js
+smoke-previews/

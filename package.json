@@ -1,6 +1,6 @@
 {
   "name": "eldi-edu",
-  "version": "10.1.0",
+  "version": "10.2.0",
   "private": true,
   "description": "ELDI EDU — desktop aplikacija za matematiku i informatiku od 5. do 9. razreda",
   "main": "desktop/main.cjs",
@@ -15,7 +15,8 @@
     "test": "node scripts/check.cjs --runtime",
     "runtime:bundle": "node scripts/build-runtime.cjs",
     "build:win": "electron-builder --win nsis portable --x64 --publish never",
-    "smoke": "electron . --smoke-test"
+    "smoke": "electron . --smoke-test",
+    "prestart": "node scripts/generate-content.cjs"
   },
   "devDependencies": {
     "@xmldom/xmldom": "0.9.12",
@@ -54,8 +55,9 @@
         "nsis",
         "portable"
       ],
-      "signAndEditExecutable": false,
-      "artifactName": "ELDI-EDU-${version}-${arch}.${ext}"
+      "artifactName": "ELDI-EDU-${version}-${arch}.${ext}",
+      "icon": "renderer/assets/eldi.ico",
+      "signExecutable": false
     },
     "nsis": {
       "oneClick": false,

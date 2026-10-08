@@ -1,6 +1,6 @@
-# ELDI EDU 10.1 — velika zbirka i blokovski studio
+# ELDI EDU 10.2 — 1000 tematskih cjelina, zadaci i postignuća
 
-**Matematika i informatika od 5. do 9. razreda, kao Windows aplikacija koja radi bez interneta.**
+**Matematika i informatika od 5. do 9. razreda kao Windows aplikacija koja radi bez interneta.**
 
 Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović**.
 
@@ -8,48 +8,60 @@ Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanovi�
 
 Otvorite **[najnovije izdanje](https://github.com/elvir585/eldi-edu/releases/latest)**:
 
-- `ELDI-EDU-10.1.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
-- `ELDI-EDU-10.1.0-Setup-x64.exe` — instalacija sa prečicom na radnoj površini.
+- `ELDI-EDU-10.2.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
+- `ELDI-EDU-10.2.0-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
 
-Windows 10/11 x64. Paket uključuje aplikaciju, nastavni sadržaj, Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za učenje ni za izvršavanje školskih programa. Izgradnja i provjera paketa prate se u [GitHub Actions](https://github.com/elvir585/eldi-edu/actions/workflows/build-windows.yml).
+Windows 10/11 x64. Paket uključuje nastavni sadržaj, Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za učenje i izvršavanje programa. [GitHub Actions](https://github.com/elvir585/eldi-edu/actions/workflows/build-windows.yml) provjerava i gradi obje EXE datoteke prije objave.
 
-## Zbirka matematike: učenik rješava zadatke
+## 500 matematičkih + 500 informatičkih cjelina
 
-Nova stavka **Zbirka i radni listovi** sadrži **95 oblasti i 19.000 generisanih varijanti**: 200 indeksiranih varijanti po oblasti. Osnovni, srednji i napredni nivo mijenjaju podatke i složenost. Broj varijanti označava zadatke generisane iz obrazaca, ne 19.000 različitih nastavnih tema. Uz njih dolazi **41 razrađen problemski zadatak**, najmanje osam po razredu, sa više povezanih dijelova.
+Katalog ima **100 zasebno imenovanih ciljeva učenja po razredu i predmetu**, ukupno 1000. To su tematske cjeline i pojedinačne vještine, a ne 1000 širokih naučnih oblasti. Svaka sadrži objašnjenje, razrađen primjer i praktični zadatak s unosom odgovora. Pretraga, razred i područje pomažu da se pronađe gradivo; prikaz je podijeljen na stranice.
 
-- Učenik upisuje broj, decimalni broj, razlomak, listu brojeva ili traženi tekst; nema ponuđenih odgovora u zbirci.
-- Svaki dio odgovora ima svoju provjeru. Pogrešan odgovor može se popraviti i ponovo provjeriti.
-- Polje **Moj postupak** služi za vlastiti račun i obrazloženje. Bilješke se čuvaju; automatska provjera ocjenjuje rezultat, a nastavnik može pregledati pisani postupak.
-- **Pomoć** daje smjernicu; **Prikaži postupak** otvara izračunate međukorake i završna rješenja. Evidencija razlikuje riješene zadatke uz prikazan postupak i samostalno riješene zadatke.
-- Radni listovi imaju 5, 10 ili 20 zadataka iz jedne oblasti ili više oblasti istog razreda. Broj lista omogućava ponavljanje istog izbora zadataka.
-- List se može štampati za rad na papiru, odvojeno štampati s postupcima ili izvesti kao tekst sa zadacima i rješenjima. Otvoreni rad, odgovori i bilješke ostaju u profilu.
+Matematika obuhvata velike prirodne brojeve i operacije, redoslijed računanja, mjerne jedinice, djeljivost sa 2, 4, 5, 6, 9, 10, 15 i 25, NZD/NZS, proste i složene brojeve, faktorizaciju, razlomke i dvojne razlomke, decimale, cijele i racionalne brojeve, procente i proporcije, stepene i korijene, polinome, jednačine i sisteme, funkcije, uglove i diedre, ravne figure, Pitagorinu teoremu, geometrijska tijela, statistiku i vjerovatnoću.
 
-Oblasti obuhvataju velike prirodne brojeve i sve operacije; redoslijed operacija i mjerne jedinice; djeljivost sa 2, 4, 5, 6, 9, 10, 15 i 25; NZD/NZS, proste i složene brojeve, faktorizaciju; skraćivanje, poređenje i sve operacije s razlomcima, dvojne razlomke i decimale; cijele i racionalne brojeve; procente, proporcije i razmjeru; stepene, korijene, polinome i jednačine; sisteme i funkcije; uglove i diedre, ravne figure, Pitagorinu teoremu i geometrijska tijela; statistiku i vjerovatnoću. Matematički laboratorij s tačnim racionalnim računanjem ostaje dostupan za slobodno istraživanje.
+Informatika obuhvata uređaje, datoteke i operativne sisteme, sigurnost i mreže, dokumente, prezentacije i tabele, algoritme i Scratch koncepte, binarni/oktalni/dekadni/heksadecimalni sistem, logiku, obradu podataka, web i baze podataka te Python, C, C++ i Javu. Zadaci traže konkretan račun, izlaz programa, redoslijed vrijednosti, naredbu ili precizno definisan rezultat. Tekstualna objašnjenja učenika nisu automatski ocijenjeni eseji.
 
-## Blokovsko programiranje: 60 praktičnih izazova
+Sadržaj je autorska zbirka za učenje. Nastavnik ga prilagođava svom službenom planu; potpuna usklađenost sa svakim kantonalnim kurikulumom nije potvrđena.
 
-Studio sadrži **60 provjerljivih izazova**, 12 po razredu. Svaki ima zahtjev, početne blokove, pomoć, riješen primjer i provjeru stvarnog izlaza programa ili geometrije crteža. Odabir izazova sam ne briše projekat; početni ili riješeni program učitava se posebnom tipkom.
+## Zbirka matematike i samostalno rješavanje
 
-Kategorije uključuju ulaz/izlaz, brojeve i matematičke funkcije, logiku, petlje, tekst, liste, varijable i vlastite postupke; kretanje, likove, koordinate i senzore; olovku, boje, debljinu crte, krugove i pravougaonike; događaje, poruke, klonove i tonove.
+Zbirka koristi svih **500 matematičkih vještina**, sa po 200 indeksiranih generisanja i tri nivoa težine. Ukupno je dostupno **100.000 indeksiranih generisanja**; broj nije broj različitih tema niti garancija da su svi brojevi i odgovori međusobno različiti. Kod pojedinih stalnih pojmova, kao što je svojstvo broja 1, različiti indeksi mogu ponoviti isti koncept. Uz njih dolazi **41 problemski zadatak** s više povezanih dijelova.
 
-Praktični zadaci napreduju od zbira i pozdrava do uslova i petlji, razlomaka, NZD, obrade lista, prostih brojeva, sita, teksta, šifrovanja i simulacija. Standardni ulaz upisuje se red po red. Prikaz koda uživo može se prebaciti na JavaScript ili Python. Konzolni Python može se otvoriti u ugrađenom editoru i stvarno pokrenuti.
+- Učenik upisuje broj, razlomak, listu ili traženi tekst i vlastiti postupak.
+- Svaki dio odgovora se provjerava; netačan odgovor se može ispraviti.
+- Pomoć i izračunati postupci dostupni su tokom vježbanja. Evidencija razlikuje samostalno riješen zadatak i rad uz prikazano rješenje.
+- **Radni listovi imaju 5, 10, 15, 20, 25, 30, 40 ili 50 zadataka** iz jedne vještine ili više vještina istog razreda.
+- Odgovori i bilješke ostaju u profilu. Listovi se mogu štampati sa zadacima ili postupcima i izvesti kao tekst.
+- Matematički laboratorij ostaje dostupan za slobodan račun, razlomke, djeljivost, jednačine, funkcije i geometriju.
 
-**Korak, Pauza i brzina upravljaju prikazom izvršenih naredbi.** Program se prvo računa u ograničenom interpreteru; pozornica i trag varijabli zatim prikazuju naredbe. Ovo nije debugger koji zaustavlja sam interpreter prije svake naredbe. Tastatura i položaj miša očitavaju se pri pokretanju. Klonovi su ograničeni na 30, a prikazane naredbe na 10.000. Blockly projekti čuvaju se i uvoze kao JSON.
+## Provjere, ocjene, značke i diplome
 
-Studio je vlastito Blockly okruženje, nije puni Scratch editor i ne uvozi `.sb3`. Grafički Python izvoz koristi turtle i traži punu Python instalaciju s Tkinterom; ugrađeni Python izvršava konzolne programe. Senzori u grafičkom Python izvozu imaju ograničenja navedena u generisanom kodu.
+Provjera može imati **bilo koji broj od 1 do 50 zadataka**, iz matematike, informatike ili oba predmeta. Biraju se razred, područje i nivo matematike. Broj provjere određuje ponovljiv izbor zadataka. Za informatičko područje s manjim brojem praktičnih zadataka aplikacija traži manji broj ili izbor svih područja, umjesto ponavljanja istih zadataka.
 
-## Lekcije, četiri jezika i napredak
+Svaki potpuno tačan zadatak nosi jedan bod. Pomoć i rješenja otvaraju se nakon predaje. **Ocjene su 1–5**, s početnim pragovima 50%, 65%, 80% i 90% za ocjene 2–5; nastavnik može prilagoditi pragove prije početka. Rezultat prikazuje bodove, procenat, ocjenu i pregled odgovora s postupcima.
 
-Zadržane su **142 tematske lekcije i 426 pitanja s objašnjenjima**, uz 18 programerskih zadataka za Python, C, C++ i Javu. Editor omogućava stvarno lokalno izvršavanje, standardni ulaz i izlaz, prikaz grešaka i provjeru zadataka. Java koristi javnu klasu `Main`.
+**16 znački** osvajaju se kroz riješene zadatke, blokovske izazove, programerske testove i provjere. Za prolaznu ocjenu izdaje se diploma, a za ostale rezultate potvrda učešća. Dokument ima ime učenika, predmet, razred, broj zadataka, rezultat, ocjenu, datum, jedinstvenu oznaku, pečat ELDI EDU i stilizovana štampana imena sva četiri autora. Dostupni su pregled, štampanje i čuvanje kao **PDF**. To je potvrda rezultata u aplikaciji, a ne službena školska diploma ili ovjerena ocjena.
 
-Profili učenika pamte rezultate lekcija, zbirku, pisane postupke, blokovske projekte, izazove i nacrte koda. Cijeli profil izvozi se kao JSON rezervna kopija; evidencija se izvozi kao CSV. Podaci se čuvaju na računaru i nisu automatski sinhronizovani između uređaja. Postojeći profili iz verzije 10.0 ostaju dostupni nakon nadogradnje.
+## Osvježen blokovski studio
 
-Programi u tekstualnom editoru pokreću se s pravima vašeg Windows korisnika; koristite svoje i provjerene školske programe. Ograničenje vremena prekida beskonačne petlje. Desktop nije OS sigurnosni sandbox.
+Nova tamnoplava/kobaltna navigacija, lokalni ELDI znak i ikona aplikacije, kartice gradiva, veliki prikaz ocjene, značke i diplome zamjenjuju prethodni izgled. Blockly ima šarene kategorije lijevo, radnu površinu u sredini i pozornicu, trag vrijednosti, ulaz, konzolu i kod uživo desno.
 
-Teme služe za učenje u razredima 5–9; nastavnik ih usklađuje sa svojim službenim planom. Potpuna usklađenost sa svakim kantonalnim kurikulumom nije potvrđena. Aplikacija je nezavisno napravljena i nije izmijenjena distribucija BlokBa.
+Studio ima **60 provjerljivih izazova**, 12 po razredu, s početnim blokovima, pomoći, riješenim primjerom i provjerom stvarnog izlaza ili geometrije. Podržava ulaz/izlaz, brojeve, logiku, petlje, tekst, liste, varijable i postupke; likove, koordinate, olovku, boje, crtanje, događaje, poruke, klonove i tonove. Standardni ulaz piše se red po red. Kod uživo prikazuje JavaScript ili Python; konzolni Python i uneseni podaci mogu se otvoriti u tekstualnom editoru.
+
+Korak, pauza i brzina upravljaju prikazom izvršenih naredbi. Program se prvo računa u ograničenom interpreteru; prikaz zatim pokazuje naredbe i vrijednosti. Tastatura i položaj miša očitavaju se pri pokretanju. Klonovi su ograničeni na 30, a prikazane naredbe na 10.000. Projekti se čuvaju i uvoze kao JSON.
+
+Studio je samostalno Blockly okruženje i ne uvozi Scratch `.sb3`. Grafički Python izvoz koristi turtle i traži punu Python instalaciju s Tkinterom; ugrađeni Python izvršava konzolne programe. Aplikacija je nezavisno napravljena, bez prepakivanja BlokBa.
+
+## Četiri jezika i profili
+
+Editor stvarno izvršava **Python, C, C++ i Javu**, s ulazom, izlazom, prikazom grešaka i 18 programerskih zadataka. Java koristi javnu klasu `Main`. Zadržane su i 142 dodatne lekcije s 426 kratkih pitanja i objašnjenja.
+
+Profili čuvaju odgovore, bilješke, rezultate, provjere, diplome, Blockly projekte i nacrte koda u lokalnoj bazi. Stari profili iz verzija 10.0/10.1 učitavaju se nakon nadogradnje. Cijeli profil izvozi se i uvozi kao JSON rezervna kopija; evidencija se može izvesti kao CSV. Podaci se ne sinhronizuju između uređaja.
+
+Tekstualni programi rade s pravima Windows korisnika; koristite svoje i provjerene školske programe. Ograničenje vremena prekida beskonačne petlje. Desktop nije OS sigurnosni sandbox.
 
 ## Razvoj i provjere
 
-Node.js 24 ili noviji. Pokrenite `npm ci`, `npm run check` i `npm start`.
+Node.js 24 ili noviji: `npm ci`, `npm run check`, `npm start`. Sadržaj za renderer generiše se iz verzionisanih JSON kataloga prilikom provjere i prije pokretanja.
 
-`npm test` provjerava matematički modul, generisane zadatke, problemske zadatke, stvarno generisanje i interpretaciju Blockly rješenja, te dostupne lokalne programske alate. Windows Actions ugrađuje sva četiri jezička alata, provjerava njihov stvarni rad, otvara desktop prozor, provjerava zbirku i radne listove, gradi dvije EXE datoteke i pokreće zapakovanu aplikaciju prije objave. Izdanje uključuje i `SHA256SUMS.txt`.
+Provjere uključuju strukturu svih 1000 cjelina, primjere, matematičko generisanje, tačnost odgovora, sve brojeve zadataka od 1 do 50, granice ocjena, rezultate, diplome i uvoz profila. Blockly testovi stvarno generišu i interpretiraju rješenja izazova. Windows Actions ugrađuje sva četiri jezička alata, provjerava njihov stvarni rad, pokreće desktop i zapakovanu aplikaciju, provjerava korisničke tokove i PDF diplome te objavljuje Portable i Setup EXE uz `SHA256SUMS.txt`.
