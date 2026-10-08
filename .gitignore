@@ -4,3 +4,8 @@ release/
 *.log
 content/catalog-data.js
 smoke-previews/
+
+content/books-data.js
+content/packs/
+__pycache__/
+*.pyc

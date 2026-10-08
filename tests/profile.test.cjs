@@ -83,3 +83,39 @@ test('Record maps reject prototype keys and unknown records while unrelated fiel
   assert.equal(clean.unrelated,undefined); assert.deepEqual(clean.results,{}); assert.deepEqual(clean.drafts,{});
   assert.equal({}.bad,undefined);
 });
+
+test('Book profiles preserve custom sections, code indentation, notes, typed answers and manual completion separately', () => {
+  const math = require('../content/book-math.json').tasks[0], program = require('../content/book-programming.json').tasks[0];
+  const custom = {id:'moja-zbirka',title:'Moje programiranje',subject:'informatics',chapters:[{id:'moja-petlja',title:'Petlja'}],tasks:[{id:'moja-petlja-1',title:'Brojanje',subject:'informatics',grade:7,chapterId:'moja-petlja',statement:'Ispiši brojeve od 1 do n.',help:['Pročitaj n.'],solutions:{python:{code:'n = int(input())\nfor i in range(1, n + 1):\n    print(i)\n',status:'user-provided'}},examples:[{input:'2\n',output:'1\n2\n'}]}]};
+  const profile = {name:'Elvir',bookWork:{customSections:[custom],notes:{[math.id]:'Moj postupak\nČetiri koraka.',[program.id]:'Provjeri granični slučaj.', 'moja-petlja-1':'Samostalni zadatak.'},answers:{[math.id]:{'0':'162'},'moja-petlja-1':{'0':'1\n2'}},results:{[math.id]:{correct:true,lastCorrect:true,attempts:2,date:'2026-10-08T10:25:00Z',assisted:false}},completed:{[math.id]:{date:'2026-10-08T10:25:00Z',assisted:false,verified:true},[program.id]:{date:'2026-10-08T10:26:00Z',assisted:true,verified:false}}}};
+  const before=JSON.stringify(profile),exported=P.exportProfile(profile),imported=P.importProfile(exported);
+  assert.deepEqual(imported.bookWork,profile.bookWork);assert.equal(JSON.stringify(profile),before);
+  assert.equal(exported.schema,3);assert.equal(exported.app,'ELDI EDU 10.2');
+  assert.equal(imported.bookWork.customSections[0].tasks[0].solutions.python.code,custom.tasks[0].solutions.python.code);
+  assert.equal(imported.bookWork.completed[program.id].verified,false);assert.equal(imported.bookWork.completed[program.id].assisted,true);
+});
+
+test('Book imports reject unknown work, unsafe source files and oversized collections without changing the input', () => {
+  const book=require('../content/book-math.json'),task=book.tasks[0],baseline={name:'Učenik',bookWork:{notes:{},answers:{},results:{},completed:{},customSections:[]}};
+  for(const field of ['notes','answers','results','completed']) {
+    const invalid=structuredClone(baseline);invalid.bookWork[field].missing=field==='notes'?'tekst':field==='answers'?{'0':'tekst'}:field==='completed'?{date:'2026-10-08T10:25:00Z',assisted:false,verified:false}:{correct:true,attempts:1};
+    const before=JSON.stringify(invalid);assert.throws(()=>P.importProfile(wrapped(invalid)));assert.equal(JSON.stringify(invalid),before);
+  }
+  const long=structuredClone(baseline);long.bookWork.notes[task.id]='x'.repeat(20001);assert.throws(()=>P.importProfile(wrapped(long)));
+  const invalidDate=structuredClone(baseline);invalidDate.bookWork.completed[task.id]={date:'not-a-date',assisted:false,verified:false};assert.throws(()=>P.importProfile(wrapped(invalidDate)));
+  const source=structuredClone(baseline);source.bookWork.customSections=[book];assert.throws(()=>P.importProfile(wrapped(source)),/PDF/);
+  const custom={id:'moja-zbirka',title:'Moja zbirka',subject:'math',chapters:[],tasks:[{id:'moj-1',title:'Saberi',subject:'math',grade:5,statement:'1+1',answer:{type:'number',value:2}}]};
+  const duplicate=structuredClone(baseline);duplicate.bookWork.customSections=[custom,custom];assert.throws(()=>P.importProfile(wrapped(duplicate)),/više puta/);
+  const oversized=structuredClone(baseline);oversized.bookWork.customSections=Array(31).fill(custom);assert.throws(()=>P.importProfile(wrapped(oversized)),/30/);
+  const tooLong=structuredClone(baseline);tooLong.bookWork.answers[task.id]={'0':'x'.repeat(2001)};assert.throws(()=>P.importProfile(wrapped(tooLong)));
+});
+
+test('Theory notes from bundled and imported lessons survive backup without becoming task results', () => {
+  const theory=require('../content/book-programming.json').theory[0];
+  const own={id:'moja-teorija',title:'Moja teorija',subject:'informatics',chapters:[{id:'uvod',title:'Uvod'}],tasks:[],theory:[{id:'moja-lekcija',chapterId:'uvod',title:'Moja petlja',body:'Objašnjenje petlje.',codeExamples:[{language:'Python 3',code:'for i in range(3):\n    print(i)\n',runnable:true}]}]};
+  const profile={name:'Učenik',bookWork:{notes:{[theory.id]:'Moja bilješka uz izvornu teoriju.', 'moja-lekcija':'Sačuvana vlastita lekcija.'},answers:{},results:{},completed:{},customSections:[own]}};
+  const imported=P.importProfile(P.exportProfile(profile));
+  assert.deepEqual(imported.bookWork.notes,profile.bookWork.notes);assert.deepEqual(imported.bookWork.customSections,[own]);
+  const forged=structuredClone(profile);forged.bookWork.results[theory.id]={correct:true,attempts:1};assert.throws(()=>P.importProfile(wrapped(forged)),/nepoznat zadatak/);
+  const duplicate=structuredClone(profile);duplicate.bookWork.customSections[0].theory.push(own.theory[0]);assert.throws(()=>P.importProfile(wrapped(duplicate)),/više puta/);
+});

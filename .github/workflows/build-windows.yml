@@ -56,6 +56,17 @@ jobs:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         run: npm run runtime:bundle
 
+      - name: Provjeri svih 324 rješenja programerske zbirke na Windowsu
+        shell: pwsh
+        run: |
+          $bookPython = Join-Path $PWD 'runtimes/python/python.exe'
+          $bookCpp = Join-Path $PWD 'runtimes/gcc/bin/g++.exe'
+          $env:Path = (Split-Path $bookCpp) + ';' + $env:Path
+          $env:ELDI_BOOK_CPP_FLAGS = node -e 'const path=require("node:path");console.log(JSON.stringify(require("./desktop/runner.cjs").bundledGccOptions(path.resolve("runtimes"),"cpp")))'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $bookPython scripts/verify-book-programming.py --python $bookPython --cpp $bookCpp --jobs 4 --output smoke-previews/programming-verification-windows.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Provjeri sva četiri ugrađena jezika
         run: node scripts/check.cjs --bundled
 
@@ -75,23 +86,27 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
           $executables = Get-ChildItem release -Filter '*.exe'
           if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }
-          $executables | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content release/SHA256SUMS.txt
+          Copy-Item 'content/packs/ELDI-EDU-10.4.0-Zbirke-i-rjesenja.zip' 'release/'
+          $packs = Get-ChildItem release -Filter '*.zip'
+          if ($packs.Count -ne 1) { throw 'Očekivan je jedan ZIP paket zbirki i rješenja.' }
+          @($executables) + @($packs) | ForEach-Object { '{0}  {1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Set-Content release/SHA256SUMS.txt
 
       - name: Sačuvaj provjere izgleda i PDF diplomu
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-10.3.0-Visual-QA
+          name: ELDI-EDU-10.4.0-Visual-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Sačuvaj Windows EXE
+      - name: Sačuvaj Windows EXE i ZIP zbirki
         uses: actions/upload-artifact@v7
         with:
           name: ELDI-EDU-Windows-x64
           path: |
             release/*.exe
+            release/*.zip
             release/SHA256SUMS.txt
           if-no-files-found: error
           compression-level: 0
@@ -100,11 +115,17 @@ jobs:
       - name: Objavi izdanje na GitHubu
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.3.0' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v10.4.0' }}
           target_commitish: ${{ github.sha }}
-          name: ELDI EDU 10.3.0 — Dark Edition (Windows, build ${{ github.run_number }})
+          name: ELDI EDU 10.4.0 — Zbirke i rješenja (Windows, build ${{ github.run_number }})
           body: |
-            Preuzmite **ELDI-EDU-10.3.0-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.3.0-Setup-x64.exe** za instalaciju.
+            Preuzmite **ELDI-EDU-10.4.0-Portable-x64.exe** za direktno pokretanje ili **ELDI-EDU-10.4.0-Setup-x64.exe** za instalaciju.
+
+            Nova sekcija **Zbirke i rješenja** povezuje obje priložene PDF knjige s pretragom zadataka, postupnim objašnjenjima, bilješkama učenika i Python/C++ editorom. Knjige se čitaju unutar aplikacije.
+
+            **ELDI-EDU-10.4.0-Zbirke-i-rjesenja.zip** sadrži obje PDF knjige (203 i 464 stranice), 162 programerska zadatka s Python/C++ rješenjima i 53 odabrana matematička zadatka s postupkom. Svih 324 programerskih rješenja provjereno je izvršavanjem na dostupnim primjerima iz knjige. Matematička rješenja ne obuhvataju sve zadatke PDF knjige.
+
+            Možete dodavati svoje sekcije i zadatke, uvoziti ELDI EDU JSON/ZIP pakete i izvoziti svoje zbirke u ZIP. Uvezeni kod izvršava se tek na vaš zahtjev u editoru.
 
             **Dark Edition** donosi tamnije pozadine, jasnije boje kategorija blokova i usklađen izgled radnog prostora, pozornice, konzole i prikaza koda. Tamna tema je početni izbor ovog izdanja; dugme teme omogućava prelazak na svijetli izgled bez promjene složenog programa ili rada učenika.
 
@@ -116,13 +137,14 @@ jobs:
 
             Blokovi, kod, konzola i pozornica ostaju zajedno i na manjim Windows ekranima, a izbor izazova otvara se prema potrebi. Diplome zadržavaju svijetli papir za štampu i izvoz u PDF.
 
-            Paket od 1.000 riješenih blokovskih projekata i AI asistent planirani su za naredno proširenje i nisu uključeni u ovo izdanje.
+            Pomoć za ove zbirke prikazuje pripremljena objašnjenja i rješenja. AI asistent i paket od 1.000 riješenih blokovskih projekata nisu uključeni u ovo izdanje.
 
             Windows 10/11 x64. Python, GCC/G++ i Java JDK ugrađeni su u aplikaciju. Internet nije potreban za nastavu i izvršavanje školskih programa.
 
             Programi iz editora izvršavaju se lokalno s dozvolama vašeg Windows korisnika. Ovo izdanje nije digitalno potpisano.
           files: |
             release/*.exe
+            release/*.zip
             release/SHA256SUMS.txt
           fail_on_unmatched_files: true
           make_latest: true

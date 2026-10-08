@@ -7,6 +7,11 @@
 - GCC, G++, binutils i njihove biblioteke u MSYS2 UCRT64 distribuciji: GPL i pripadajuće runtime iznimke te licence pojedinačnih biblioteka. Potpuni MSYS2 prefiks sa licencama kopira se u paket. Odgovarajući izvori i recepti za pakete: https://github.com/msys2/MINGW-packages i https://packages.msys2.org/; verzije su navedene u runtimes/manifest.json.
 - Eclipse Temurin OpenJDK: GPL v2 with Classpath Exception. Priloženi JDK legal/ i LICENSE ostaju u paketu. Izvori za odgovarajuće verzije: https://github.com/adoptium/temurin25-binaries/releases i https://github.com/openjdk/jdk25u.
 
-Izvršna datoteka i sav nastavni sadržaj pripadaju ovom projektu; licence gore odnose se na navedene zavisnosti. Prije dalje distribucije zadržite pripadajuće licence i obavijesti.
+Originalne knjige u sekciji „Zbirke i rješenja“ zadržavaju svoje autorstvo:
+
+- „Zbirka zadataka iz matematike za osnovne škole“, Pedagoški zavod Tuzlanskog kantona, januar 2016. Urednici: Hariz Agić i Edis Ćatibušić; ostali autori navedeni su u izvornom PDF-u `content/books/matematika-pztk.pdf`.
+- „Programiranje — Python 3 i C++17“, Elvir Čajić, Tuzla 2026. Izvorni PDF: `content/books/programiranje.pdf`.
+
+Knjige su uključene iz dokumenata koje je dostavio korisnik, bez izmjena originalnih PDF datoteka. Digitalne obrade navode izvorne stranice i označavaju uredničke ispravke. Autorstvo aplikacije ne zamjenjuje autorstvo izvornih knjiga. Prije dalje distribucije zadržite pripadajuće licence, atribucije i obavijesti.
 
 Razvojni testovi koriste @xmldom/xmldom 0.9.12 (MIT) za XML DOM u Blockly provjerama; ova razvojna zavisnost nije ugrađena u korisnički EXE.

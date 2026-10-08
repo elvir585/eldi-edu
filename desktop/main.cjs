@@ -4,6 +4,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL, fileURLToPath } = require('node:url');
 const { createRunner } = require('./runner.cjs');
+const learningPacks = require('./learning-packs.cjs');
 
 const smokeTest = process.argv.includes('--smoke-test');
 const rendererRoot = path.resolve(__dirname, '..', 'renderer');
@@ -12,6 +13,8 @@ const entry = path.join(rendererRoot, 'index.html');
 const entryURL = pathToFileURL(entry).href;
 const runtimeRoot = app.isPackaged ? path.join(process.resourcesPath, 'runtimes') : path.resolve(__dirname, '..', 'runtimes');
 const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
+const bundledPackFilename = 'ELDI-EDU-10.4.0-Zbirke-i-rjesenja.zip';
+const bundledPackPath = path.resolve(__dirname, '..', 'content', 'packs', bundledPackFilename);
 let mainWindow;
 
 app.setName('ELDI EDU');
@@ -28,6 +31,10 @@ else {
     session.defaultSession.setPermissionCheckHandler(() => false);
     session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
       let allowed = details.url.startsWith('data:') || details.url.startsWith('blob:') || details.url.startsWith('devtools:');
+      // Chromium's built-in PDF viewer is an internal extension. Its resources
+      // are needed for local books; no external websites are enabled here.
+      if (details.url.startsWith('chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/')) allowed = true;
+      if (details.url.startsWith('chrome://resources/') && (details.initiatorOrigin === 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai' || details.frame?.url.startsWith('chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/'))) allowed = true;
       if (details.url.startsWith('file:')) {
         try { const target = fileURLToPath(new URL(details.url)); allowed = assetRoots.some(root => target.startsWith(root + path.sep)); } catch {}
       }
@@ -35,9 +42,9 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 10.3.0 — Dark Edition', show: !smokeTest,
+      title: 'ELDI EDU 10.4.0 — Zbirke i rješenja', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
-      webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, backgroundThrottling: !smokeTest }
+      webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       { label: 'ELDI EDU', submenu: [{ label: 'Zatvori', role: 'quit' }] },
@@ -64,6 +71,20 @@ else {
     ipcMain.handle('eldi:run-code', async (event, request) => { trusted(event); try { return await runner.runCode(request); } catch (error) { return { ok: false, phase: 'validation', stdout: '', stderr: error.message, exitCode: null, timedOut: false, truncated: false, cancelled: false }; } });
     ipcMain.handle('eldi:cancel-run', event => { trusted(event); return runner.cancel(); });
     ipcMain.handle('eldi:runtime-status', event => { trusted(event); return runner.runtimeStatus(); });
+    ipcMain.handle('eldi:read-learning-pack', (event, bytes) => {
+      trusted(event);
+      return learningPacks.readPack(bytes);
+    });
+    ipcMain.handle('eldi:save-learning-pack', async (event, pack) => {
+      trusted(event);
+      // Validation precedes the dialog. Renderer data cannot supply a path.
+      const bytes = pack == null ? await fs.promises.readFile(bundledPackPath) : learningPacks.createPackZip(pack);
+      const filename = pack == null ? bundledPackFilename : 'ELDI-EDU-Moja-zbirka.zip';
+      const selection = await dialog.showSaveDialog(mainWindow, { title: 'Sačuvaj zbirku i rješenja', defaultPath: path.join(app.getPath('documents'), filename), filters: [{ name: 'ELDI EDU ZIP paket', extensions: ['zip'] }], properties: ['showOverwriteConfirmation'] });
+      if (selection.canceled || !selection.filePath) return { success: false, canceled: true };
+      await fs.promises.writeFile(selection.filePath, bytes);
+      return { success: true, path: selection.filePath };
+    });
     ipcMain.handle('eldi:print-page', async event => {
       trusted(event);
       const landscape = await mainWindow.webContents.executeJavaScript("document.body.classList.contains('printing-certificate')");
@@ -101,6 +122,24 @@ async function runDesktopSmoke(window) {
   window.showInactive();
   const output = path.join(process.cwd(), 'smoke-previews', app.isPackaged ? 'packaged' : 'development');
   await fs.promises.mkdir(output, { recursive: true });
+  const bundledBytes = await fs.promises.readFile(bundledPackPath);
+  const bundled = learningPacks.readPack(bundledBytes);
+  const programBook = bundled.pack.books.find(book => book.subject === 'informatics');
+  const mathBook = bundled.pack.books.find(book => book.subject === 'math');
+  if (bundled.pack.books.length !== 2 || programBook?.tasks.length !== 162 || mathBook?.tasks.length !== 53) throw new Error('Ugrađeni ZIP mora sadržati obje zbirke, 162 programerska i 53 matematička zadatka.');
+  for (const task of programBook.tasks) for (const language of ['python', 'cpp']) {
+    if (typeof task.solutions?.[language]?.code !== 'string' || !task.solutions[language].code.trim()) throw new Error('U ZIP paketu nedostaje rješenje: ' + task.id + '/' + language);
+  }
+  for (const book of [mathBook, programBook]) {
+    if (!bundled.report.filePaths.includes(book.sourceFile)) throw new Error('U ZIP paketu nedostaje cijela PDF knjiga: ' + book.title);
+    const filename = path.resolve(__dirname, '..', book.sourceFile);
+    const handle = await fs.promises.open(filename, 'r');
+    try {
+      const header = Buffer.alloc(4);
+      await handle.read(header, 0, 4, 0);
+      if (header.toString() !== '%PDF' || (await handle.stat()).size < 1000) throw new Error('U aplikaciji nedostaje izvorna PDF knjiga: ' + book.title);
+    } finally { await handle.close(); }
+  }
   const helpers = `
     const ensure=(condition,message)=>{if(!condition)throw new Error(message);};
     const $=id=>document.getElementById(id);
@@ -132,11 +171,11 @@ async function runDesktopSmoke(window) {
     const bodyStyle=getComputedStyle(document.body);
     ensure(brightness(bodyStyle.backgroundColor)<60,'Pozadina aplikacije nije tamna: '+bodyStyle.backgroundColor);
     ensure(contrast(bodyStyle.color,bodyStyle.backgroundColor)>=7,'Tekst aplikacije nema dovoljan kontrast u tamnoj temi.');
-    for(const key of ['eldiDesktop','EduMath','EduPractice','ELDICollection','ELDIBlocks','ELDICourses','ELDIExams','ELDIAwards','ELDIExamEngine','ELDIStorage'])ensure(window[key],'Nije učitano: '+key);
+    for(const key of ['eldiDesktop','EduMath','EduPractice','ELDICollection','ELDIBlocks','ELDICourses','ELDIExams','ELDIAwards','ELDIExamEngine','ELDIStorage','ELDIBooks','ELDIContentPacks'])ensure(window[key],'Nije učitano: '+key);
     ensure(ELDI_MATH_CATALOG.length===500&&ELDI_INFORMATICS_CATALOG.length===500,'Katalog mora imati 500 matematičkih i 500 informatičkih cjelina.');
     ensure(EduPractice.topics.length===500,'Praktična matematika mora imati 500 vještina.');
     const visited=[];
-    for(const name of ['home','courses','lessons','collection','math','blocks','code','exams','awards','progress','about']){
+    for(const name of ['home','courses','books','lessons','collection','math','blocks','code','exams','awards','progress','about']){
       go(name);ensure($('view').innerText.length>20,'Prazna stranica: '+name);ensure(document.body.dataset.page===name,'Nije primijenjen izgled stranice: '+name);visited.push(name);
     }
     ensure(EduMath.evaluate('1/2+1/3').exact==='5/6','Računanje razlomaka nije tačno.');
@@ -264,6 +303,160 @@ async function runDesktopSmoke(window) {
       ensure($('output').textContent.includes('2000000000')&&$('output').textContent.includes('Program završen.'),'Desktop '+language+': '+$('output').textContent);
     }
   `);
+  await stage('book catalog, search and worked programming help', `
+    go('books');
+    ensure(Array.isArray(ELDI_BOOKS)&&ELDI_BOOKS.length===2,'Dvije PDF zbirke nisu učitane u posebnu sekciju.');
+    const programming=ELDI_BOOKS.find(book=>book.subject==='informatics'),mathematics=ELDI_BOOKS.find(book=>book.subject==='math');
+    ensure(programming.tasks.length===162&&mathematics.tasks.length===53,'Katalog zbirki ne prikazuje pripremljene zadatke.');
+    ensure((programming.pageCount||programming.sourcePages)===464&&(mathematics.pageCount||mathematics.sourcePages)===203,'Katalog mora zadržati obje cijele izvorne knjige.');
+    $('books-book').value=programming.id;$('books-book').dispatchEvent(new Event('change',{bubbles:true}));
+    fill($('books-search'),programming.tasks[0].title);
+    ensure(document.querySelector('[data-books-task]'),'Pretraga programerske zbirke nije vratila zadatak.');
+    fill($('books-search'),'');
+  `);
+  await capture('07-books');
+  await stage('progressive help and saved book notes', `
+    const book=ELDI_BOOKS.find(book=>book.subject==='informatics'),task=book.tasks[0];
+    ELDIBooks.open(book.id,task.id);
+    ensure($('view').innerText.includes(task.title),'Zadatak iz zbirke nije otvoren.');
+    $('books-hint').click();$('books-solution').click();
+    const hint=Array.isArray(task.help)?task.help[0]:task.help;
+    ensure(typeof hint==='string'&&hint.length>10&&$('view').innerText.includes(hint),'Pripremljena pomoć nije prikazana.');
+    ensure($('view').innerText.includes(task.solutions.python.code.slice(0,40)),'Python rješenje nije prikazano.');
+    fill($('books-notes'),'Moj postupak iz knjige: ulaz, račun, provjera rezultata.');
+    await ELDIStorage.flush();
+    go('books');ELDIBooks.open(book.id,task.id);
+    ensure($('books-notes').value==='Moj postupak iz knjige: ulaz, račun, provjera rezultata.','Postupak iz zbirke nije sačuvan uz profil.');
+    $('books-solution').click();
+  `);
+  await capture('08-book-task');
+  await stage('book solutions transfer to real Python and C++ editor', `
+    const book=ELDI_BOOKS.find(book=>book.subject==='informatics');
+    for(const task of [book.tasks[0],book.tasks.at(-1)])for(const language of ['python','cpp']){
+      go('books');ELDIBooks.open(book.id,task.id);
+      ensure(task.examples?.length&&task.solutions[language]?.code,'Nedostaje program ili primjer za '+task.id+'/'+language);
+      $('books-solution').click();
+      $('books-code-language').value=language;$('books-code-language').dispatchEvent(new Event('change',{bubbles:true}));
+      $('books-open-editor').click();
+      ensure(document.body.dataset.page==='code'&&$('lang').value===language,'Rješenje nije otvoreno u odgovarajućem editoru.');
+      ensure($('editor').value===task.solutions[language].code,'Rješenje pri prenosu u editor promijenilo je kod.');
+      ensure($('input').value===task.examples[0].input,'Primjer ulaza nije prenesen u editor.');
+      $('run').click();
+      const deadline=Date.now()+25000;while($('output').textContent==='Pokretanje…'&&Date.now()<deadline)await wait(50);
+      const actual=$('output').textContent.replace(/\\s+/g,' ').trim(),expected=task.examples[0].output.replace(/\\s+/g,' ').trim();
+      ensure(actual.includes('Program završen.')&&actual.includes(expected),'Program iz zbirke nije izvršen tačno: '+task.id+'/'+language+' '+actual);
+    }
+  `);
+  await stage('embedded original PDF book reader', `
+    const book=ELDI_BOOKS.find(book=>book.subject==='math');
+    go('books');ELDIBooks.open(book.id,book.tasks[0].id);$('books-open-pdf').click();
+    const reader=$('books-reader-frame');ensure(reader&&reader.tagName==='IFRAME','Knjiga nije otvorena u unutrašnjem PDF čitaču.');
+    ensure(reader.src.includes('/content/books/matematika-pztk.pdf#page='),'Čitač nije otvorio odgovarajuću PDF knjigu i stranicu.');
+    ensure($('books-reader-page'),'Čitač nema odabir stranice.');
+  `);
+  const pdfDeadline = Date.now() + 15000;
+  let pdfReader = null, pdfFrames = [];
+  while (Date.now() < pdfDeadline && !pdfReader) {
+    pdfFrames = [];
+    for (const frame of window.webContents.mainFrame.framesInSubtree) {
+      if (!frame.url.includes('.pdf') && !frame.url.startsWith('chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/')) continue;
+      try {
+        const status = await frame.executeJavaScript("(()=>{const viewer=document.querySelector('pdf-viewer');return {url:location.href,viewer:!!viewer,loaded:!!viewer&&(typeof viewer.getLoadSucceededForTesting==='function'?viewer.getLoadSucceededForTesting():viewer.loadProgress_===100),pages:viewer?(viewer.documentDimensions?.pageDimensions?.length||viewer.docLength_||0):0};})()");
+        pdfFrames.push(status);
+        if (status.loaded && status.pages === 203) pdfReader = status;
+      } catch {}
+    }
+    if (!pdfReader) await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  if (!pdfReader) throw new Error('Unutrašnji PDF čitač nije potvrdio učitavanje cijele knjige od 203 stranice: ' + JSON.stringify(pdfFrames));
+  console.log('Desktop PDF reader passed:', JSON.stringify({ loaded: pdfReader.loaded, pages: pdfReader.pages }));
+  await capture('09-book-reader');
+  await stage('book mathematical answer and learner-owned section', `
+    const book=ELDI_BOOKS.find(book=>book.subject==='math'),task=book.tasks.find(task=>task.answer?.type==='number');
+    ensure(task,'Matematička zbirka nema zadatak s provjerljivim brojevnim odgovorom.');
+    go('books');ELDIBooks.open(book.id,task.id);$('books-check').click();
+    ensure(state().bookWork.results[task.id]?.lastCorrect===false,'Prazan odgovor iz zbirke mora biti odbijen.');
+    fill($('books-answer-0'),String(task.answer.value));$('books-check').click();
+    ensure(state().bookWork.results[task.id]?.lastCorrect&&state().bookWork.completed[task.id]?.verified,'Tačan odgovor iz matematičke zbirke nije provjeren.');
+    fill($('books-notes'),'Moj matematički postupak iz izvorne zbirke.');
+    go('books');$('books-new-section').click();fill($('books-section-title'),'Moja sekcija iz Windows provjere');
+    $('books-section-subject').value='informatics';fill($('books-section-description'),'Programerski zadaci koje dodaje korisnik.');$('books-form-save').click();
+    const own=state().bookWork.customSections.find(book=>book.title==='Moja sekcija iz Windows provjere');
+    ensure(own,'Nova korisnička sekcija nije sačuvana.');
+    $('books-new-task').click();$('books-task-section').value=own.id;$('books-task-section').dispatchEvent(new Event('change',{bubbles:true}));
+    fill($('books-task-title'),'Dvostruki broj iz moje sekcije');fill($('books-task-statement'),'Učitaj cijeli broj i ispiši dvostruku vrijednost.');
+    fill($('books-task-help'),'Učitaj jedan broj.');fill($('books-task-steps'),'Pomnoži broj sa 2.');
+    fill($('books-task-input'),'7');fill($('books-task-output'),'14');fill($('books-task-python'),'n = int(input())\\nprint(2 * n)\\n');$('books-form-save').click();
+    const saved=state().bookWork.customSections.find(book=>book.id===own.id);
+    ensure(saved.tasks.length===1&&saved.tasks[0].solutions.python.status==='user-provided','Korisnički zadatak nije sačuvan ili je netačno označen kao provjeren.');
+    await ELDIStorage.flush();
+    window.__learningPackSmoke={format:'ELDI-LEARNING-PACK',version:1,books:[saved]};
+    const parsed=await eldiDesktop.readLearningPack(new TextEncoder().encode(JSON.stringify(window.__learningPackSmoke)));
+    ensure(parsed.report.books===1&&parsed.report.tasks===1&&parsed.pack.books[0].tasks[0].title===saved.tasks[0].title,'Nativna provjera JSON paketa nije sačuvala zadatak.');
+    let rejected=false;try{await eldiDesktop.readLearningPack(new Uint8Array([80,75,0,0]));}catch{rejected=true;}ensure(rejected,'Neispravan ZIP nije odbijen.');
+  `);
+  const originalSaveDialog = dialog.showSaveDialog;
+  const ownExportPath = path.join(output, 'Moja-zbirka-smoke.zip');
+  const defaultExportPath = path.join(output, bundledPackFilename);
+  let dialogsOpened = 0;
+  try {
+    dialog.showSaveDialog = async () => { dialogsOpened++; return { canceled: false, filePath: ownExportPath }; };
+    await stage('native custom ZIP export and bounded importer', `
+      const result=await eldiDesktop.saveLearningPack(window.__learningPackSmoke);
+      ensure(result.success&&result.path,'Korisnička zbirka nije izvezena u ZIP.');
+    `);
+    const ownBytes = await fs.promises.readFile(ownExportPath);
+    const ownRoundtrip = learningPacks.readPack(ownBytes);
+    if (ownRoundtrip.report.books !== 1 || ownRoundtrip.report.tasks !== 1 || ownRoundtrip.report.solutions !== 1) throw new Error('ZIP izvoz nije sačuvao korisnički zadatak i kod.');
+    await stage('native ZIP round trip imported through actual UI', `
+      go('books');
+      const bytes=new Uint8Array(${JSON.stringify([...ownBytes])}),transfer=new DataTransfer();
+      transfer.items.add(new File([bytes],'Moja-zbirka-smoke.zip',{type:'application/zip'}));
+      $('books-import').files=transfer.files;$('books-import').dispatchEvent(new Event('change',{bubbles:true}));
+      const deadline=Date.now()+5000;
+      while(state().bookWork.customSections.length<2&&Date.now()<deadline)await wait(50);
+      ensure(state().bookWork.customSections.length===2,'ZIP nije uvezen kroz stvarnu formu.');
+      const imported=state().bookWork.customSections[1],original=state().bookWork.customSections[0];
+      ensure(imported.id!==original.id&&imported.tasks[0].id!==original.tasks[0].id,'Uvoz mora dobiti vlastite oznake i zadržati postojeći rad.');
+      ensure(imported.tasks[0].solutions.python.code===original.tasks[0].solutions.python.code,'ZIP povratni uvoz izmijenio je izvorni kod.');
+      await ELDIStorage.flush();
+    `);
+    dialog.showSaveDialog = async () => { dialogsOpened++; return { canceled: true }; };
+    await stage('canceled ZIP export and invalid data do not write', `
+      const result=await eldiDesktop.saveLearningPack(window.__learningPackSmoke);
+      ensure(result.canceled&&!result.success,'Otkazan ZIP izvoz ne smije prikazati uspjeh.');
+      let rejected=false;try{await eldiDesktop.saveLearningPack({format:'invalid',version:1,books:[]});}catch{rejected=true;}ensure(rejected,'Izvoz neispravnog paketa nije odbijen prije dijaloga.');
+    `);
+    if (dialogsOpened !== 2) throw new Error('Neispravni paket ne smije otvoriti dijalog za spremanje.');
+    dialog.showSaveDialog = async () => { dialogsOpened++; return { canceled: false, filePath: defaultExportPath }; };
+    await stage('native original books ZIP export', `
+      const result=await eldiDesktop.saveLearningPack();ensure(result.success,'Ugrađeni ZIP zbirki nije izvezen.');
+      delete window.__learningPackSmoke;
+    `);
+    if (!(await fs.promises.readFile(defaultExportPath)).equals(bundledBytes)) throw new Error('Izvoz ugrađenog ZIP paketa promijenio je knjige ili rješenja.');
+    await fs.promises.unlink(defaultExportPath);
+  } finally { dialog.showSaveDialog = originalSaveDialog; }
+  await stage('109 digital programming lessons and validated profile backup', `
+    const book=ELDI_BOOKS.find(book=>book.subject==='informatics');
+    ensure(Array.isArray(book.theory)&&book.theory.length===109,'Programerska zbirka mora imati 109 digitalnih teorijskih lekcija.');
+    go('books');$('books-book').value=book.id;$('books-book').dispatchEvent(new Event('change',{bubbles:true}));
+    $('books-grade').value='all';$('books-grade').dispatchEvent(new Event('change',{bubbles:true}));
+    $('books-chapter').value='all';$('books-chapter').dispatchEvent(new Event('change',{bubbles:true}));
+    fill($('books-search'),'');$('books-show-theory').click();
+    ensure($('books-show-theory').getAttribute('aria-pressed')==='true'&&$('books-result-count').textContent.includes('109'),'Teorijski katalog nije prikazao 109 lekcija.');
+    const first=document.querySelector('[data-books-theory]');ensure(first,'Teorijski katalog nema otvorivu lekciju.');
+    const lesson=book.theory.find(item=>item.id===first.dataset.booksTheory);ensure(lesson&&lesson.body.length>100,'Teorijska lekcija nema sadržajno objašnjenje.');
+    first.click();
+    const normalized=value=>String(value).replace(/\\s+/g,' ').trim();
+    ensure($('view').innerText.includes(lesson.title)&&normalized(document.querySelector('.books-theory-body')?.innerText).includes(normalized(lesson.body.slice(0,100))),'Odabrana teorijska lekcija nije prikazala izvorno objašnjenje.');
+    fill($('books-notes'),'Moje bilješke teorijske lekcije: ideja, primjer, samostalna primjena.');
+    await ELDIStorage.flush();
+    const backup=ELDIProfiles.exportProfile(state());
+    ensure(backup.profile.bookWork.notes[lesson.id]==='Moje bilješke teorijske lekcije: ideja, primjer, samostalna primjena.','Validirani izvoz profila nije sačuvao bilješke teorijske lekcije.');
+    go('books');ELDIBooks.openTheory(book.id,lesson.id);
+    ensure($('books-notes').value===backup.profile.bookWork.notes[lesson.id],'Bilješke teorijske lekcije nisu vraćene pri ponovnom otvaranju.');
+  `);
+  await capture('10-programming-theory');
   for (const [subject, count] of [['math', 50], ['informatics', 10]]) {
     await stage(`actual ${subject} ${count}-task exam`, `
       go('exams');$('exam-subject').value=${JSON.stringify(subject)};$('exam-subject').onchange();$('exam-count').value=${JSON.stringify(String(count))};$('exam-start').click();
@@ -325,6 +518,10 @@ async function runDesktopSmoke(window) {
     ensure(window.__eldiReady,'Sačuvani profil nije učitan nakon ponovnog otvaranja.');
     ensure($('profile').selectedOptions[0].textContent==='Provjera paketa','Odabrani profil nije sačuvan.');
     ensure(!document.body.classList.contains('dark')&&$('theme').getAttribute('aria-pressed')==='false','Ručni izbor svijetle teme nije preživio ponovno otvaranje.');
+    ensure(state().bookWork?.customSections?.length===2,'Moja sekcija i uvezeni ZIP nisu preživjeli ponovno otvaranje.');
+    const book=ELDI_BOOKS.find(book=>book.subject==='informatics');
+    ensure(state().bookWork.notes[book.tasks[0].id]==='Moj postupak iz knjige: ulaz, račun, provjera rezultata.','Bilješke iz knjige nisu preživjele ponovno otvaranje.');
+    ensure(book.theory.some(lesson=>state().bookWork.notes[lesson.id]==='Moje bilješke teorijske lekcije: ideja, primjer, samostalna primjena.'),'Bilješke teorijske lekcije nisu preživjele ponovno otvaranje.');
   `);
   if (await evaluate(snapshot) !== beforeReload) throw new Error('Ponovno učitavanje promijenilo je sačuvane profile, odgovore, bilješke, programe ili priznanja.');
   await stage('dark edition final theme restored', `
@@ -332,5 +529,5 @@ async function runDesktopSmoke(window) {
     ensure(document.body.classList.contains('dark')&&localStorage.getItem('eldi-theme-v2')==='dark','Tamna tema nije sačuvana nakon povratka.');
     ensure((window.__eldiErrors||[]).length===0,'Greške prikaza nakon promjene teme: '+JSON.stringify(window.__eldiErrors));
   `);
-  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, screenshotDirectory: output };
+  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, books: 2, workedMath: 53, workedProgramming: 162, programmingTheory: 109, bookEditorExecutions: 4, zipRoundtrip: true, pdfReader: { loaded: true, pages: pdfReader.pages }, screenshotDirectory: output };
 }

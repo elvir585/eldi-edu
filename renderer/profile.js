@@ -15,7 +15,9 @@
       return holder.window.ELDI_BLOCK_CHALLENGES;
     },
     exams: () => node ? require('../app/exam-engine.js') : root.ELDIExamEngine,
-    awards: () => node ? require('./awards.js') : root.ELDIAwards
+    awards: () => node ? require('./awards.js') : root.ELDIAwards,
+    packs: () => node ? require('../app/content-pack.js') : root.ELDIContentPacks,
+    books: () => node ? [require('../content/book-math.json'), require('../content/book-programming.json')] : (Array.isArray(root.ELDI_BOOKS) ? root.ELDI_BOOKS : root.ELDI_BOOKS?.books || [])
   };
   const api = factory(source);
   if (node) module.exports = api;
@@ -46,7 +48,9 @@
     const infoTasks = new Set(info.map(lesson => 'activity-' + lesson.id));
     const quizIds = new Set([...(source.curriculum() || []).map(lesson => lesson.id), ...(source.tasks() || []).map(task => 'task-' + task.id)]);
     const blockIds = new Set((source.blocks() || []).map(challenge => challenge.id));
-    cachedReferences = {mathTopics, projects, courses, infoTasks, quizIds, blockIds};
+    const bookTasks = new Set((source.books() || []).flatMap(book => (book.tasks || []).map(task => task.id)));
+    const bookTheory = new Set((source.books() || []).flatMap(book => (book.theory || []).map(item => item.id)));
+    cachedReferences = {mathTopics, projects, courses, infoTasks, quizIds, blockIds, bookTasks, bookTheory};
     return cachedReferences;
   }
   function isMathTask(id, refs) {
@@ -107,6 +111,34 @@
       object(sheet, 'Radni list');
       return {name: string(sheet.name, 160, 'Naziv lista', false), date: date(sheet.date, 'Datum lista'), refs: mathRefs(sheet.refs, refs)};
     });
+    return out;
+  }
+  function bookWork(value, refs) {
+    object(value, 'Rad u knjigama');
+    const packs = source.packs();
+    if (!packs?.normalizeBook || !packs?.normalizeTask) fail('Nedostaje provjera uvezenih zbirki.');
+    const raw = JSON.stringify(value);
+    if (packs.bytes(raw) > MAX_PROFILE_BYTES) fail('Rad u knjigama smije imati do 30 MB.');
+    if (value.customSections !== undefined && (!Array.isArray(value.customSections) || value.customSections.length > packs.MAX_BOOKS)) fail('Moguće je sačuvati do 30 dodatnih zbirki.');
+    const customSections = (value.customSections || []).map(book => packs.normalizeBook(book, {allowOfficialSource: false}));
+    if (new Set(customSections.map(book => book.id)).size !== customSections.length) fail('Dodatna zbirka navedena je više puta.');
+    if (value.customTasks !== undefined && (!Array.isArray(value.customTasks) || value.customTasks.length > packs.MAX_TASKS)) fail('Previše dodatnih zadataka.');
+    const customTasks = (value.customTasks || []).map(task => packs.normalizeTask(task));
+    const allCustomTasks = customSections.flatMap(book => book.tasks).concat(customTasks);
+    if (allCustomTasks.length > packs.MAX_TASKS) fail('Moguće je sačuvati do 2000 dodatnih zadataka.');
+    const ids = new Set(allCustomTasks.map(task => task.id));
+    if (ids.size !== allCustomTasks.length) fail('Dodatni zadatak naveden je više puta.');
+    if (allCustomTasks.some(task => refs.bookTasks.has(task.id) || refs.bookTheory.has(task.id))) fail('Dodatni zadatak mora imati vlastitu oznaku.');
+    const customTheory = customSections.flatMap(book => book.theory || []), theoryIds = new Set(customTheory.map(item => item.id));
+    if (theoryIds.size !== customTheory.length || customTheory.some(item => ids.has(item.id) || refs.bookTasks.has(item.id) || refs.bookTheory.has(item.id))) fail('Dodatna lekcija mora imati jedinstvenu vlastitu oznaku.');
+    const known = taskId => refs.bookTasks.has(taskId) || ids.has(taskId);
+    const knownNote = itemId => known(itemId) || refs.bookTheory.has(itemId) || theoryIds.has(itemId);
+    const out = {notes: textMap(value.notes, 'Bilješke knjiga', knownNote, 20000), answers: answerMap(value.answers, 'Odgovori knjiga', known, 2000), results: resultMap(value.results, 'Rezultati knjiga', known), completed: {}, customSections};
+    if (value.customTasks !== undefined) out.customTasks = customTasks;
+    for (const [taskId, record] of entries(value.completed || {}, 'Završeni zadaci knjiga', packs.MAX_TASKS + refs.bookTasks.size)) {
+      if (!known(taskId)) fail('Nepoznat zadatak knjige.'); object(record, 'Završen zadatak knjige');
+      out.completed[taskId] = {date: date(record.date, 'Datum završenog zadatka'), assisted: record.assisted === undefined ? false : boolean(record.assisted, 'Pomoć pri rješavanju'), verified: record.verified === undefined ? false : boolean(record.verified, 'Provjera završenog zadatka')};
+    }
     return out;
   }
   function dataClone(value, label, depth = 0, budget = {nodes: 0}) {
@@ -174,6 +206,7 @@
     if (value.blockChallengeId !== undefined && value.blockChallengeId !== null) { if (!refs.blockIds.has(value.blockChallengeId)) fail('Nepoznat blokovski izazov.'); out.blockChallengeId = value.blockChallengeId; }
     out.blockResults = resultMap(value.blockResults, 'Blokovski rezultati', id => refs.blockIds.has(id));
     if (value.mathWork !== undefined) out.mathWork = mathWork(value.mathWork, refs);
+    if (value.bookWork !== undefined) out.bookWork = bookWork(value.bookWork, refs);
     out.courseAnswers = answerMap(value.courseAnswers, 'Odgovori nastavnih cjelina', id => refs.courses.has(id));
     out.courseNotes = textMap(value.courseNotes, 'Bilješke nastavnih cjelina', id => refs.courses.has(id));
     out.courseResults = resultMap(value.courseResults, 'Rezultati nastavnih cjelina', id => refs.courses.has(id) || refs.infoTasks.has(id));

@@ -1,0 +1,6 @@
+n = int(input())
+petice, ostatak = divmod(n, 5)
+dvojke, jedinice = divmod(ostatak, 2)
+print(petice)
+print(dvojke)
+print(jedinice)

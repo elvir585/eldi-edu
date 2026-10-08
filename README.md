@@ -1,4 +1,4 @@
-# ELDI EDU 10.3.0 — Dark Edition
+# ELDI EDU 10.4.0 — Zbirke i rješenja / Dark Edition
 
 **Matematika i informatika od 5. do 9. razreda kao Windows aplikacija koja radi bez interneta.**
 
@@ -8,10 +8,26 @@ Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanovi�
 
 Otvorite **[najnovije izdanje](https://github.com/elvir585/eldi-edu/releases/latest)**:
 
-- `ELDI-EDU-10.3.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
-- `ELDI-EDU-10.3.0-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
+- `ELDI-EDU-10.4.0-Portable-x64.exe` — direktno pokretanje bez instalacije.
+- `ELDI-EDU-10.4.0-Setup-x64.exe` — instalacija s prečicom na radnoj površini.
+- `ELDI-EDU-10.4.0-Zbirke-i-rjesenja.zip` — obje knjige, zadaci, postupci i izvorne datoteke rješenja.
 
 Windows 10/11 x64. Paket uključuje nastavni sadržaj, Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za učenje i izvršavanje programa. [GitHub Actions](https://github.com/elvir585/eldi-edu/actions/workflows/build-windows.yml) provjerava i gradi obje EXE datoteke prije objave.
+
+## Zbirke i rješenja
+
+Nova zasebna sekcija povezuje originalne knjige, digitalne zadatke, pomoć po koracima, bilješke i editor. Tamni prikaz ima kartice knjiga, pretragu, filtere po cjelini i razredu, teorijske lekcije i ugrađeni PDF čitač.
+
+- **Programiranje — Python 3 i C++17**, Elvir Čajić, Tuzla 2026: cijela knjiga od **464 stranice**, **162 zadatka**, **324 potpuna programa** i **109 teorijskih sekcija**. Zadaci čuvaju tekst, ulaz/izlaz, primjere, postupak, složenost i porijeklo. Kod se može otvoriti u editoru s primjerom ulaza ili sačuvati kao `.py` / `.cpp`.
+- **Zbirka zadataka iz matematike za osnovne škole**, Pedagoški zavod Tuzlanskog kantona, januar 2016: originalnih **203 stranice**, indeks **24 oblasti** i prilog s formulama. Dodatno su obrađena **53 odabrana zadatka**: 49 s provjerom numeričkog odgovora i 4 za samostalno poređenje dokaza ili postupka. Ostatak knjige dostupan je u PDF-u. Uočene greške izvornog rješenja jasno su označene uz digitalni postupak; originalni PDF nije mijenjan.
+
+Pomoć se otkriva postepeno. Evidencija razlikuje ličnu oznaku vježbanja, automatski provjeren matematički odgovor i korištenje pomoći. Provjera odgovora ne ocjenjuje zapisani postupak. Programerska rješenja prošla su kompilaciju/sintaksnu provjeru i izvođenje svih **324 objavljena primjera**; ovo nije dokaz ispravnosti za svaki mogući ulaz.
+
+Dugmad **„Nova sekcija“** i **„Moj zadatak“** omogućavaju vlastite zbirke s tekstom, savjetima, postupkom, primjerima i Python/C++ kodom. Sekcije se čuvaju u profilu i mogu izvesti/uvesti kao JSON ili ZIP. Uvezeni kod se ne pokreće automatski. Naprednije teme iz knjige programiranja nisu ograničene na gradivo osnovne škole.
+
+ZIP sadrži `pack.json`, oba originalna PDF-a, kataloge, izvještaj provjere i 162 programske mape. Svaka mapa ima `README.md`, `solution.py`, `solution.cpp`, `example-1.in` i `example-1.out`. Paket se uvozi u ovoj sekciji; PDF-i i kodovi mogu se koristiti i zasebno. ZIP sa svim izvornim knjigama čuva se direktno iz aplikacije. Bilješke učenika izvoze se kroz rezervnu kopiju profila.
+
+Autori aplikacije ostaju **Dino Isanović, Elvir Čajić, Damir Bajrić i Jasmin Suljkanović**. Izvorne knjige zadržavaju svoje autorstvo i atribuciju.
 
 ## 500 matematičkih + 500 informatičkih cjelina
 
@@ -44,7 +60,7 @@ Svaki potpuno tačan zadatak nosi jedan bod. Pomoć i rješenja otvaraju se nako
 
 ## Dark Edition i blokovski studio
 
-Verzija 10.3.0 uvodi tamni izgled cijele aplikacije: duboku tamnoplavu podlogu, čitljive kartice i kontrole, obojene kategorije blokova, tamnu radnu površinu, kod i konzolu. Pozornica koristi tamnu podlogu dok program ne postavi vlastitu boju. Lokalni ELDI znak, ikona, ocjene i značke prate isti izgled. Diplome i radni listovi zadržavaju svijetlu podlogu za štampanje.
+Dark Edition zadržava tamni izgled cijele aplikacije: duboku tamnoplavu podlogu, čitljive kartice i kontrole, obojene kategorije blokova, tamnu radnu površinu, kod i konzolu. Pozornica koristi tamnu podlogu dok program ne postavi vlastitu boju. Lokalni ELDI znak, ikona, ocjene i značke prate isti izgled. Diplome i radni listovi zadržavaju svijetlu podlogu za štampanje.
 
 Dark Edition se pri prvom pokretanju nadogradnje otvara u tamnoj temi. Dugme „Svijetla tema“ omogućava promjenu; odabir ostaje sačuvan nakon ponovnog pokretanja. Promjena teme ne briše blokove, crtež ili profil. Blockly ima kategorije lijevo, radnu površinu u sredini i pozornicu, trag vrijednosti, ulaz, konzolu i kod uživo desno; raspored ostaje upotrebljiv i na manjim Windows ekranima.
 
@@ -66,8 +82,8 @@ Tekstualni programi rade s pravima Windows korisnika; koristite svoje i provjere
 
 Node.js 24 ili noviji: `npm ci`, `npm run check`, `npm start`. Sadržaj za renderer generiše se iz verzionisanih JSON kataloga prilikom provjere i prije pokretanja.
 
-Provjere uključuju strukturu svih 1000 cjelina, primjere, matematičko generisanje, tačnost odgovora, sve brojeve zadataka od 1 do 50, granice ocjena, rezultate, diplome i uvoz profila. Blockly testovi stvarno generišu i interpretiraju rješenja izazova. Windows Actions ugrađuje sva četiri jezička alata, provjerava njihov stvarni rad, pokreće desktop i zapakovanu aplikaciju, provjerava korisničke tokove i PDF diplome te objavljuje Portable i Setup EXE uz `SHA256SUMS.txt`.
+Provjere uključuju strukturu svih 1000 cjelina, primjere, matematičko generisanje, tačnost odgovora, sve brojeve zadataka od 1 do 50, granice ocjena, rezultate, diplome i uvoz profila. Blockly testovi stvarno generišu i interpretiraju rješenja izazova. Windows Actions ugrađuje sva četiri jezička alata, provjerava njihov stvarni rad, pokreće desktop i zapakovanu aplikaciju, provjerava korisničke tokove i PDF diplome te objavljuje Portable i Setup EXE, ZIP zbirki i `SHA256SUMS.txt`. Za novu sekciju provjerava pomoć, matematički odgovor, oba jezika zbirke, stvarno učitavanje PDF-a, vlastite sekcije, ZIP uvoz/izvoz i čuvanje bilješki. Svih 324 programska primjera dodatno se izvršavaju na Windowsu s ugrađenim alatima.
 
 ## Naredno proširenje
 
-Planirani su ZIP paket sa 1000 riješenih blokovskih projekata za različite teme, jednostavan uvoz i dugme „Pitaj AI asistenta“ za objašnjenja i rješenja. To proširenje **nije uključeno u izdanje 10.3.0**. Trenutno je dostupno 60 blokovskih izazova s riješenim primjerima i uvoz pojedinačnih JSON projekata. Pravi AI asistent zahtijeva zasebnu integraciju; postojeća pomoć u zadacima nije AI usluga.
+Planirani su ZIP paket sa 1000 riješenih blokovskih projekata za različite teme, jednostavan uvoz i dugme „Pitaj AI asistenta“ za objašnjenja i rješenja. To proširenje **nije uključeno u izdanje 10.4.0**. Trenutno je dostupno 60 blokovskih izazova s riješenim primjerima i uvoz pojedinačnih JSON projekata. Pravi AI asistent zahtijeva zasebnu integraciju; postojeća pomoć u zadacima nije AI usluga.
