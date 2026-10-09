@@ -3,3 +3,19 @@
 body[data-page=blocks] .block-layout{grid-template-columns:minmax(0,1fr) minmax(250px,var(--bp-side,330px))}.bp-dialog{max-width:900px;width:90vw;max-height:88vh;overflow:auto;padding:24px;color:var(--text,#e5edff);background:var(--panel,#172237);border:1px solid #536583;border-radius:18px}.bp-dialog::backdrop{background:#030917bf}.bp-dialog .row{justify-content:space-between}.bp-dialog label{display:block;margin:12px 0}.bp-dialog textarea{min-height:70px}.bp-test{display:grid;grid-template-columns:1fr 1fr 100px;gap:12px;border-bottom:1px solid #45506a;padding:12px 0}.bp-test pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:200px;overflow:auto}.bp-test>*{min-width:0}.bp-code-line{display:flex;gap:14px;text-align:left;border:0;background:transparent;color:inherit;border-radius:0;width:100%;min-height:18px;padding:0 6px;font:12px/1.5 monospace;white-space:pre}.bp-code-line span{min-width:28px;color:#8295b8}.bp-code-line.bp-selected{background:#28557e}.bp-code-line:hover{background:#33455c}#bp-mapped{max-height:300px;overflow:auto;background:#101a2b;color:#e9efff;padding:12px}#bp-status{max-height:100px;overflow:auto}.bp-dialog details{padding:10px;border-bottom:1px solid #45506a}
 @media(max-width:1100px){body[data-page=blocks] .block-layout{grid-template-columns:minmax(0,1fr) 280px}}
 @media(max-width:899px){body[data-page=blocks] .block-layout{grid-template-columns:1fr}.bp-test{grid-template-columns:1fr}.bp-primary select{max-width:100%}}
+
+/* Keep the Blockly canvas visible on the 1008×655 Windows work area. */
+.bp-tools{padding:5px 7px;margin-bottom:7px;position:relative;z-index:20}
+.bp-tools>.bp-primary{margin:0;gap:6px;align-items:center}
+.bp-tools>.bp-primary>label input,.bp-tools>.bp-primary>label select{margin:0;min-height:27px;height:27px;padding:3px 7px;font-size:11px}
+.bp-tools>.bp-primary>label input[type=search]{min-width:140px;width:165px}
+.bp-tools>.bp-primary>button{min-height:27px;padding:4px 7px;font-size:11px}
+.bp-tools>.bp-primary>details>summary{font-size:11px;padding:5px 8px;border:1px solid var(--line,#344158);border-radius:8px}
+.bp-popover{position:absolute;z-index:50;top:calc(100% + 6px);right:0;width:min(780px,100%);max-height:65vh;overflow:auto;padding:15px;background:var(--panel,#172237);border:1px solid var(--line,#45506a);border-radius:12px;box-shadow:0 18px 50px #0008}
+.bp-popover>.bp-primary{align-items:end}
+@media(max-width:899px){.bp-tools>.bp-primary{flex-wrap:wrap}.bp-popover{max-height:70vh;width:100%}}
+
+.bst-mode-bar{position:relative;z-index:20;flex-wrap:wrap}.bp-tab-buttons{display:flex;align-items:center;gap:6px}
+.bst-mode-bar .bp-tools{margin:0 0 0 auto;padding:0;border:0;background:none;position:static}
+.bst-mode-bar:has(#block-tab-library[aria-selected=true]) .bp-tools{display:none}
+.bst-mode-bar .bp-popover .bp-primary button{border:1px solid var(--line,#45506a);padding:7px 10px;min-height:30px}

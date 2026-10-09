@@ -16,6 +16,11 @@ let server,browser;
 
 
  const helpers=`const ensure=(c,m)=>{if(!c)throw Error(m);};const $=id=>document.getElementById(id);const wait=ms=>new Promise(r=>setTimeout(r,ms));const fill=(e,v)=>{ensure(e,'Missing input');e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));};`;
+
+ await page.setViewportSize({width:1008,height:655});
+ const desktopSource=fs.readFileSync(path.join(root,'desktop/main.cjs'),'utf8'),marker="await stage('Blockly runtime, challenge and drawing', `",start=desktopSource.indexOf(marker)+marker.length,legacyStage=desktopSource.slice(start,desktopSource.indexOf('\n  `);',start));
+ await page.evaluate('(async()=>{'+helpers+legacyStage+'})()').catch(async error=>{console.log(await page.evaluate(()=>[...document.querySelectorAll('#blocklyDiv,.bp-tools,.block-toolbar,.block-studio-header,.block-tabs,#block-challenge-panel')].map(e=>({tag:e.className||e.id,rect:e.getBoundingClientRect().toJSON()}))));await page.screenshot({path:path.join(out,'FAILED-blocks-windows-1008.png'),fullPage:true});throw error;});await page.screenshot({path:path.join(out,'blocks-windows-1008.png'),fullPage:true});
+ await page.setViewportSize({width:1366,height:768});
  const report=await require('../desktop/lab-smoke.cjs').runLabSmoke({stage:async(name,code)=>{console.log(name);return page.evaluate('(async()=>{'+helpers+code+'})()');},capture:async name=>{await page.screenshot({path:path.join(out,name+'.png'),fullPage:true});}});
  for(const size of [{width:1366,height:768},{width:1093,height:614},{width:911,height:512}]){await page.setViewportSize(size);for(const dest of ['blocks','laboratory']){await page.evaluate(d=>go(d),dest);const dims=await page.evaluate(()=>({w:document.documentElement.clientWidth,s:document.documentElement.scrollWidth}));assert(dims.s<=dims.w+2,JSON.stringify({dest,size,dims}));}}
  await page.evaluate(()=>ELDIStorage.flush());await page.reload();await page.waitForFunction(()=>window.__eldiReady);assert.equal(await page.evaluate(()=>state().studioWork.reports[0].manualGrade),'3');assert.equal(await page.evaluate(()=>state().labWork.solid.angle),110);
