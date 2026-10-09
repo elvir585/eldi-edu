@@ -1,5 +1,10 @@
 'use strict';
 async function runLabSmoke({stage,capture}){
+ const profileId=await stage('edition 12 isolated learner profile',`
+  window.__labOriginalProfile=store.active;
+  $('new-profile').click();fill($('profile-name'),'Laboratorij — provjera 12.0');$('profile-create').click();
+  ensure(store.active!==window.__labOriginalProfile,'Nije kreiran zaseban probni profil.');return store.active;
+ `);
  await stage('edition 12 function graphs and dynamic constructions',`
   go('laboratory');document.querySelector('[data-lab-mode="functions"]').click();await wait(150);
   await wait(1200);ensure($('lab-board').clientHeight>400,'Grafička ploča se smanjuje pri automatskoj promjeni veličine.');
@@ -51,6 +56,10 @@ async function runLabSmoke({stage,capture}){
   const valid=ELDIProfiles.exportProfile(state());ensure(valid.profile.studioWork.reports[0].manualGrade==='3','Nastavnička ocjena nije sačuvana.');
   $('bp-details').open=false;await ELDIStorage.flush();
  `);await capture('21-block-studio');
- return{lab:true,debugger:true,backpack:true,versions:true,teacherTests:true};
+ await stage('edition 12 restore existing learner without changing their selected project',`
+  await ELDIStorage.flush();$('profile').value=window.__labOriginalProfile;$('profile').dispatchEvent(new Event('change',{bubbles:true}));
+  ensure(store.active===window.__labOriginalProfile,'Prethodni profil nije vraćen.');delete window.__labOriginalProfile;await ELDIStorage.flush();
+ `);
+ return{profileId,lab:true,debugger:true,backpack:true,versions:true,teacherTests:true};
 }
 module.exports={runLabSmoke};
