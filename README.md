@@ -4,6 +4,12 @@
 
 Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović**.
 
+## Razvojni pregled novog radnog prostora
+
+Na ovoj grani pripremljeni su pregled stvarnog napretka i posljednjih radova, sklopivi izbornik, **Fokus (F9)** i napredni offline editor za Python, C, C++ i Javu. Editor dodaje brojeve redova, bojenje sintakse, pretragu, poništavanje izmjena i **Ctrl+Enter** za pokretanje. Dugme „Jednostavni prikaz” vraća obični tekstualni editor.
+
+Ovo su izmjene izvornog koda; postojeće izdanje **11.0.1** i njegovi EXE paketi još ne sadrže ovu doradu. [Opis, snimci i provjere](docs/WORKSPACE-UI.md).
+
 ## Preuzimanje i pokretanje
 
 Otvorite **[najnovije GitHub izdanje](https://github.com/elvir585/eldi-edu/releases/latest)**.
