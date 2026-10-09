@@ -10,6 +10,7 @@ const {createAssistant} = require('./ai-assistant.cjs');
 const {createCodexAssistant} = require('./codex-assistant.cjs');
 const {createMaintenance,releaseURL}=require('./maintenance.cjs');
 const {createGradeService}=require('./program-assessment.cjs');
+const {portalURL}=require('./portal-links.cjs');
 
 const smokeTest = process.argv.includes('--smoke-test');
 const rendererRoot = path.resolve(__dirname, '..', 'renderer');
@@ -95,6 +96,7 @@ else {
     ipcMain.handle('eldi:backup-list', event=>{trusted(event);return maintenance.list();});
     ipcMain.handle('eldi:backup-read', (event,id)=>{trusted(event);return maintenance.read(id);});
     ipcMain.handle('eldi:check-updates', event=>{trusted(event);return maintenance.updates();});
+    ipcMain.handle('eldi:open-portal', (event,destination)=>{trusted(event);return shell.openExternal(portalURL(destination));});
     ipcMain.handle('eldi:open-release', (event,url)=>{trusted(event);const valid=releaseURL(url);if(!valid)throw Error('Nepodržana adresa preuzimanja.');return shell.openExternal(valid);});
     ipcMain.handle('eldi:ai-save-settings', (event, settings) => { trusted(event); return assistant.saveSettings(settings); });
     ipcMain.handle('eldi:ai-ask', (event, request) => { trusted(event); return assistant.ask(request); });

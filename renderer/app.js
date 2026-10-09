@@ -22,7 +22,7 @@ function go(p){
  transitionPending=(async()=>{await ELDIScratchStudio.flush();const destination=requestedPage;requestedPage=null;commitPage(destination);})().catch(error=>{console.error(error);alert('Scratch projekat nije sačuvan: '+error.message);}).finally(()=>{transitionPending=null;});return transitionPending;
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));
-function render(){document.body.dataset.page=page;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));({home,paths:pathsPage,notebook:notebookPage,teacher:teacherPage,scratch:scratchPage,assessment:assessmentPage,maintenance:maintenancePage,books:booksPage,courses:coursesPage,exams:examsPage,awards:awardsPage,lessons:lessonPage,math:mathPage,collection:collectionPage,blocks:blockPage,code:codePage,progress:progressPage,about})[page]()}
+function render(){document.body.dataset.page=page;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));({home,paths:pathsPage,notebook:notebookPage,teacher:teacherPage,scratch:scratchPage,assessment:assessmentPage,maintenance:maintenancePage,portal:portalPage,books:booksPage,courses:coursesPage,exams:examsPage,awards:awardsPage,lessons:lessonPage,math:mathPage,collection:collectionPage,blocks:blockPage,code:codePage,progress:progressPage,about})[page]()}
 function home(){
  const p=state(),done=Object.values(p.courseResults||{}).filter(x=>x.correct).length,solved=ELDICollection.summary(p).solved;
  const last=localStorage.getItem('eldi-last-page'),canContinue=last&&last!=='home'&&[...document.querySelectorAll('nav button')].some(button=>button.dataset.page===last);
@@ -122,3 +122,5 @@ function globalSearch(){
 }
 $('global-search').onclick=globalSearch;window.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();globalSearch();}});
 document.body.dataset.textSize=localStorage.getItem('eldi-text-size')||'normal';for(const size of ['normal','large'])$('text-'+size).onclick=()=>{document.body.dataset.textSize=size;localStorage.setItem('eldi-text-size',size);};
+
+function portalPage(){ELDIPortal.mount({root:$('view')});}

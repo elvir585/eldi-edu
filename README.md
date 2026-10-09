@@ -115,3 +115,12 @@ Scratch je zasebna prikvačena zavisnost u `scratch-editor/package-lock.json`. B
 GitHub Actions provjerava sve modele podataka i matematičke primjere, Blockly rješenja, 324 primjera programske knjige i 880 slučajeva novih izazova. Stvarni Windows testovi pokrivaju četiri jezika, nastavnički tok, svesku, grafikone, Scratch VM/SB3/kostime/zvukove, uvoz/izvoz i backup, ChatGPT servis bez prijave, kompaktan izgled i jednu A4 PDF diplomu. Iste korisničke provjere pokreću se i u zapakovanoj aplikaciji prije objave.
 
 Službene komponente zadržavaju pripadajuće licence i autorstvo; vidi [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## UPINITK obrazovni centar — paket za postavljanje
+
+Mapa [`website/eldi-edu`](website/eldi-edu) sadrži samostalnu stranicu za
+`upinitk.com/eldi-edu/`: preuzimanja izdanja 11.0.1, katalog po razredima,
+stvarne slike, kratki video, upute i podršku. Koraci su u
+[`website/POSTAVLJANJE.txt`](website/POSTAVLJANJE.txt). Objava na domeni nije
+automatska. Prateća stavka aplikacije otvara vanjski preglednik bez slanja
+učeničkih podataka. Postaviti web stranicu prije isporuke novih dugmadi u EXE-u.

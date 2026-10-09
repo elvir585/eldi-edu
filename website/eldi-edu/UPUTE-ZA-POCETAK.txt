@@ -1,0 +1,42 @@
+ELDI EDU 11.0 — KOMPLETAN WINDOWS PAKET
+
+Autori: Dino Isanović, Elvir Čajić, Damir Bajrić i Jasmin Suljkanović.
+
+1. Raspakujte cijeli ZIP u svoju mapu.
+2. Pokrenite ELDI-EDU-11.0.1-Portable-x64.exe.
+   Windows 10/11 x64; instalacija i terminal nisu potrebni.
+3. Izaberite profil učenika ili otvorite Nastavnički centar.
+4. Za ChatGPT otvorite Pitaj AI asistenta → Prijavi se ChatGPT računom.
+   Dovršite službenu prijavu u pregledniku. API ključ nije potreban za taj način.
+   Izaberite ponuđeni model i nivo razmišljanja. GPT-6.1 Sol / Ultra koriste se
+   kada ih servis podržava na vašem računu. Limiti pripadaju vašoj pretplati.
+
+ŠTA JE U PAKETU?
+
+- Portable EXE: aplikacija i ugrađeni jezički alati, Scratch i nastavni sadržaj.
+- 1000-Blokovskih-projekata.zip: Blockly projekti, zadaci i postupci.
+- Zbirke-i-rjesenja.zip: obje PDF knjige i digitalna rješenja.
+- Programerski-izazovi.zip: 55 zadataka, početni kodovi i Python/C++ rješenja.
+- Scratch-primjeri.zip: šest .sb3 projekata koje otvarate u Scratch studiju.
+- Scratch-izvori.zip: odgovarajući izvorni kod Scratch komponente i licenca.
+
+Sadržaj zbirki i primjeri već su ugrađeni u aplikaciju. ZIP paketi omogućavaju
+zasebno korištenje i prenos. Blockly ZIP uvozite u njegovoj biblioteci; zbirke
+u Zbirke i rješenja; .sb3 datoteke u zasebnom Scratch studiju.
+
+Matematička sveska čuva korake i provjerava podržane vrste zadataka.
+Nastavnički centar dodjeljuje i ocjenjuje zaduženja od 1 do 50 zadataka.
+Početni put učenja je urednički plan; nastavnik dodaje povezivanje sa službenim
+ishodima i školskom godinom. Službena potpuna usklađenost nije potvrđena.
+
+Profili i projekti ostaju na ovom računaru. U Kopije i nova izdanja možete
+sačuvati ili vratiti cijelu učionicu. Pet posljednjih kopija čuva se lokalno.
+Prijava asistenta i API ključevi nisu dio tih kopija.
+
+Za nastavu i lokalne programe internet nije potreban. ChatGPT odgovori
+zahtijevaju internet i vlastiti prijavljeni račun. Ollama je dodatna opcija
+koja zahtijeva zasebno pokrenut lokalni servis i preuzet model.
+
+Izvorni kod cijele ELDI aplikacije i nova izdanja:
+https://github.com/elvir585/eldi-edu
+https://github.com/elvir585/eldi-edu/releases/latest

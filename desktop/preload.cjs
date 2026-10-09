@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('eldiDesktop', Object.freeze({
   backupList: () => ipcRenderer.invoke('eldi:backup-list'),
   backupRead: id => ipcRenderer.invoke('eldi:backup-read',id),
   checkUpdates: () => ipcRenderer.invoke('eldi:check-updates'),
+  openPortal: destination => ipcRenderer.invoke('eldi:open-portal',destination),
   openRelease: url => ipcRenderer.invoke('eldi:open-release',url),
   aiSaveSettings: settings => ipcRenderer.invoke('eldi:ai-save-settings', settings),
   aiAsk: request => ipcRenderer.invoke('eldi:ai-ask', request),
