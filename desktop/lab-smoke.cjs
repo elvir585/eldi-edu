@@ -2,9 +2,15 @@
 async function runLabSmoke({stage,capture}){
  await stage('edition 12 function graphs and dynamic constructions',`
   go('laboratory');document.querySelector('[data-lab-mode="functions"]').click();await wait(150);
+  await wait(1200);ensure($('lab-board').clientHeight>400,'Grafička ploča se smanjuje pri automatskoj promjeni veličine.');
   const graph=$('lab-board').querySelector('path[stroke="#28b9aa"]');ensure(graph?.getAttribute('d').length>100,'Graf funkcije nije nacrtan.');
   fill($('lab-param-a'),'2');ensure(state().labWork.params.a===2,'Parametar nije sačuvan.');
   ensure($('lab-values').querySelectorAll('tbody tr').length===5,'Nema tabele vrijednosti.');
+  const originalURL=URL.createObjectURL,originalClick=HTMLAnchorElement.prototype.click,blobs=[];
+  URL.createObjectURL=blob=>{blobs.push(blob);return originalURL.call(URL,blob);};HTMLAnchorElement.prototype.click=function(){};
+  try{await $('lab-svg').onclick();await $('lab-png').onclick();const png=blobs.find(b=>b?.type==='image/png');ensure(png&&png.size>1000,'PNG nije izvezen: '+$('lab-status').textContent);const svg=blobs.find(b=>b?.type==='image/svg+xml');ensure(svg&&!new DOMParser().parseFromString(await svg.text(),'image/svg+xml').querySelector('parsererror'),'SVG nije ispravan XML.');}
+  finally{URL.createObjectURL=originalURL;HTMLAnchorElement.prototype.click=originalClick;}
+
   document.querySelector('[data-lab-mode="triangle"]').click();const field=document.querySelector('[data-point="2"][data-axis="1"]');field.value='4';field.dispatchEvent(new Event('change'));
   ensure(state().labWork.triangle[2][1]===4,'Konstrukcija nije pratila pomjeranje vrha.');
   for(const box of document.querySelectorAll('[data-construction]')){box.checked=true;box.dispatchEvent(new Event('change'));}
