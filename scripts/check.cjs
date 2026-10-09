@@ -10,7 +10,7 @@ function filesIn(directory) {
   return fs.existsSync(directory) ? fs.readdirSync(directory, { withFileTypes: true }).flatMap(item => item.isDirectory() ? filesIn(path.join(directory, item.name)) : [path.join(directory, item.name)]) : [];
 }
 async function main() {
-  require('./build-editor.cjs');
+  require('./build-editor.cjs');require('./build-lab.cjs');
   const {maths,info}=require('./generate-content.cjs')();
   console.log('Zbirke i ZIP:',JSON.stringify(require('./build-learning-pack.cjs')()));
   console.log('Blokovski katalog:',JSON.stringify(require('./build-block-projects.cjs').build()));

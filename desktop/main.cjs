@@ -18,9 +18,9 @@ const entry = path.join(rendererRoot, 'index.html');
 const entryURL = pathToFileURL(entry).href;
 const runtimeRoot = app.isPackaged ? path.join(process.resourcesPath, 'runtimes') : path.resolve(__dirname, '..', 'runtimes');
 const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
-const bundledPackFilename = 'ELDI-EDU-11.0.1-Zbirke-i-rjesenja.zip';
+const bundledPackFilename = 'ELDI-EDU-12.0.0-Zbirke-i-rjesenja.zip';
 const bundledPackPath = path.resolve(__dirname, '..', 'content', 'packs', bundledPackFilename);
-const bundledBlockFilename = 'ELDI-EDU-11.0.1-1000-Blokovskih-projekata.zip';
+const bundledBlockFilename = 'ELDI-EDU-12.0.0-1000-Blokovskih-projekata.zip';
 const bundledBlockPath = path.resolve(__dirname, '..', 'content', 'packs', bundledBlockFilename);
 let mainWindow, assistant, maintenance;
 const gradeService=createGradeService({runner:createRunner({runtimeRoot,allowSystem:!app.isPackaged})});
@@ -53,7 +53,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 11.0 — Digitalna učionica / Dark Edition', show: !smokeTest,
+      title: 'ELDI EDU 12.0 — Digitalna učionica / Dark Edition', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
@@ -63,7 +63,7 @@ else {
       { label: 'Uredi', submenu: [{ label: 'Kopiraj', role: 'copy' }, { label: 'Zalijepi', role: 'paste' }, { label: 'Označi sve', role: 'selectAll' }] },
       { label: 'Prikaz', submenu: [{ label: 'Uvećaj', role: 'zoomIn' }, { label: 'Umanji', role: 'zoomOut' }, { label: 'Izvorna veličina', role: 'resetZoom' }, { label: 'Cijeli ekran', role: 'togglefullscreen' }] }
     ]));
-    mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    mainWindow.webContents.setWindowOpenHandler(({url}) => {if(url==='https://upinitk.com/eldi-edu/')shell.openExternal(url).catch(error=>console.error(error.message));return {action:'deny'};});
     mainWindow.webContents.on('will-navigate', (event, url) => { if (url.split('#')[0] !== entryURL) event.preventDefault(); });
     mainWindow.webContents.on('will-attach-webview', event => event.preventDefault());
     let closeAllowed = false, closing = false;
@@ -717,6 +717,7 @@ async function runDesktopSmoke(window) {
     ensure((window.__eldiErrors||[]).length===0,'Greške prikaza: '+JSON.stringify(window.__eldiErrors));
     await ELDIStorage.flush();go('home');
   `);
+  await require('./lab-smoke.cjs').runLabSmoke({stage,capture,evaluate,window});
   await require('./edition-smoke.cjs').runEditionSmoke({stage,capture,evaluate,window});
   await require('./program-smoke.cjs').runProgramSmoke({stage,capture,evaluate,window});
   await require('./scratch-smoke.cjs').runScratchSmoke({stage,capture,evaluate,window});

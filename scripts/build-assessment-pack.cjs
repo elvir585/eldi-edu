@@ -8,7 +8,7 @@ const {createZip,readZip}=require('../desktop/learning-packs.cjs');
 function build(){
   const entries=[];
   const add=(name,content)=>entries.push({name,bytes:Buffer.from(content,'utf8')});
-  const manifest={format:'ELDI-PROGRAMMING-STUDY-PACK',version:1,edition:'11.0.1',tasks:tasks.map(t=>({id:t.id,title:t.title,grade:t.grade,category:t.category,difficulty:t.difficulty,folder:`${t.grade}-razred/${t.id}`})),hiddenTestsIncluded:false};
+  const manifest={format:'ELDI-PROGRAMMING-STUDY-PACK',version:1,edition:'12.0.0',tasks:tasks.map(t=>({id:t.id,title:t.title,grade:t.grade,category:t.category,difficulty:t.difficulty,folder:`${t.grade}-razred/${t.id}`})),hiddenTestsIncluded:false};
   add('manifest.json',JSON.stringify(manifest,null,2)+'\n');
   add('PROCITAJ-ME.txt','ELDI EDU 11.0 — Programerski izazovi\n\n55 originalnih zadataka; 11 po razredu od 5. do 9.\nSvaki zadatak ima opis, dva javna primjera, nacrte za Python/C/C++/Javu i provjerena referentna rješenja u Pythonu i C++.\nZadaci 9. razreda uključuju naprednu dopunu za zainteresovane učenike.\n\nOtvorite programski kod u ELDI EDU editoru ili vlastitom razvojnom okruženju. U aplikaciji, Programerska zbirka provjerava osam testova po zadatku. Skriveni testovi se ne nalaze u ovom nastavnom ZIP-u. Paket je za čitanje i rad s kodom; nije JSON/Blockly paket za uvoz.\n\nAutori aplikacije: Dino Isanović, Elvir Čajić, Damir Bajrić i Jasmin Suljkanović.\n');
   for(const t of tasks){const folder=`${t.grade}-razred/${t.id}`;
@@ -19,7 +19,7 @@ function build(){
   }
   const sums=entries.map(e=>`${crypto.createHash('sha256').update(e.bytes).digest('hex')}  ${e.name}`).join('\n')+'\n';add('SHA256SUMS.txt',sums);
   const bytes=createZip(entries);const verified=readZip(bytes);if(verified.files.size!==entries.length)throw Error('ZIP provjera nije uspjela.');
-  const filename='ELDI-EDU-11.0.1-Programerski-izazovi.zip',folder=path.resolve(__dirname,'..','content','packs');fs.mkdirSync(folder,{recursive:true});fs.writeFileSync(path.join(folder,filename),bytes);
+  const filename='ELDI-EDU-12.0.0-Programerski-izazovi.zip',folder=path.resolve(__dirname,'..','content','packs');fs.mkdirSync(folder,{recursive:true});fs.writeFileSync(path.join(folder,filename),bytes);
   return{filename,tasks:tasks.length,files:entries.length,bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};
 }
 module.exports=build;

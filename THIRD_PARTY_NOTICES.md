@@ -34,3 +34,9 @@ Full dependency copyright notices and licenses are included in
 `renderer/vendor/ELDI-EDITOR-NOTICES.txt`. The bundled source is generated from
 `renderer/editor/source.js` with `npm run editor:bundle`. Python, C/C++ and Java
 syntax packages are bundled locally; editing makes no network requests.
+
+## Laboratory 12.0
+
+JSXGraph 1.14.0 (MIT license option), https://jsxgraph.org/. License: renderer/vendor/jsxgraph-LICENSE.txt.
+Three.js 0.186.1, MIT, https://threejs.org/. License: renderer/vendor/three-LICENSE.txt.
+Bundled locally with esbuild; source: renderer/lab/source.js.

@@ -1,3 +1,5 @@
+Ovaj dokument opisuje razvoj radnog prostora nad izdanjem 11.0.1. Dorada je uključena u [12.0.0](IZDANJE-12.md).
+
 # Dorada desktop radnog prostora
 
 Razvojna grana `codex/desktop-workspace-refresh`, zasnovana na `8805ba9850ad96fcd16f382494ebc465e9c0b6b2`. Verzija paketa ostaje 11.0.1 do pripreme novog izdanja. Ovo nije objavljeno Windows izdanje.

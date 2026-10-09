@@ -24,6 +24,8 @@
     teacher: () => node ? require('../app/teacher-engine.js') : root.ELDITeacherEngine,
     paths: () => node ? require('../app/learning-paths.js') : root.ELDILearningPlan,
     assessment: () => node ? require('../app/program-assessment.js') : root.ELDIProgramAssessmentEngine,
+    lab: () => node ? require('../app/lab-engine.js') : root.ELDILabEngine,
+    studio: () => node ? require('../app/studio-work.js') : root.ELDIStudioWork,
     scratch: () => node ? require('../app/scratch-projects.js') : root.ELDIScratchProjects
   };
   const api = factory(source);
@@ -269,6 +271,8 @@
     if(value.teacherWork!==undefined)out.teacherWork=source.teacher().normalizeState(value.teacherWork);
     if(value.learningPathWork!==undefined)out.learningPathWork=source.paths().normalizeWork(value.learningPathWork);
     if(value.programAssessment!==undefined)out.programAssessment=source.assessment().normalizeState(value.programAssessment);
+    if(value.labWork!==undefined)out.labWork=source.lab().normalize(value.labWork);
+    if(value.studioWork!==undefined)out.studioWork=source.studio().normalize(value.studioWork);
     if(value.scratchWork!==undefined)out.scratchWork=source.scratch().normalizeState(value.scratchWork);
     return out;
   }

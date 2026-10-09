@@ -1,6 +1,6 @@
 'use strict';
 window.ELDIWorkspace = (() => {
- const names={home:'Moj pregled',paths:'Moj put učenja',notebook:'Matematička sveska',collection:'Zbirka i radni listovi',courses:'Cjeline i vještine',books:'Knjige i rješenja',math:'Matematički laboratorij',scratch:'Scratch studio',blocks:'Blockly projekti',assessment:'Programerski izazovi',code:'Slobodni editor',teacher:'Nastavnički centar',exams:'Provjere i ocjene',awards:'Značke i diplome',progress:'Moj napredak',lessons:'Dodatne lekcije',maintenance:'Kopije i nova izdanja',about:'O aplikaciji'};
+ const names={laboratory:'Crtanje 2D / 3D',home:'Moj pregled',paths:'Moj put učenja',notebook:'Matematička sveska',collection:'Zbirka i radni listovi',courses:'Cjeline i vještine',books:'Knjige i rješenja',math:'Matematički laboratorij',scratch:'Scratch studio',blocks:'Blockly projekti',assessment:'Programerski izazovi',code:'Slobodni editor',teacher:'Nastavnički centar',exams:'Provjere i ocjene',awards:'Značke i diplome',progress:'Moj napredak',lessons:'Dodatne lekcije',maintenance:'Kopije i nova izdanja',about:'O aplikaciji'};
  let focus=false;
  function setFocus(value){focus=!!value;document.body.classList.toggle('workspace-focus',focus);const button=document.getElementById('workspace-focus');button.setAttribute('aria-pressed',String(focus));button.textContent=focus?'↙ Izađi iz fokusa':'Fokus';button.title='Fokus na zadatak · F9';window.dispatchEvent(new Event('resize'));}
  function navigate(page){
