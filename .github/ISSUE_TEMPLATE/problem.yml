@@ -1,0 +1,39 @@
+name: Problem u ELDI EDU
+description: Opišite grešku u aplikaciji ili obrazovnom centru.
+title: "[Problem] "
+body:
+  - type: markdown
+    attributes:
+      value: "Hvala na prijavi. Ovo je javni repozitorij: uklonite imena, rezultate i druge privatne podatke učenika."
+  - type: input
+    id: version
+    attributes:
+      label: Verzija aplikacije ili web adresa
+      placeholder: "Npr. ELDI EDU 11.0.1 ili upinitk.com/eldi-edu/"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Windows ili preglednik
+      placeholder: "Npr. Windows 11 x64 / Chrome"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Koraci do problema
+      description: Koju oblast, razred i zadatak ste otvorili? Šta ste zatim uradili?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Očekivani rezultat
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Stvarni rezultat ili poruka greške
+      description: Možete priložiti snimak ekrana nakon uklanjanja privatnih podataka.
+    validations:
+      required: true

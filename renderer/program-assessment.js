@@ -10,7 +10,7 @@ window.ELDIProgramAssessment=(()=>{
   const task=()=>E().tasks.find(t=>t.id===currentId)||E().tasks[0];
   function state(){const profile=p();profile.programAssessment||=E().normalizeState();return profile.programAssessment;}
   function mount(options){destroy();context=options;if(!context?.root)throw Error('Nedostaje prostor programerske zbirke.');state();render();}
-  function destroy(){generation++;if(busy)context?.cancelGrade?.();busy=false;context=null;lastResult=null;}
+  function destroy(){window.ELDICodeEditor?.destroy('pa-code');generation++;if(busy)context?.cancelGrade?.();busy=false;context=null;lastResult=null;}
   function render(){
     const s=state(),progress=E().progress(s);
     context.root.innerHTML=`<section class="pa-hero"><div><div class="eyebrow">PROGRAMERSKA ZBIRKA / 5–9</div><h1>Od ideje do programa.</h1><p>55 originalnih zadataka · četiri jezika · provjera javnih i skrivenih testova</p></div><div class="pa-stat"><strong>${progress.completed}<span>/55</span></strong><span>potpuno riješeno</span><small>${progress.independent} samostalno · ${progress.attempts} pokušaja</small></div></section><div class="pa-filters card"><label>Razred<select id="pa-grade-filter"><option value="all">Svi razredi</option>${[5,6,7,8,9].map(g=>`<option value="${g}" ${gradeLevel===String(g)?'selected':''}>${g}. razred</option>`).join('')}</select></label><label>Oblast<select id="pa-category"><option value="all">Sve oblasti</option>${[...new Set(E().tasks.map(t=>t.category))].map(c=>`<option ${c===category?'selected':''}>${esc(c)}</option>`).join('')}</select></label><label class="pa-search">Pronađi zadatak<input id="pa-search" maxlength="100" placeholder="Naziv, oblast ili pojam…" value="${esc(query)}"></label><button id="pa-history-toggle">Moji pokušaji</button></div><div class="pa-layout"><aside class="card pa-sidebar"><div class="pa-list-heading"><strong>Izaberi zadatak</strong><span id="pa-visible-count"></span></div><div id="pa-task-list" class="pa-task-list" role="list"></div></aside><article class="card pa-workbench"><div id="pa-statement"></div><div class="pa-editor-controls"><label>Programski jezik<select id="pa-language">${E().LANGUAGES.map(l=>`<option value="${l}" ${language===l?'selected':''}>${languageNames[l]}</option>`).join('')}</select></label><button id="pa-starter">Početni nacrt</button><button id="pa-solution">Riješen primjer</button><button id="pa-ai">Pitaj asistenta</button></div><label class="pa-code-label" for="pa-code">Moj programski kod</label><textarea id="pa-code" class="pa-code" spellcheck="false" aria-label="Programski kod"></textarea><div class="pa-run-bar"><button id="pa-grade" class="primary">Predaj i provjeri 8 testova</button><button id="pa-cancel" disabled>Zaustavi</button><span id="pa-status" role="status">Kod se čuva u tvom profilu.</span></div><div id="pa-result" class="pa-result" aria-live="polite"></div></article></div><section id="pa-history" class="card pa-history" hidden></section>`;
@@ -25,7 +25,7 @@ window.ELDIProgramAssessment=(()=>{
     $('pa-grade').onclick=run;$('pa-cancel').onclick=()=>context.cancelGrade?.();
     $('pa-solution').onclick=showSolution;$('pa-ai').onclick=askAI;
     $('pa-history-toggle').onclick=()=>{const h=$('pa-history');h.hidden=!h.hidden;if(!h.hidden)renderHistory();};
-    renderList();loadTask();
+    renderList();loadTask();window.ELDICodeEditor?.attach($('pa-code'),{language:()=>language,key:()=>task().id+':'+language,onRun:()=>run()});
   }
   function renderList(){
     const norm=x=>String(x).toLocaleLowerCase('bs');

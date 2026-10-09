@@ -1,0 +1,5 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),root=path.resolve(__dirname,'..');
+const {createZip,readZip}=require('../desktop/learning-packs.cjs');
+function build(){const entries=[];function add(relative){for(const item of fs.readdirSync(path.join(root,'website',relative),{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){const name=relative?relative+'/'+item.name:item.name;if(item.isDirectory())add(name);else entries.push({name,bytes:fs.readFileSync(path.join(root,'website',name))});}}add('');const bytes=createZip(entries),zip=readZip(bytes);if(!zip.files.has('eldi-edu/index.html')||!zip.files.has('POSTAVLJANJE.txt'))throw Error('Web paket nije potpun.');const name='ELDI-EDU-'+require('../package.json').version+'-UPINITK-public_html.zip';fs.mkdirSync(path.join(root,'release'),{recursive:true});fs.writeFileSync(path.join(root,'release',name),bytes);return{name,files:entries.length,bytes:bytes.length};}
+module.exports=build;if(require.main===module)console.log(JSON.stringify(build()));

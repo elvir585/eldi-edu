@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "viewports": [
+    {
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "width": 1093,
+      "height": 614
+    },
+    {
+      "width": 911,
+      "height": 512
+    }
+  ],
+  "checks": [
+    "grouped navigation",
+    "focus preserves notebook",
+    "rich editor input and history",
+    "per-language empty drafts",
+    "search",
+    "simple editor fallback",
+    "native value bridge",
+    "theme",
+    "profile isolation",
+    "per-task history",
+    "read-only",
+    "reload persistence",
+    "Ctrl+Enter executes actual Python document",
+    "15 page/viewport overflow checks",
+    "recent notebook and unfinished lesson navigation"
+  ],
+  "screenshots": [
+    "01-pregled-1366.png",
+    "02-editor-fokus-1366.png",
+    "03-editor-svijetli-1366.png",
+    "04-programerski-izazovi-1366.png",
+    "05-pregled-1093.png",
+    "05-pregled-1366.png",
+    "05-pregled-911.png"
+  ]
+}

@@ -73,7 +73,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-11.0.1-Development-QA
+          name: ELDI-EDU-12.0.0-Development-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
@@ -100,13 +100,15 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
           $executables = Get-ChildItem release -Filter '*.exe'
           if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }
-          Get-ChildItem content/packs -Filter 'ELDI-EDU-11.0.1-*.zip' | Copy-Item -Destination release/
+          Get-ChildItem content/packs -Filter 'ELDI-EDU-12.0.0-*.zip' | Copy-Item -Destination release/
+          node scripts/build-web-package.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $packs = Get-ChildItem release -Filter '*.zip'
-          if ($packs.Count -lt 5) { throw 'Nedostaju ZIP zbirke, Blockly, programerski izazovi, Scratch primjeri ili izvori.' }
+          if ($packs.Count -lt 6) { throw 'Nedostaju ZIP zbirke, Blockly, programerski izazovi, Scratch primjeri ili izvori.' }
           Copy-Item 'docs/POKRETANJE.txt' 'release/POKRETANJE.txt'
           $portable = Get-ChildItem release -Filter '*Portable-x64.exe'
           if ($portable.Count -ne 1) { throw 'Nedostaje prenosiva aplikacija za kompletan paket.' }
-          $fullPath = Join-Path $PWD 'release/ELDI-EDU-11.0.1-Kompletan-paket.zip'
+          $fullPath = Join-Path $PWD 'release/ELDI-EDU-12.0.0-Kompletan-paket.zip'
           $fullFiles = @($portable.FullName) + @($packs.FullName) + @((Join-Path $PWD 'release/POKRETANJE.txt'))
           Compress-Archive -LiteralPath $fullFiles -DestinationPath $fullPath -CompressionLevel NoCompression -Force
           Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -118,7 +120,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-11.0.1-Visual-QA
+          name: ELDI-EDU-12.0.0-Visual-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
@@ -136,15 +138,21 @@ jobs:
       - name: Objavi izdanje na GitHubu
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v11.0.1' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v12.0.0' }}
           target_commitish: ${{ github.sha }}
-          name: ELDI EDU 11.0.1 — ispravka slanja pitanja prijavljenim ChatGPT računom
+          name: ELDI EDU 12.0.0 — laboratorij 2D/3D i blokovski studio
           body: |
             **Windows 10/11 x64:** Portable EXE za direktno pokretanje ili Setup EXE za instalaciju.
 
-            **Ispravka 11.0.1:** nakon uspješne prijave, izdanje 11.0.0 moglo je odbiti slanje pitanja zbog dva nepodržana parametra. Ispravljena je stabilna politika odobravanja i format read-only postavke za ugrađeni Codex 0.161.0. Stvarni protokol provjerava se na Windowsu bez prijave i bez inferencije. Prijava i izbor modela ostaju korisnikovi; API ključ nije potreban.
+            **Novo u 12.0:** pregled napretka, Fokus F9 i offline editor; funkcije s parametrima, trougao s konstrukcijama, kocka, kvadar, pravilna prizma/piramida, valjak, kupa, lopta, paralelni presjeci, ravne mreže i diedri. Sačuvana istraživanja, bilješke i JSON/SVG/PNG izvoz.
 
-            **Kompletan-paket.zip** sadrži Portable EXE, svih pet ZIP zbirki/izvora i kratke upute. Raspakujte ga i pokrenite Portable EXE. Sve pojedinačne datoteke dostupne su i zasebno.
+            **Blockly:** pretraga, raspored, poništavanje, ruksak, verzije projekata, stvarni debugger s pauzom/korakom/tačkama prekida, živi senzori, mapiranje blokova na Python, nastavnički izazovi i svi testovi s bodovima i izvještajima.
+
+            **Kompletan-paket.zip** sadrži Portable EXE, zbirke, Scratch primjere/izvore, web paket i kratke upute.
+
+            **UPINITK-public_html.zip** raspakujte u public_html: dobit ćete mapu eldi-edu/ i web centar s preuzimanjima, stvarnim slikama, uputama i podrškom. EXE datoteke ostaju na GitHubu.
+
+            Granice: presjeci tijela su paralelni osnovi; mreže su ravni crteži, a numeričke nule nisu iscrpan dokaz. Mrežna učionica nije uključena. Detalji: docs/IZDANJE-12.md u izvornom kodu.
 
             **ChatGPT bez API ključa:** u asistentu kliknite **Prijavi se ChatGPT računom**. Ugrađeni službeni Codex app-server vodi prijavu kroz preglednik ili kod uređaja. Pretplata, limiti, model i nivo razmišljanja pripadaju prijavljenom računu. GPT‑6.1 Sol / Ultra koriste se kada ih servis ponudi i zahtjev uspješno potvrdi pristup; nema automatske zamjene drugim modelom. Svaki korisnik koristi vlastitu prijavu. API i Ollama ostaju dodatne opcije.
 

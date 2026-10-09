@@ -1,8 +1,12 @@
 'use strict';
 // Student code is interpreted as ES5 and receives only the educational API.
 importScripts('vendor/interpreter.js');
+let activeDebug=null;
 self.onmessage = event => {
   const request = event.data || {};
+  if(request.cmd){activeDebug?.control(request);return;}
+  activeDebug?.stop();activeDebug=null;
+  let boundary=false,lastBlock='',waitMs=0;
   let batch = [], all = [], output = '', steps = 0, interpreter, watchNames;
   const start = Date.now(), inputs = Array.isArray(request.input) ? request.input.map(String) : String(request.input || '').replace(/\r\n/g, '\n').split('\n');
   if (inputs.at(-1) === '') inputs.pop();
@@ -48,13 +52,15 @@ self.onmessage = event => {
     turn:value=>{value=number(value);sprites[active].angle+=value;emit({type:'turn',value});},
     go:(x,y)=>{x=number(x);y=number(y);line(x,y);emit({type:'go',x,y});},
     say:value=>write(value,'say'), printOutput:value=>write(value,'print'),
-    traceBlock:id=>emit({type:'trace',id:String(id).slice(0,100)}),
+    traceBlock:id=>{lastBlock=String(id).slice(0,100);boundary=true;emit({type:'trace',id:lastBlock});},
     readInput:prompt=>read(prompt,false), readNumber:prompt=>read(prompt,true),
     pen:value=>{sprites[active].pen=!!value;emit({type:'pen',value:!!value});},
     sprite:value=>{value=Math.max(0,Math.min(sprites.length-1,Math.trunc(number(value))));active=value;emit({type:'sprite',value});},
-    wait:value=>emit({type:'wait',value:Math.max(0,Math.min(3,number(value)))}),
+    wait:value=>{const seconds=Math.max(0,Math.min(3,number(value)));waitMs=seconds*1000;emit({type:'wait',value:seconds});},
     clone:()=>{if(sprites.length>=30)throw Error('Dozvoljeno je najviše 30 likova.');sprites.push({...sprites[active],x:sprites[active].x+10,y:sprites[active].y+10});emit({type:'clone'});},
     clear:()=>{trail=[];emit({type:'clear'});}, key:name=>(request.keys||[]).includes(String(name)),
+    timer:()=>(Date.now()-start)/1000,
+    solid:(type,r,h)=>{if(!['cube','cuboid','prism','pyramid','cylinder','cone','sphere'].includes(String(type)))throw Error('Nepoznato tijelo.');r=number(r,12);h=number(h,12);if(r<.5||h<.5)throw Error('Dimenzije tijela: od 0.5 do 12.');emit({type:'solid',solid:String(type),r,h});},
     xpos:()=>sprites[active].x, ypos:()=>sprites[active].y, heading:()=>((sprites[active].angle%360)+360)%360,
     mouseX:()=>number(request.mouse?.x||0),mouseY:()=>number(request.mouse?.y||0),
     edge:()=>Math.abs(sprites[active].x)>=228||Math.abs(sprites[active].y)>=168,
@@ -79,6 +85,19 @@ self.onmessage = event => {
     // The interpreter consumes Program.body as it executes. Cache declarations
     // before the first input/output callback can observe a partly consumed AST.
     snapshot();
+    if(request.debug){
+      let paused=!!request.paused,stepping=paused,timer=null,stopped=false,cpuMs=0,breakpoints=new Set(request.breakpoints||[]);
+      const flush=()=>{if(batch.length){self.postMessage({type:'actions',actions:batch});batch=[];}};
+      function finish(error){if(stopped)return;stopped=true;clearTimeout(timer);flush();self.postMessage(error?{type:'error',message:error.message,result:{ok:false,output,stage:state(),variables:snapshot(),steps,inputUsed:inputIndex,durationMs:cpuMs}}:{type:'done',result:{ok:true,output,stage:state(),variables:snapshot(),steps,inputUsed:inputIndex,durationMs:cpuMs}});}
+      function pump(){timer=null;if(stopped)return;const tick=Date.now();let yieldDelay=0;try{for(let slice=0;slice<1500;slice++){
+        if(++steps>2000000||cpuMs+Date.now()-tick>4500)throw Error('Prekoračeno vrijeme računanja. Pauza se ne uračunava.');
+        if(!interpreter.step()){cpuMs+=Date.now()-tick;finish();return;}
+        if(boundary){boundary=false;if(stepping||paused||breakpoints.has(lastBlock)){paused=true;stepping=false;cpuMs+=Date.now()-tick;flush();self.postMessage({type:'paused',id:lastBlock,variables:snapshot(),steps});return;}}
+        if(waitMs){yieldDelay=waitMs;waitMs=0;break;}
+      }cpuMs+=Date.now()-tick;flush();timer=setTimeout(pump,yieldDelay);}catch(error){finish(error);}}
+      activeDebug={stop(){stopped=true;clearTimeout(timer);},control(c){if(c.cmd==='sensors'){request.keys=Array.isArray(c.keys)?c.keys:[];if(c.mouse)request.mouse=c.mouse;return;}if(c.cmd==='breakpoints'){breakpoints=new Set(c.ids||[]);return;}if(c.cmd==='pause'){paused=true;return;}if(c.cmd==='step'||c.cmd==='resume'){clearTimeout(timer);paused=false;stepping=c.cmd==='step';timer=setTimeout(pump,0);}}};
+      pump();return;
+    }
     while(interpreter.step()) if(++steps>2000000||Date.now()-start>4500)throw Error('Prekoračeno vrijeme izvršavanja blokovskog programa.');
     if(batch.length)self.postMessage({type:'actions',actions:batch});
     self.postMessage({type:'done',result:{ok:true,output,stage:state(),variables:snapshot(),steps,inputUsed:inputIndex,durationMs:Date.now()-start}});

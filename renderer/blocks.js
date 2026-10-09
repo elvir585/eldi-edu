@@ -1,6 +1,7 @@
 'use strict';
 window.ELDIBlocks = (() => {
   const JS = javascript.javascriptGenerator, PY = python.pythonGenerator;
+  let debugRunning=false,breakpoints=new Set();
   let workspace=null,worker=null,onSave=()=>{},onRun=()=>{},challenge=null;
   let sprites=[],current=0,trail=[],background=null,actionQueue=[],allActions=[],finalResult=null;
   let runningTimer=null,animTimer=null,paused=false,runResolve=null,audio=null,speed=25;
@@ -53,6 +54,9 @@ window.ELDIBlocks = (() => {
   const field=(name,options)=>({type:'field_dropdown',name,options});
   const reporter=(type,message,args,output,colour=190)=>({type,message0:message,args0:args,output,colour});
   const defs=[
+    reporter('edu_timer','proteklo sekundi',[],'Number'),
+    reporter('edu_touching','dodiruje lik %1 ?', [input('S','Number')],'Boolean'),
+    statement('edu_solid','3D tijelo %1 • poluprečnik / stranica %2 • visina %3',[field('TYPE',[['valjak','cylinder'],['kupa','cone'],['lopta','sphere'],['kocka','cube'],['kvadar','cuboid'],['prizma','prism'],['piramida','pyramid']]),input('R','Number'),input('H','Number')],160),
     statement('edu_move','idi %1 koraka',[input('N','Number')]),
     statement('edu_turn','okreni desno %1 °',[input('N','Number')]),
     statement('edu_goto','idi na x %1 y %2',[input('X','Number'),input('Y','Number')]),
@@ -83,6 +87,9 @@ window.ELDIBlocks = (() => {
   const value=(generator,block,name,fallback='0')=>generator.valueToCode(block,name,generator.ORDER_NONE)||fallback;
   for(const generator of [JS,PY]) {
     const py=generator===PY,end=py?'\n':';\n';
+    generator.forBlock.edu_timer=()=>[py?'time.monotonic() - _start_time':'timer()',generator.ORDER_FUNCTION_CALL];
+    generator.forBlock.edu_touching=(block,g)=>[`distance(${value(g,block,'S')}) < 20`,generator.ORDER_RELATIONAL];
+    generator.forBlock.edu_solid=(block,g)=>`solid(${JSON.stringify(block.getFieldValue('TYPE'))}, ${value(g,block,'R')}, ${value(g,block,'H')})${end}`;
     for(const [type,name,params] of [
       ['edu_move','move',['N']],['edu_turn','turn',['N']],['edu_goto','go',['X','Y']],
       ['edu_color','pencolor',['COLOR']],['edu_width','penwidth',['N']],['edu_background','background',['COLOR']],
@@ -119,14 +126,15 @@ window.ELDIBlocks = (() => {
     {kind:'category',name:'Varijable',custom:'VARIABLE',categorystyle:'variable_category'},
     {kind:'category',name:'Funkcije i postupci',custom:'PROCEDURE',categorystyle:'procedure_category'},
     category('Kretanje','edu_motion_category',[{kind:'block',type:'edu_move',inputs:{N:num(40)}},{kind:'block',type:'edu_turn',inputs:{N:num(90)}},{kind:'block',type:'edu_goto',inputs:{X:num(0),Y:num(0)}}]),
-    category('Olovka i oblici','edu_pen_category',[...entries('edu_pen'),{kind:'block',type:'edu_color',inputs:{COLOR:text('#7257c9')}},{kind:'block',type:'edu_width',inputs:{N:num(3)}},{kind:'block',type:'edu_background',inputs:{COLOR:text('#fffef9')}},{kind:'block',type:'edu_circle',inputs:{R:num(40)}},{kind:'block',type:'edu_rectangle',inputs:{W:num(80),H:num(50)}},...entries('edu_clear')]),
+    category('Olovka i oblici','edu_pen_category',[...entries('edu_pen'),{kind:'block',type:'edu_color',inputs:{COLOR:text('#7257c9')}},{kind:'block',type:'edu_width',inputs:{N:num(3)}},{kind:'block',type:'edu_background',inputs:{COLOR:text('#fffef9')}},{kind:'block',type:'edu_circle',inputs:{R:num(40)}},{kind:'block',type:'edu_rectangle',inputs:{W:num(80),H:num(50)}},...entries('edu_clear'),{kind:'block',type:'edu_solid',inputs:{R:num(3),H:num(5)}}]),
     category('Likovi i izgled','edu_looks_category',[{kind:'block',type:'edu_say',inputs:{TEXT:text('Zdravo!')}},...entries('edu_sprite','edu_visible','edu_clone')]),
-    category('Događaji i vrijeme','edu_event_category',[{kind:'block',type:'edu_wait',inputs:{N:num(1)}},{kind:'block',type:'edu_message',inputs:{TEXT:text('start')}},...entries('edu_received')]),
-    category('Senzori','edu_sensor_category',entries('edu_key','edu_x','edu_y','edu_heading','edu_mouse_x','edu_mouse_y','edu_edge','edu_distance')),
+    category('Događaji i vrijeme','edu_event_category',[{kind:'block',type:'edu_wait',inputs:{N:num(1)}},{kind:'block',type:'edu_message',inputs:{TEXT:text('start')}},...entries('edu_received','edu_timer')]),
+    category('Senzori','edu_sensor_category',entries('edu_key','edu_x','edu_y','edu_heading','edu_mouse_x','edu_mouse_y','edu_edge','edu_distance','edu_touching')),
     category('Zvuk','edu_sound_category',[{kind:'block',type:'edu_tone',inputs:{FREQ:num(440),DURATION:num(.2)}}])
   ]};
-  const keydown=event=>keys.add(event.key),keyup=event=>keys.delete(event.key);
-  const mousemove=event=>{const c=$('stage');if(!c)return;const rect=c.getBoundingClientRect();mouse.x=(event.clientX-rect.left)*480/rect.width-240;mouse.y=180-(event.clientY-rect.top)*360/rect.height;};
+  function sensors(){if(debugRunning)worker?.postMessage({cmd:'sensors',keys:[...keys],mouse:{...mouse},debug:debugRunning,paused,breakpoints:[...breakpoints]});}
+  const keydown=event=>{keys.add(event.key);sensors();},keyup=event=>{keys.delete(event.key);sensors();};
+  const mousemove=event=>{const c=$('stage');if(!c)return;const rect=c.getBoundingClientRect();mouse.x=(event.clientX-rect.left)*480/rect.width-240;mouse.y=180-(event.clientY-rect.top)*360/rect.height;sensors();};
   function reset(){sprites=[{x:0,y:0,angle:0,color:'#8870c5',width:2,pen:true,visible:true},{x:-120,y:0,angle:0,color:'#829e3e',width:2,pen:true,visible:true},{x:120,y:0,angle:0,color:'#de8b5d',width:2,pen:true,visible:true}];current=0;trail=[];background=null;stage();}
   function stage(){
     const context=$('stage')?.getContext('2d');if(!context)return;
@@ -144,7 +152,7 @@ window.ELDIBlocks = (() => {
   }
   function playTone(action){try{if(!audio)return;const oscillator=audio.createOscillator(),gain=audio.createGain();oscillator.frequency.value=action.frequency;gain.gain.value=.08;oscillator.connect(gain);gain.connect(audio.destination);oscillator.start();oscillator.stop(audio.currentTime+action.duration);}catch{}}
   function apply(action){
-    watch(action);let s=sprites[current];
+    watch(action);if(action.type==='solid')window.ELDIBlocksPlus?.geometry(action);let s=sprites[current];
     if(action.type==='sprite'){current=Math.max(0,Math.min(sprites.length-1,Math.trunc(action.value)));stage();return;}
     if(action.type==='move'||action.type==='go'){const old={x:s.x,y:s.y};if(action.type==='move'){s.x+=Math.cos(s.angle*Math.PI/180)*action.value;s.y-=Math.sin(s.angle*Math.PI/180)*action.value;}else{s.x=action.x;s.y=action.y;}if(s.pen)trail.push({kind:'line',x1:old.x,y1:old.y,x2:s.x,y2:s.y,color:s.color,width:s.width});}
     if(action.type==='turn')s.angle+=action.value;if(action.type==='pen')s.pen=action.value;if(action.type==='color')s.color=action.value;if(action.type==='width')s.width=action.value;if(action.type==='visible')s.visible=action.value;
@@ -183,12 +191,14 @@ window.ELDIBlocks = (() => {
   function code(language='js',trace=false){
     if(!workspace)return '';
     const generator=language==='py'?PY:JS,old=generator.STATEMENT_PREFIX;
-    generator.STATEMENT_PREFIX=trace&&language!=='py'?'traceBlock(%1);\n':null;
+    generator.STATEMENT_PREFIX=trace?(language==='py'?'# @eldi-block %1\n':'traceBlock(%1);\n'):null;
     let raw;try{raw=generator.workspaceToCode(workspace);}finally{generator.STATEMENT_PREFIX=old;}
     if(language!=='py')return raw;
     const types=new Set(workspace.getAllBlocks(false).map(block=>block.type));
-    const graphics=['edu_move','edu_turn','edu_goto','edu_pen','edu_sprite','edu_visible','edu_clone','edu_clear','edu_color','edu_width','edu_background','edu_circle','edu_rectangle','edu_x','edu_y','edu_heading','edu_mouse_x','edu_mouse_y','edu_edge','edu_distance'].some(type=>types.has(type));
+    const graphics=['edu_move','edu_turn','edu_goto','edu_pen','edu_sprite','edu_visible','edu_clone','edu_clear','edu_color','edu_width','edu_background','edu_circle','edu_rectangle','edu_x','edu_y','edu_heading','edu_mouse_x','edu_mouse_y','edu_edge','edu_distance','edu_touching'].some(type=>types.has(type));
     let header='# Python program — konzola radi u ugrađenom ELDI Python editoru.\nimport time\ndef wait(seconds): time.sleep(max(0, min(3, seconds)))\n';
+    if(types.has('edu_timer'))header+='\n_start_time = time.monotonic()\n';
+    if(types.has('edu_solid'))header+='\ndef solid(kind, r, h):\n    print("3D model:", kind, "r/a=", r, "h=", h)  # 3D prikaz je dostupan u ELDI laboratoriju.\n';
     if(types.has('edu_message')||types.has('edu_received'))header+='\n_messages = {}\ndef on(name, fn): _messages.setdefault(name, []).append(fn)\ndef broadcast(name):\n    for fn in _messages.get(name, []): fn()\n';
     if(types.has('edu_tone'))header+='\ndef tone(frequency, duration):\n    try:\n        import winsound\n        winsound.Beep(int(frequency), int(max(0.01, duration)*1000))\n    except ImportError:\n        time.sleep(max(0, duration))\n';
     if(types.has('edu_key'))header+='\ndef key(name): return False  # Senzor tipke je dostupan u ELDI pozornici.\n';
@@ -198,7 +208,7 @@ window.ELDIBlocks = (() => {
   function update(){if(!workspace)return;try{if($('blockcode'))$('blockcode').textContent=code($('blocklang')?.value||'js');onSave(serialize());}catch(error){if($('blockcode'))$('blockcode').textContent=error.message;}}
   function serialize(){return {format:'ELDI-BLOCKS-1',workspace:Blockly.serialization.workspaces.save(workspace)};}
   function load(project){if(project?.format!=='ELDI-BLOCKS-1'||!project.workspace)throw Error('Nepoznat format blokovskog projekta.');stop();Blockly.serialization.workspaces.load(project.workspace,workspace);update();}
-  function stop(){worker?.terminate();worker=null;clearTimeout(runningTimer);clearTimeout(animTimer);animTimer=null;actionQueue=[];finalResult=null;paused=false;workspace?.highlightBlock?.(null);if(runResolve){runResolve({ok:false,cancelled:true,output:$('blockout')?.textContent||'',actions:allActions});runResolve=null;}}
+  function stop(){debugRunning=false;worker?.terminate();worker=null;clearTimeout(runningTimer);clearTimeout(animTimer);animTimer=null;actionQueue=[];finalResult=null;paused=false;workspace?.highlightBlock?.(null);if(runResolve){runResolve({ok:false,cancelled:true,output:$('blockout')?.textContent||'',actions:allActions});runResolve=null;}}
   function run(options={}){
     const runInput=options.input??$('blockinput')?.value??'',selectedChallenge=challenge;
     const definedTests=Array.isArray(selectedChallenge?.tests)&&selectedChallenge.tests.length?selectedChallenge.tests:typeof selectedChallenge?.input==='string'?[{input:selectedChallenge.input,check:selectedChallenge.check}]:null;
@@ -206,22 +216,22 @@ window.ELDIBlocks = (() => {
     const matchedTest=definedTests?.find(test=>normalizedInput(test.input)===normalizedInput(runInput));
     const runChallenge=definedTests?(matchedTest?{...selectedChallenge,check:matchedTest.check}:null):selectedChallenge;
     const ungradedInput=!!selectedChallenge&&!!definedTests&&!matchedTest;
-    stop();reset();allActions=[];if($('blockout'))$('blockout').textContent='';if($('blockcheck'))$('blockcheck').textContent='';speed=Number.isFinite(Number(options.speed))?Math.max(0,Math.min(200,Number(options.speed))):25;paused=options.paused===true;
+    stop();reset();allActions=[];if($('blockout'))$('blockout').textContent='';if($('blockcheck'))$('blockcheck').textContent='';speed=Number.isFinite(Number(options.speed))?Math.max(0,Math.min(200,Number(options.speed))):25;paused=options.paused===true;debugRunning=!!options.debug;
     if(window.AudioContext||window.webkitAudioContext)try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();}catch{}
     return new Promise(resolve=>{
       runResolve=resolve;
-      function complete(result){clearTimeout(runningTimer);worker?.terminate();worker=null;result.actions=allActions;result.ungradedInput=ungradedInput;if(runChallenge)result.challenge={id:runChallenge.id,...matchCheck(runChallenge.check,result)};if($('blockcheck'))$('blockcheck').textContent=result.challenge?.message||(ungradedInput?'Vlastiti ulaz — program je pokrenut bez automatskog ocjenjivanja. Odaberi jedan od primjera zadatka za provjeru.':'');finalResult=result;if(options.checkOnly){actionQueue=[];if($('blockout'))$('blockout').textContent=result.output||result.error||'';finishAnimation();}else if(!paused&&!animTimer)animate();}
+      function complete(result){clearTimeout(runningTimer);worker?.terminate();worker=null;result.actions=allActions;result.ungradedInput=ungradedInput;if(runChallenge)result.challenge={id:runChallenge.id,...matchCheck(runChallenge.check,result)};if($('blockcheck'))$('blockcheck').textContent=result.challenge?.message||(ungradedInput?'Vlastiti ulaz — program je pokrenut bez automatskog ocjenjivanja. Odaberi jedan od primjera zadatka za provjeru.':'');finalResult=result;if(options.checkOnly||debugRunning){paused=false;debugRunning=false;actionQueue=[];if($('blockout'))$('blockout').textContent=result.output||result.error||'';finishAnimation();}else if(!paused&&!animTimer)animate();}
       try{
-        worker=new Worker('block-worker.js');worker.onmessage=event=>{const data=event.data;if(data.type==='actions'){allActions.push(...data.actions);actionQueue.push(...data.actions);if(!paused&&!animTimer)animate();}if(data.type==='done')complete(data.result||{ok:true,output:'',stage:{},variables:{}});if(data.type==='error'){if($('blockout'))$('blockout').textContent+='Greška: '+data.message+'\n';complete({...data.result,ok:false,error:data.message});}};
+        worker=new Worker('block-worker.js');worker.onmessage=event=>{const data=event.data;if(data.type==='actions'){allActions.push(...data.actions);if(debugRunning)data.actions.forEach(apply);else{actionQueue.push(...data.actions);if(!paused&&!animTimer)animate();}}if(data.type==='paused'){paused=true;watch({type:'trace',id:data.id,variables:data.variables});window.ELDIBlocksPlus?.debugStatus('Zaustavljeno prije označenog bloka.');}if(data.type==='done')complete(data.result||{ok:true,output:'',stage:{},variables:{}});if(data.type==='error'){if($('blockout'))$('blockout').textContent+='Greška: '+data.message+'\n';complete({...data.result,ok:false,error:data.message});}};
         worker.onerror=event=>{if($('blockout'))$('blockout').textContent+='Greška: '+event.message;complete({ok:false,error:event.message,output:'',variables:{}});};
-        worker.postMessage({code:code('js',true),input:runInput,keys:[...keys],sprite:Number($('sprite')?.value||0),mouse:{...mouse}});
-        runningTimer=setTimeout(()=>{if($('blockout'))$('blockout').textContent+='Prekoračeno 6 sekundi računanja.';complete({ok:false,error:'Prekoračeno vrijeme izvršavanja.',output:'',variables:{}});},6000);
+        worker.postMessage({code:code('js',true),input:runInput,keys:[...keys],sprite:Number($('sprite')?.value||0),mouse:{...mouse},debug:debugRunning,paused,breakpoints:[...breakpoints]});
+        if(!debugRunning)runningTimer=setTimeout(()=>{if($('blockout'))$('blockout').textContent+='Prekoračeno 6 sekundi računanja.';complete({ok:false,error:'Prekoračeno vrijeme izvršavanja.',output:'',variables:{}});},6000);
       }catch(error){complete({ok:false,error:error.message,output:'',variables:{}});}
     });
   }
-  function pause(){paused=true;clearTimeout(animTimer);animTimer=null;return paused;}
-  function resume(){paused=false;if(!animTimer)animate();return paused;}
-  function step(){pause();if(!worker&&!finalResult&&!actionQueue.length){run({paused:true});return;}if(actionQueue.length)apply(actionQueue.shift());if(!actionQueue.length)finishAnimation();}
+  function pause(){if(debugRunning){worker?.postMessage({cmd:'pause'});return paused=true;}paused=true;clearTimeout(animTimer);animTimer=null;return paused;}
+  function resume(){if(debugRunning){worker?.postMessage({cmd:'resume'});return paused=false;}paused=false;if(!animTimer)animate();return paused;}
+  function step(){if(debugRunning){worker?.postMessage({cmd:'step'});paused=false;return;}if(!worker&&!finalResult&&!actionQueue.length){run({debug:true,paused:true});return;}pause();if(!worker&&!finalResult&&!actionQueue.length){run({paused:true});return;}if(actionQueue.length)apply(actionQueue.shift());if(!actionQueue.length)finishAnimation();}
   function example(type){
     const square={blocks:{languageVersion:0,blocks:[{type:'controls_repeat_ext',inputs:{TIMES:num(4),DO:{block:{type:'edu_move',inputs:{N:num(80)},next:{block:{type:'edu_turn',inputs:{N:num(90)}}}}}}}]}};
     const count={blocks:{languageVersion:0,blocks:[{type:'edu_say',inputs:{TEXT:text('Brojimo tri puta')},next:{block:{type:'controls_repeat_ext',inputs:{TIMES:num(3),DO:{block:{type:'edu_say',inputs:{TEXT:text('Učim!')}}}}}}}]}};
@@ -233,7 +243,7 @@ window.ELDIBlocks = (() => {
     run,stop,pause,resume,step,load,serialize,update,code,example,matchCheck,setTheme,
     setChallenge(value){challenge=value||null;if($('blockcheck'))$('blockcheck').textContent='';},
     clear(){stop();workspace.clear();update();},select(index){current=Math.max(0,Math.min(sprites.length-1,Math.trunc(Number(index)||0)));stage();},
-    getToolbox(){return toolbox;},getTheme(){return themeName;},getState(){return {paused,running:!!worker||!!finalResult||actionQueue.length>0,queue:actionQueue.length};},
+    getWorkspace(){return workspace;},getChallenge(){return challenge;},setBreakpoints(ids){breakpoints=new Set(ids);worker?.postMessage({cmd:'breakpoints',ids:[...breakpoints]});},getToolbox(){return toolbox;},getTheme(){return themeName;},getState(){return {paused,running:!!worker||!!finalResult||actionQueue.length>0,queue:actionQueue.length};},
     resize(){if(workspace)Blockly.svgResize(workspace);}
   };
 })();

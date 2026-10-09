@@ -1,0 +1,45 @@
+ELDI EDU / UPINITK — POSTAVLJANJE WEB CENTRA
+
+Ciljna adresa: https://upinitk.com/eldi-edu/
+Ovaj paket sadrži web stranicu. Ne sadrži Windows EXE i kompletan ZIP aplikacije;
+dugmad ih preuzimaju s postojećeg GitHub izdanja 12.0.0.
+
+1. U upravitelju datoteka hostinga otvorite korijensku mapu domene upinitk.com
+   (često public_html; tačan naziv zavisi od hostinga).
+2. Prenesite cijelu mapu eldi-edu iz ovog paketa. Ne prepisujte postojeći index
+   stranice UPINITK. Konačna struktura treba biti:
+   [korijen domene]/eldi-edu/index.html
+   [korijen domene]/eldi-edu/style.css
+   [korijen domene]/eldi-edu/site.js
+   [korijen domene]/eldi-edu/catalog.js
+   [korijen domene]/eldi-edu/assets/...
+3. Otvorite https://upinitk.com/eldi-edu/. Ako hosting koristi pravilo koje
+   sve zahtjeve preusmjerava kroz PHP, administrator treba izuzeti postojeće
+   datoteke i direktorije iz tog preusmjeravanja. Ovaj paket namjerno ne
+   mijenja .htaccess, PHP rutiranje ni postojeću početnu stranicu.
+4. U glavni meni UPINITK dodajte:
+   <a href="/eldi-edu/">ELDI EDU</a>
+   Ako meni koristi uređivač sadržaja, unesite naziv ELDI EDU i adresu /eldi-edu/.
+5. Provjerite: prikaz na telefonu, svih pet razreda, tri oblasti, slike,
+   pokretanje videa, upute i dugmad za preuzimanje.
+6. Tek nakon objave centra uključite prateće izmjene Windows aplikacije
+   iz GitHub prijedloga i izradite novo, zasebno numerisano izdanje.
+   Već objavljeni EXE 12.0.0 nije izmijenjen ovim web paketom.
+
+TEHNIČKE NAPOMENE
+- Dovoljan je statički hosting s HTTPS-om; nisu potrebni Node, PHP ni baza.
+- Stranica nema prijavu korisnika, analitiku ni pohranu učeničkih radova.
+- Otvaranje upinitk.com ne prijavljuje korisnika u Windows aplikaciju.
+- Preuzimanja su vezana za 12.0.0; link za najnovije izdanje je trajan.
+- Nakon novog izdanja ažurirati direktne linkove, brojeve verzija, veličine,
+  slike i katalog sadržaja zajedno. Datum posljednje provjere: 09.10.2026.
+- MP4 koristi H.264; video traje 20 sekundi i nema zvuk. VTT sadrži opise.
+- Prijava problema vodi na GitHub i zahtijeva GitHub račun. Ako obrazac iz
+  pratećeg prijedloga još nije spojen, GitHub omogućava običnu prijavu problema.
+- Web paket nije mrežna učionica niti server za izvršavanje korisničkih programa.
+
+STATUS
+Ovaj paket sam ne objavljuje stranicu. GitHub pristup nije pristup hostingu
+upinitk.com. U ovoj pripremi objava na toj domeni nije potvrđena.
+
+Autori aplikacije: Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović
