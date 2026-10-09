@@ -1,59 +1,28 @@
-# ELDI EDU web centar
+# ELDI EDU 12.0.0 — UPINITK web centar
 
-Prenosiva statička stranica za `https://upinitk.com/eldi-edu/`.
-Mapa `eldi-edu/` sadrži sve javne datoteke; `POSTAVLJANJE.txt` sadrži korake za
-postojeći hosting i HTML vezu za postojeći UPINITK meni. Nisu potrebne nove
-zavisnosti, baza ni izmjene postojećeg PHP sajta.
+Mapa `eldi-edu/` je statična stranica za adresu
+`https://upinitk.com/eldi-edu/`. Raspakovati web ZIP u `public_html` prema
+uputi `POSTAVLJANJE.txt`. Nije potreban backend ni baza.
 
-## Sadržaj i preuzimanja
+Dugmad vode na Setup EXE, Portable EXE, kompletan paket i zbirke izdanja
+`v12.0.0` na GitHubu. Windows workflow objavljuje datoteke tek nakon
+provjera koda, jezika, interaktivnih modula i zapakovane aplikacije.
 
-Preuzimanja su pinovana na provjereno izdanje **12.0.0**. Trajna veza
-`https://github.com/elvir585/eldi-edu/releases/latest` omogućava provjeru novijih
-izdanja. Stranica ne preuzima podatke u pozadini i ne koristi tokene ni analitiku.
-Katalog je pregled tema; rad u zadacima ostaje u Windows aplikaciji.
+Novi prikazi početnog ekrana, funkcija, prostornih tijela i Blockly studija
+snimljeni su tokom provjere stvarnog desktop renderera. Preostale slike i
+kratki video prikazuju osnovne module prethodnog izdanja 11.0.1; video je
+na stranici tako označen. Slike nisu zamišljeni prikazi budućih funkcija.
 
-Katalog regenerisati iz korijena repozitorija:
+Aplikacija ima link na centar u odjeljku **O aplikaciji**. Stranica sadrži
+pregled po razredima, upute za nastavnike, početne korake, autore i GitHub
+prijavu problema. Nema automatske objave na UPINITK hostingu.
 
-```sh
-node scripts/build-web-catalog.cjs
-```
+Izrada ZIP-a: `node scripts/build-web-package.cjs` iz korijena repozitorija.
+Izlaz je `release/ELDI-EDU-12.0.0-UPINITK-public_html.zip`.
 
-Generator preuzima matematiku iz `content/curriculum-map.js`, Blockly teme iz
-`content/block-projects.json` i izazove iz `content/program-assessments.js`.
-Raspored tema je urednički plan, bez tvrdnje o potpunom službenom odobrenju.
-Pri novom izdanju istovremeno pregledati tekstove, verzije, linkove, veličine,
-upute i slike — generator osvježava samo katalog.
+Prije objave provjereni su svi lokalni resursi, izbor pet razreda i prikaz
+na širinama 1366 i 390 piksela. Nema horizontalnog pomjeranja stranice.
 
-## Porijeklo slika i videa
-
-PNG datoteke su neizmijenjeni snimci zapakovane Windows aplikacije iz uspješne
-[GitHub provjere 37815152122](https://github.com/elvir585/eldi-edu/actions/runs/37815152122),
-artefakt `ELDI-EDU-12.0.0-Visual-QA`, ID `11568085178`, direktorij `packaged/`.
-Izvorni commit: `8805ba9850ad96fcd16f382494ebc465e9c0b6b2`.
-Prikazani su demonstracijski profili, ne stvarni podaci učenika.
-
-| Javna datoteka | Izvorna slika |
-| --- | --- |
-| pregled.png | 01-home.png |
-| matematicka-sveska.png | 15-notebook.png |
-| nastavnicki-centar.png | 16-teacher.png |
-| scratch-studio.png | 18-scratch-studio.png |
-| programerski-izazovi.png | 18-programming-assessment.png |
-
-Video je 20-sekundni slideshow ovih snimaka, redom: pregled, sveska, Scratch,
-programerski izazovi i nastavnički centar (četiri sekunde po slici). Bez zvuka;
-VTT opis i tekstualni opis sadržaja uključeni su uz video. Logo je postojeći
-`renderer/assets/eldi-mark.svg`. Scratch naziv/logo prikazuje stvarnu komponentu;
-odgovarajući izvori i licenca dostupni su preko Scratch-izvori ZIP veze.
-
-## Povezivanje iz aplikacije
-
-Nova stavka `UPINITK · ELDI centar` otvara lokalni ekran s uputama i dugmadima.
-Preload izlaže `openPortal(destination)`; glavni proces provjerava pouzdanog
-pošiljaoca i prihvata samo četiri imenovane adrese. Vanjske stranice se otvaraju
-u sistemskom pregledniku. Učenički podaci nisu dio URL-a ni poziva.
-
-**Redoslijed objave:** postaviti web mapu i provjeriti URL, zatim spojiti izmjene
-aplikacije i izraditi zasebno numerisano izdanje. Postojeći workflow objavljuje
-12.0.0 na svakom pushu u main; zato ovaj prijedlog ne treba spajati bez pripreme
-nove verzije. Ovim radom nisu prepisani postojeći EXE ni izdanje 12.0.0.
+Zadaci, programi, projekti i rezultati koriste se u Windows aplikaciji.
+Mrežna učionica, zajednički nalozi i QR provjera rezultata nisu dio web
+paketa. Detalji desktop izdanja su u `docs/IZDANJE-12.md` repozitorija.
