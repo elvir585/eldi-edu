@@ -1,4 +1,4 @@
-**ELDI EDU 33.0 — Studio znanja, Windows i web radionica.**
+**ELDI EDU 33.33 — Studio znanja, Windows i web radionica.**
 
 Preuzmite **Setup-x64.exe** za instalaciju ili **Portable-x64.exe** za direktno pokretanje na Windowsu 10/11 x64. **Kompletan-paket.zip** sadrži Portable aplikaciju i sve pripadajuće ZIP pakete.
 
@@ -8,6 +8,6 @@ Preuzmite **Setup-x64.exe** za instalaciju ili **Portable-x64.exe** za direktno 
 
 Zadržani su prethodni sadržaji: 1000 vještina, 1000 Blockly projekata, knjige, matematička sveska/laboratorij, Scratch, 55 programerskih izazova, Nastavnički centar i AI asistent s vlastitom prijavom.
 
-Radovi se čuvaju na uređaju i prenose datotekama. Ovo izdanje nema zajedničku serversku učionicu. Lokalni rezultati nisu službena rang-lista. Valjak/kupa imaju ravne mreže; lopta nema tačnu ravnu mrežu. Kosi zakrivljeni presjeci su aproksimacije. Python robotski prikaz služi za čitanje. Instalacijski paket nije digitalno potpisan. Potpuni opis: [docs/IZDANJE-33.md](https://github.com/elvir585/eldi-edu/blob/v33.0.0/docs/IZDANJE-33.md).
+Radovi se čuvaju na uređaju i prenose datotekama. Ovo izdanje nema zajedničku serversku učionicu. Lokalni rezultati nisu službena rang-lista. Valjak/kupa imaju ravne mreže; lopta nema tačnu ravnu mrežu. Kosi zakrivljeni presjeci su aproksimacije. Python robotski prikaz služi za čitanje. Instalacijski paket nije digitalno potpisan. Potpuni opis: [docs/IZDANJE-33.md](https://github.com/elvir585/eldi-edu/blob/v33.33.0/docs/IZDANJE-33.md).
 
 Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović**.

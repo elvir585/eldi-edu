@@ -17,6 +17,7 @@ async function main() {
   console.log('Blokovski ZIP:',JSON.stringify(require('./build-block-pack.cjs')()));
   console.log('Programerski ZIP:',JSON.stringify(require('./build-assessment-pack.cjs')()));
   console.log('Radionice 33 ZIP:',JSON.stringify(require('./build-studio33-pack.cjs')()));
+  console.log('Vođeni časovi:',JSON.stringify(require('./build-teaching3333.cjs')()));
   const practice=require('../app/practice-engine.js');
   assert.equal(practice.topics.length,500);
   assert.equal(maths.length+info.length,1000);

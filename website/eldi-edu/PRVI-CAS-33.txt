@@ -1,4 +1,4 @@
-ELDI EDU 33.0 — PRVI ČAS (45 MINUTA)
+ELDI EDU 33.33 — PRVI ČAS (45 MINUTA)
 
 Priprema prije ponedjeljka, 12. 10. 2026.
 1. Raspakujte UPINITK-public_html ZIP u public_html. Mapa eldi-edu mora biti neposredno unutar public_html.

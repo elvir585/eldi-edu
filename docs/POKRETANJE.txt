@@ -1,6 +1,6 @@
-ELDI EDU 33.0 — KOMPLETAN PAKET
+ELDI EDU 33.33 — KOMPLETAN PAKET
 
-Windows 10/11 x64. Raspakujte ZIP u svoju mapu i pokrenite ELDI-EDU-33.0.0-Portable-x64.exe. Za instalaciju s prečicom zasebno preuzmite Setup EXE s GitHub izdanja. Aplikacija nije digitalno potpisana.
+Windows 10/11 x64. Raspakujte ZIP u svoju mapu i pokrenite ELDI-EDU-33.33.0-Portable-x64.exe. Za instalaciju s prečicom zasebno preuzmite Setup EXE s GitHub izdanja. Aplikacija nije digitalno potpisana.
 
 Studio 33 je prva stavka izbornika: 3D blokovi i mreže, robot, web, SQL, algoritmi, logika, mreže/API, podaci, programerske vježbe, takmičenja, projekti i izvještaji. Matematički laboratorij s funkcijama i trouglovima, Scratch, 1000 blokovskih projekata, knjige, 55 programerskih izazova i ostali postojeći moduli ostaju dostupni.
 
@@ -17,5 +17,5 @@ DODATNI ZIP PAKETI
 
 Radovi ostaju na uređaju. U Studiju 33 koristite Sačuvaj projekat i Izvezi rad. Za kopiju cijele Windows učionice otvorite Kopije i nova izdanja. Nastavniku se ništa ne šalje automatski. Čuvajte izvezene datoteke prije zamjene računara ili brisanja podataka.
 
-https://github.com/elvir585/eldi-edu/releases/tag/v33.0.0
+https://github.com/elvir585/eldi-edu/releases/tag/v33.33.0
 Autori: Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović.

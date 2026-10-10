@@ -1,25 +1,13 @@
-ELDI EDU 33.0 — NASTAVNIČKE UPUTE
+ELDI EDU 33.33 — nastavnički početak
 
-Prvi čas: PRVI-CAS-33.txt.
-Web link za učenike: https://upinitk.com/eldi-edu/ucionica/ (nakon postavljanja paketa).
+1. Uči: izaberite razred, predmet, nivo i cjelinu. Pokrenite tajmer od 45 minuta, prikažite riješeni primjer, zadajte samostalan rad i završni osvrt.
+2. Vježbaj: pratite pokušaje i preporučene cjeline. Nivo zadatka birate vi ili učenik.
+3. Takmiči se: lični izazov 10 zadataka / 20 minuta, sa rješenjima nakon završetka. Ovo je lokalna priprema, nije nadzirano takmičenje.
+4. Stvaraj: blokovi i stvarni 3D, mjerenja, presjeci, mreže. Sve radionice otvara robot, web, SQL, algoritme, logiku, mreže, podatke i projekte.
+5. Štampa: u Uči birajte Radni list / PDF. Poseban ZIP Vodjeni-casovi ima pet razrednih listova, rješenja i 105 gotovih provjera za online uvoz.
+6. Online: nakon instalacije prema POSTAVLJANJE.txt otvorite /eldi-edu/online/. Kreirajte odjeljenje i učeničke pristupe, zatim projekat ili brojčanu provjeru s rokom. Radovi se pregledaju pod objavljenim zadatkom. Automatski bodovi i nastavnički unesena ocjena su odvojeni.
+7. Projektni rad: učenik u radionici bira Izvezi rad, zatim prilaže JSON online zadatku. Online prijava ne prenosi automatski kompletan lokalni profil.
+8. Windows zadržava sve ranije module. Puni Python/C/C++/Java i Scratch dostupni su u Windows aplikaciji.
 
-PROJEKTNI RAD
-1. Otvorite radionicu, pripremite početni program/scenu/stranicu i naziv rada.
-2. U Projektima izaberite Nastavnička projektna radionica. Unesite uputu i kriterije.
-3. Izvezi zadatak s trenutnim radom preuzima nastavnički JSON. Učenik ga uvozi dugmetom Uvezi rad / zadatak.
-4. Učenik uređuje, provjerava, piše objašnjenje i izvozi rad. Datoteku predaje vašim dogovorenim kanalom.
-5. Uvezite učenikov rad; u Izvještajima dodajte komentar i zasebnu nastavničku ocjenu. Automatski bodovi ostaju odvojeni. CSV i štampa služe za vlastitu evidenciju.
-
-KRITERIJI
-Podržani su object (vrsta tijela), property (brojčano svojstvo s tolerancijom), robot (cilj) i output (tačan tekst). Primjer:
-[{"kind":"property","id":"valjak","property":"h","expected":10,"tolerance":0.01,"points":100}]
-Prazni kriteriji [] znače da nastavnik pregleda projekat. Smisao stranice, objašnjenja i dokaze ne ocjenjuje automatski program. Ugrađenih 16 projekata pokriva više radionica.
-
-SADRŽAJ I GRANICE
-Takmičarska priprema: 40 matematičkih porodica po 4 brojčane varijante (160 postavki), 20 informatičkih pitanja, 20 programerskih zadataka za ispravku i 80 referentnih testova. Originalne vježbe, bez tvrdnje da su službeni takmičarski zadaci ili potpuno usklađeni s nastavnim planom. Rješenja su dostupna u lokalnom paketu: ovo je alat za učenje, ne nadzirani ispit.
-
-Mreže kocke, kvadra, pravilne prizme i piramide imaju animirane šarke. Valjak i kupa imaju razmjerne ravne mreže. Lopta nema tačnu ravnu mrežu bez deformacije. Kosi presjeci zakrivljenih tijela su poligonalne aproksimacije.
-
-Web rad je lokalni, bez zajedničke baze, automatske predaje ili rang-liste. API i mreža su obrazovne simulacije. Pregled učeničkog web koda nema pristup mreži ni lokalnom profilu. SQLite datoteka uvozi se do 1 MB; CSV ima najviše 1000 redova i 30 kolona. Projektni JSON do 2,5 MB.
-
-Windows zadržava i Nastavnički centar za odjeljenja i zaduženja iz prethodnog izdanja. Za obradu tekstualnih programa koristi se pravi lokalni alat s pravima Windows korisnika. Školski računar pripremite s administratorom prije časa.
+Koristite odvojene profile na zajedničkim računarima. Promjena vidljivog imena ne pravi novi profil web radionice. Izvezite rad prije odlaska.
+Materijali su dopunski i prilagodljivi nastavnom planu škole. Nije potvrđena službena kurikularna usklađenost.

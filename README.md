@@ -1,18 +1,37 @@
-# ELDI EDU 33.0.0 — digitalna učionica / Dark Edition
+# ELDI EDU 33.33.0 — digitalna učionica / Dark Edition
 
 **Matematika i informatika od 5. do 9. razreda kao Windows aplikacija.**
 
 Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović**.
 
-## Novo u 33.0
+## Novo u 33.33
+
+Korisnička oznaka: **33.33**. Tehnička verzija: **33.33.0**. Jedno objedinjeno izdanje za Windows i UPINITK hosting.
+
+## Šta je novo
+
+- Početni putevi **Uči, Vježbaj, Takmiči se, Stvaraj**. Napredne radionice ostaju u meniju „Sve radionice“.
+- **35 vođenih nastavnih cjelina**: sedam po razredu od 5. do 9, ukupno 20 matematičkih i 15 informatičkih. Objašnjenje, riješen primjer, tri nivoa, savjet, provjera brojčanog odgovora i preporuka za radionicu.
+- **Čas od 45 minuta**: uvod 5, primjer 10, samostalan rad 20, provjera 7, osvrt 3 minute. Pauza i nastavak poslije osvježavanja; tajmer ne upravlja drugim računarima.
+- **Diferencirana vježba**: osnovni, srednji i napredni nivo. Preporuka cjelina na osnovu posljednjih pokušaja. Najviše 300 pokušaja u lokalnom pregledu. Pomoć se bilježi.
+- **Lični vremenski izazov**: deset zadataka, 20 minuta, izbor razreda/predmeta/nivoa, nastavak tekuće provjere nakon osvježavanja, objašnjenja na kraju. Lokalna priprema, ne nadzirano takmičenje ili službena rang-lista.
+- **Stvarni 3D studio**: postojeći modeli, blokovi, presjeci i mreže; novi predlošci scena, četiri pogleda, analitička površina i zapremina. Novi blok za površinu/zapreminu radi u JS interpreteru i Python mostu Windows aplikacije.
+- **Radni listovi** za pet razreda, odvojena nastavnička rješenja i **105 JSON provjera** za online uvoz (35 cjelina × tri nivoa, po šest pitanja). Osnovni štampani paket ima 105 zadataka, nije 105 različitih naučnih oblasti.
+- **Offline web radionica**: ručna priprema dugmetom „Rad bez interneta“. Čuva samo javne datoteke radionice na tom uređaju. Online računi, predaje i AI i dalje trebaju internet. Brisanje podataka preglednika uklanja offline kopiju.
+- **PHP/MySQL online učionica**: nastavnički račun, odjeljenja, grupno kreiranje učeničkih pristupa, zadaci i rokovi, serverom bodovane brojčane provjere, JSON projekti i tekst, pregled, komentar, zasebna nastavnički unesena ocjena, CSV rezultati i arhiva odjeljenja. Jedna konačna predaja po zadatku. Zatvaranje/otvaranje predaje i reset učeničke lozinke.
+
+
+[Postavljanje na hosting](docs/POSTAVLJANJE-33.33.txt) · [Potpuni opis i granice](docs/IZDANJE-33.33.md)
+
+## Prethodni Studio 33 i očuvani moduli
 
 **Studio 33** povezuje 3D blokove i mreže, robota, web razvoj, stvarni SQLite, algoritme, logiku/procesor, mreže/API simulaciju, podatke i grafikone, programerske vježbe, takmičarsku pripremu, projekte i izvještaje. Tamni/svijetli/kontrastni prikaz, Projektor, Olovka, žive varijable, snimljeni koraci i prenosivi JSON radovi.
 
-**Web radionica za UPINITK:** raspakujte web ZIP u `public_html`. Učenici zatim otvaraju `/eldi-edu/ucionica/` bez instalacije. Windows izdanje dodatno uključuje Scratch, postojeće zbirke i Python/C/C++/Java. Web rad se čuva lokalno, bez mrežnih naloga; prenosi se datotekom.
+**Web radionica za UPINITK:** raspakujte web ZIP u `public_html`. Učenici zatim otvaraju `/eldi-edu/ucionica/` bez instalacije. Windows izdanje dodatno uključuje Scratch, postojeće zbirke i Python/C/C++/Java. Radionica čuva rad lokalno; zasebna nova online učionica ima mrežne naloge, zadatke i predaje JSON datotekom.
 
 **Novi sadržaj:** 16 projektnih zadataka, 20 zadataka za ispravku s 80 testova, 160 matematičkih postavki i 20 informatičkih pitanja za 5–9. razred. To su originalne vježbe za pripremu, ne službeni takmičarski zadaci.
 
-[Detaljan opis i granice 33.0](docs/IZDANJE-33.md) · [Plan prvog časa](website/eldi-edu/PRVI-CAS-33.txt) · [Postavljanje na hosting](website/POSTAVLJANJE.txt).
+[Detaljan opis i granice 33.33](docs/IZDANJE-33.md) · [Plan prvog časa](website/eldi-edu/PRVI-CAS-33.txt) · [Postavljanje na hosting](website/POSTAVLJANJE.txt).
 
 Raniji matematički laboratorij, 1000 blokovskih projekata i ostali Windows moduli ostaju dostupni.
 
@@ -22,16 +41,16 @@ Otvorite **[najnovije GitHub izdanje](https://github.com/elvir585/eldi-edu/relea
 
 | Datoteka | Namjena |
 |---|---|
-| `ELDI-EDU-33.0.0-Kompletan-paket.zip` | Portable EXE, zbirke, Scratch izvori/primjeri, web paket i upute zajedno |
-| `ELDI-EDU-33.0.0-Portable-x64.exe` | Direktno pokretanje bez instalacije |
-| `ELDI-EDU-33.0.0-UPINITK-public_html.zip` | Web centar i rad u pregledniku: raspakovati u public_html |
-| `ELDI-EDU-33.0.0-Radionice-i-takmicenja.zip` | Novi projekti, zadaci, rješenja i plan prvog časa |
-| `ELDI-EDU-33.0.0-Setup-x64.exe` | Instalacija s prečicom |
-| `ELDI-EDU-33.0.0-1000-Blokovskih-projekata.zip` | 1000 riješenih Blockly projekata |
-| `ELDI-EDU-33.0.0-Zbirke-i-rjesenja.zip` | Obje originalne knjige i digitalna rješenja |
-| `ELDI-EDU-33.0.0-Programerski-izazovi.zip` | 55 zadataka, Python/C++ rješenja i početni kodovi |
-| `ELDI-EDU-33.0.0-Scratch-primjeri.zip` | Šest originalnih Scratch `.sb3` projekata |
-| `ELDI-EDU-33.0.0-Scratch-izvori.zip` | Odgovarajući izvori i licenca Scratch komponente |
+| `ELDI-EDU-33.33.0-Kompletan-paket.zip` | Portable EXE, zbirke, Scratch izvori/primjeri, web paket i upute zajedno |
+| `ELDI-EDU-33.33.0-Portable-x64.exe` | Direktno pokretanje bez instalacije |
+| `ELDI-EDU-33.33.0-UPINITK-public_html.zip` | Web centar i rad u pregledniku: raspakovati u public_html |
+| `ELDI-EDU-33.33.0-Radionice-i-takmicenja.zip` | Novi projekti, zadaci, rješenja i plan prvog časa |
+| `ELDI-EDU-33.33.0-Setup-x64.exe` | Instalacija s prečicom |
+| `ELDI-EDU-33.33.0-1000-Blokovskih-projekata.zip` | 1000 riješenih Blockly projekata |
+| `ELDI-EDU-33.33.0-Zbirke-i-rjesenja.zip` | Obje originalne knjige i digitalna rješenja |
+| `ELDI-EDU-33.33.0-Programerski-izazovi.zip` | 55 zadataka, Python/C++ rješenja i početni kodovi |
+| `ELDI-EDU-33.33.0-Scratch-primjeri.zip` | Šest originalnih Scratch `.sb3` projekata |
+| `ELDI-EDU-33.33.0-Scratch-izvori.zip` | Odgovarajući izvori i licenca Scratch komponente |
 
 Windows 10/11 x64. Ugrađeni su nastavni sadržaj, Scratch/Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za nastavu i školske programe. ChatGPT i API odgovori trebaju internet. Aplikacija nije digitalno potpisana.
 
@@ -68,7 +87,7 @@ Odjeljenja i spiskovi za 5–9. razred, povezivanje učenika s lokalnim profilim
 
 Automatski rezultat i nastavnička ocjena prikazuju se odvojeno. Nastavnik pregledava učenikov zapis, dodaje komentar i preporuku. Rezultati ostaju u nastavničkoj evidenciji i kada zajednička historija provjera pređe 100 zapisa. Dostupni su CSV izvještaji, štampa i diplome/potvrde rezultata. CSV zaštita sprečava da se ime ili komentar protumači kao formula.
 
-Ovo je lokalna učionica: nema školskog servera, automatske mrežne sinhronizacije ili udaljenih naloga.
+Ovaj raniji Nastavnički centar je lokalni. Nova zasebna PHP/MySQL online učionica dostupna je na /eldi-edu/online/ nakon konfiguracije hostinga.
 
 ## Scratch studio
 

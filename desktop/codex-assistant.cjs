@@ -164,7 +164,7 @@ function createCodexAssistant(options={}){
       processHandle.stdout.on('data',data);processHandle.stderr.on('data',()=>{});processHandle.stdin.on('error',()=>stop(new CodexError('CHATGPT_CONNECTION','Veza s ugrađenim ChatGPT servisom je prekinuta.')));
       processHandle.once('error',()=>stop(new CodexError('RUNTIME_MISSING','Ugrađeni ChatGPT servis nije pokrenut. Provjerite kompletno izdanje aplikacije.')));
       processHandle.once('exit',()=>stop(new CodexError('CHATGPT_CONNECTION','ChatGPT servis je zatvoren. Ponovo otvorite AI asistenta.')));
-      try{await rpc('initialize',{clientInfo:{name:'eldi_edu',title:'ELDI EDU',version:options.appVersion||'33.0.0'},capabilities:{experimentalApi:false,explicitGatewayOauth:true}});write({method:'initialized',params:{}});const gateway=await rpc('account/gatewayOAuth/read');if(gateway?.required)throw new CodexError('PROVIDER','ELDI EDU podržava službenu ChatGPT prijavu; ovaj servis zahtijeva drugu prijavu.');lastError=null;}
+      try{await rpc('initialize',{clientInfo:{name:'eldi_edu',title:'ELDI EDU',version:options.appVersion||'33.33.0'},capabilities:{experimentalApi:false,explicitGatewayOauth:true}});write({method:'initialized',params:{}});const gateway=await rpc('account/gatewayOAuth/read');if(gateway?.required)throw new CodexError('PROVIDER','ELDI EDU podržava službenu ChatGPT prijavu; ovaj servis zahtijeva drugu prijavu.');lastError=null;}
       catch(error){stop(error);throw error;}
     })();try{await starting;}finally{starting=null;}
   }

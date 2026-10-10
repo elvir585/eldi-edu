@@ -1,10 +1,10 @@
-ELDI EDU 33.0 — POČETAK
+ELDI EDU 33.33 — POČETAK
 
 U pregledniku otvorite /eldi-edu/ucionica/. Izaberite 3D studio, pokrenite blokove i pogledajte rezultat. Otvorite Projekti za 16 početnih zadataka. U Web studiju uređujte HTML/CSS/JavaScript; u SQL bazi izvršavajte stvarne SQLite upite.
 
 Sačuvaj projekat sprema rad u lokalnu galeriju. Izvezi rad preuzima JSON za drugi računar, Windows izdanje ili predaju nastavniku. Uvezi rad / zadatak otvara takvu datoteku i pravi kopiju prethodnog rada. Projekti zadržavaju najviše 20 posljednjih sačuvanih radova; izvještaji posljednjih 50. Za arhivu redovno izvozite.
 
-Windows: pokrenite ELDI-EDU-33.0.0-Portable-x64.exe ili instalirajte Setup-x64.exe (Windows 10/11, 64-bit). Studio 33 je prva stavka izbornika. Ostali moduli, Scratch, zbirke i Python/C/C++/Java su zadržani.
+Windows: pokrenite ELDI-EDU-33.33.0-Portable-x64.exe ili instalirajte Setup-x64.exe (Windows 10/11, 64-bit). Studio 33 je prva stavka izbornika. Ostali moduli, Scratch, zbirke i Python/C/C++/Java su zadržani.
 
 Blokovi se pretvaraju u JavaScript ili Python. JavaScript radi u ograničenom interpreteru u pozadinskom procesu. Python za 3D scenu izvršava Windows aplikacija. Python prikaz robotskih blokova služi za čitanje; robot se izvršava blokovima ili JavaScriptom.
 

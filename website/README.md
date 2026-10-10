@@ -1,4 +1,4 @@
-# ELDI EDU 33.0 — UPINITK web paket
+# ELDI EDU 33.33 — UPINITK web paket
 
 Raspakujte ovaj paket u `public_html`. Odredište je `public_html/eldi-edu/index.html`; radionica se nalazi u `public_html/eldi-edu/ucionica/index.html`.
 

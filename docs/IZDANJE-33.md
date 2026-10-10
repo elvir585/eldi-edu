@@ -1,6 +1,10 @@
-# ELDI EDU 33.0
+# Arhivski opis osnove Studio 33
 
-Izdanje dodaje Studio 33 u postojeću Windows aplikaciju i samostalnu web radionicu za UPINITK. Tehnička verzija paketa: 33.0.0.
+Za trenutno izdanje 33.33 pogledajte [IZDANJE-33.33.md](IZDANJE-33.33.md). Ovaj opis prikazuje osnovu prije nove online učionice i nastavnih tokova.
+
+# ELDI EDU 33.33
+
+Izdanje dodaje Studio 33 u postojeću Windows aplikaciju i samostalnu web radionicu za UPINITK. Tehnička verzija paketa: 33.33.0.
 
 ## Radionice
 

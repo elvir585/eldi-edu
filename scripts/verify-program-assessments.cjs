@@ -13,7 +13,7 @@ async function main(){
   if(!status.python.available||!status.cpp.available)throw Error('Provjera zahtijeva Python i C++ alate.');
   const python=executable(path.join(runtimeRoot,'python',win?'python.exe':'python3'),win?['python.exe']:['python3','python']);
   const cpp=executable(path.join(runtimeRoot,'gcc','bin',win?'g++.exe':'g++'),[win?'g++.exe':'g++']);
-  const report={edition:'33.0.0',platform:process.platform,bundled,date:new Date().toISOString(),tasks:tasks.length,programs:0,cases:0,passed:0,results:[]};
+  const report={edition:'33.33.0',platform:process.platform,bundled,date:new Date().toISOString(),tasks:tasks.length,programs:0,cases:0,passed:0,results:[]};
   const temp=await fsp.mkdtemp(path.join(os.tmpdir(),'eldi-assessment-verify-'));
   try{
     for(const t of tasks){

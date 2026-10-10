@@ -19,9 +19,9 @@ const entry = path.join(rendererRoot, 'index.html');
 const entryURL = pathToFileURL(entry).href;
 const runtimeRoot = app.isPackaged ? path.join(process.resourcesPath, 'runtimes') : path.resolve(__dirname, '..', 'runtimes');
 const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
-const bundledPackFilename = 'ELDI-EDU-33.0.0-Zbirke-i-rjesenja.zip';
+const bundledPackFilename = 'ELDI-EDU-33.33.0-Zbirke-i-rjesenja.zip';
 const bundledPackPath = path.resolve(__dirname, '..', 'content', 'packs', bundledPackFilename);
-const bundledBlockFilename = 'ELDI-EDU-33.0.0-1000-Blokovskih-projekata.zip';
+const bundledBlockFilename = 'ELDI-EDU-33.33.0-1000-Blokovskih-projekata.zip';
 const bundledBlockPath = path.resolve(__dirname, '..', 'content', 'packs', bundledBlockFilename);
 let mainWindow, assistant, maintenance;
 const gradeService=createGradeService({runner:createRunner({runtimeRoot,allowSystem:!app.isPackaged})});
@@ -54,7 +54,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 33.0 — Digitalna učionica / Studio Edition', show: !smokeTest,
+      title: 'ELDI EDU 33.33 — Digitalna učionica / Studio Edition', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
@@ -70,7 +70,7 @@ else {
       { label: 'Uredi', submenu: [{ label: 'Kopiraj', role: 'copy' }, { label: 'Zalijepi', role: 'paste' }, { label: 'Označi sve', role: 'selectAll' }] },
       { label: 'Prikaz', submenu: [{ label: 'Uvećaj', role: 'zoomIn' }, { label: 'Umanji', role: 'zoomOut' }, { label: 'Izvorna veličina', role: 'resetZoom' }, { label: 'Cijeli ekran', role: 'togglefullscreen' }] }
     ]));
-    mainWindow.webContents.setWindowOpenHandler(({url}) => {if(url==='https://upinitk.com/eldi-edu/')shell.openExternal(url).catch(error=>console.error(error.message));return {action:'deny'};});
+    mainWindow.webContents.setWindowOpenHandler(({url}) => {if(['https://upinitk.com/eldi-edu/','https://upinitk.com/eldi-edu/online/'].includes(url))shell.openExternal(url).catch(error=>console.error(error.message));return {action:'deny'};});
     mainWindow.webContents.on('will-navigate', (event, url) => { if (url.split('#')[0] !== entryURL) event.preventDefault(); });
     mainWindow.webContents.on('will-attach-webview', event => event.preventDefault());
     let closeAllowed = false, closing = false;

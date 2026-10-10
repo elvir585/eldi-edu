@@ -25,3 +25,7 @@ website/eldi-edu/ucionica/app/
 website/eldi-edu/ucionica/THIRD_PARTY_NOTICES.txt
 
 release-startup-audit/
+
+website/eldi-edu/ucionica/sw.js
+website/eldi-edu/ucionica/offline-files.json
+.qa-*

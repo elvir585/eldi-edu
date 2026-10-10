@@ -14,12 +14,63 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  web:
+    name: Web i online učionica
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: eldi-ci-only-password
+          MYSQL_DATABASE: eldi3333qa
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -peldi-ci-only-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+      - name: Pripremi PHP i biblioteke
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y php-cli php-mysql
+          ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci --no-audit --no-fund
+          npm install --no-save --package-lock=false playwright@1.62.1
+          npx playwright install --with-deps chromium
+      - name: Provjeri PHP i stvarni MySQL rad
+        run: |
+          rg --files -g '*.php' website/eldi-edu/online | xargs -n 1 php -l
+          python3 tests/online3333.py
+      - name: Provjeri web radionicu i offline rad
+        run: |
+          npm run editor:bundle
+          npm run studio33:bundle
+          node --test tests/edition3333.test.cjs tests/studio33.test.cjs
+          node scripts/build-browser33.cjs
+          node tests/edition3333-web.cjs
+      - name: Sačuvaj stvarne web prikaze
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ELDI-EDU-33.33.0-Web-QA
+          path: smoke-previews/web3333/
+          if-no-files-found: warn
   windows:
+    needs: web
     runs-on: windows-2025
     timeout-minutes: 60
     steps:
       - name: Preuzmi izvorni kod
         uses: actions/checkout@v7
+      - name: Preuzmi provjerene web prikaze
+        uses: actions/download-artifact@v7
+        with:
+          name: ELDI-EDU-33.33.0-Web-QA
+          path: smoke-previews/web3333
       - name: Node.js
         uses: actions/setup-node@v7
         with:
@@ -83,7 +134,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-33.0.0-Development-QA
+          name: ELDI-EDU-33.33.0-Development-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
@@ -111,7 +162,9 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
           $executables = Get-ChildItem release -Filter '*.exe'
           if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }
-          Get-ChildItem content/packs -Filter 'ELDI-EDU-33.0.0-*.zip' | Copy-Item -Destination release/
+          Get-ChildItem content/packs -Filter 'ELDI-EDU-33.33.0-*.zip' | Copy-Item -Destination release/
+          Copy-Item 'smoke-previews/web3333/33.33-*.png' 'website/eldi-edu/assets/'
+          Copy-Item 'smoke-previews/web3333/33.33-*.png' 'release/'
           node scripts/build-web-package.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $packs = Get-ChildItem release -Filter '*.zip'
@@ -119,7 +172,7 @@ jobs:
           Copy-Item 'docs/POKRETANJE.txt' 'release/POKRETANJE.txt'
           $portable = Get-ChildItem release -Filter '*Portable-x64.exe'
           if ($portable.Count -ne 1) { throw 'Nedostaje prenosiva aplikacija za kompletan paket.' }
-          $fullPath = Join-Path $PWD 'release/ELDI-EDU-33.0.0-Kompletan-paket.zip'
+          $fullPath = Join-Path $PWD 'release/ELDI-EDU-33.33.0-Kompletan-paket.zip'
           $fullFiles = @($portable.FullName) + @($packs.FullName) + @((Join-Path $PWD 'release/POKRETANJE.txt'))
           Compress-Archive -LiteralPath $fullFiles -DestinationPath $fullPath -CompressionLevel NoCompression -Force
           Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -131,7 +184,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ELDI-EDU-33.0.0-Visual-QA
+          name: ELDI-EDU-33.33.0-Visual-QA
           path: smoke-previews/
           if-no-files-found: warn
           retention-days: 30
@@ -143,19 +196,21 @@ jobs:
             release/*.exe
             release/*.zip
             release/SHA256SUMS.txt
+            release/33.33-*.png
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
       - name: Objavi izdanje na GitHubu
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v33.0.0' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v33.33.0' }}
           target_commitish: ${{ github.sha }}
-          name: ELDI EDU 33.0 — Studio znanja / Windows i web
-          body_path: docs/RELEASE-33.md
+          name: ELDI EDU 33.33 — Uči, vježbaj, takmiči se i stvaraj
+          body_path: docs/RELEASE-33.33.md
           files: |
             release/*.exe
             release/*.zip
             release/SHA256SUMS.txt
+            release/33.33-*.png
           fail_on_unmatched_files: true
           make_latest: true
