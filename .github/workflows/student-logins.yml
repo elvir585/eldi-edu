@@ -49,5 +49,6 @@ jobs:
         with:
           name: section-visual-checks
           path: .qa-sections
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
