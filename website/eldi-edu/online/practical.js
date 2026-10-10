@@ -17,7 +17,7 @@ function programHelp(){return `<details><summary>Podržane naredbe i primjer</su
 s = 0
 for i in range(1, n + 1):
     s += i
-print(s)</pre><p>Blokovi: prevuci naredbe iz lijeve trake i spoji ih u jedan niz. U bijela polja upiši imena i izraze, npr. n % 2 == 0. „do (bez)“ izostavlja krajnju vrijednost, kao range u Pythonu.</p></details>`;}
+print(s)</pre><p>Blokovi: otvori kategoriju Naredbe, Uslovi ili Petlje, prevuci naredbe i spoji ih u jedan niz. U bijela polja upiši imena i izraze, npr. n % 2 == 0. „do (bez)“ izostavlja krajnju vrijednost, kao range u Pythonu.</p></details>`;}
 async function openPractical(a,done){
  if(practicalWorkspace){practicalWorkspace.dispose();practicalWorkspace=null;}
  const locked=Number(a.closed)||(Number(a.due_at)&&Date.now()/1000>Number(a.due_at));
@@ -28,7 +28,7 @@ async function openPractical(a,done){
  const get=()=>({language:$('program-language').value,source:$('program-source').value,workspace:practicalWorkspace?Blockly.serialization.workspaces.save(practicalWorkspace):draft.workspace});
  function save(){try{localStorage.setItem(key,JSON.stringify(get()));$('program-draft').textContent='Skica sačuvana u ovom pregledniku.';}catch{$('program-draft').textContent='Skica se ne može sačuvati. Kopiraj program prije zatvaranja.';}}
  function language(){const blocks=$('program-language').value==='blocks';$('python-area').hidden=blocks;$('blocks-area').hidden=!blocks;
-  if(blocks&&!practicalWorkspace){setupTaskBlocks();practicalWorkspace=Blockly.inject('program-blockly',{toolbox:{kind:'flyoutToolbox',contents:['task_read','task_set','task_print','task_if','task_for','task_while'].map(type=>({kind:'block',type}))},media:'../ucionica/renderer/vendor/media/',trashcan:true,scrollbars:true,zoom:{controls:true,wheel:true,startScale:.85}});
+  if(blocks&&!practicalWorkspace){setupTaskBlocks();practicalWorkspace=Blockly.inject('program-blockly',{toolbox:{kind:'categoryToolbox',contents:[{kind:'category',name:'Naredbe',colour:210,contents:['task_read','task_set','task_print'].map(type=>({kind:'block',type}))},{kind:'category',name:'Uslovi',colour:30,contents:[{kind:'block',type:'task_if'}]},{kind:'category',name:'Petlje',colour:120,contents:['task_for','task_while'].map(type=>({kind:'block',type}))}]},horizontalLayout:window.innerWidth<640,toolboxPosition:'start',media:'../ucionica/renderer/vendor/media/',trashcan:true,scrollbars:true,zoom:{controls:true,wheel:true,startScale:.85}});
    const initial=draft.workspace||{blocks:{languageVersion:0,blocks:[{type:'task_read',x:20,y:20,fields:{NAME:a.practical.starter.startsWith('a =')?'a':'n'}}]}};
    try{Blockly.serialization.workspaces.load(initial,practicalWorkspace);}catch{message('Skica blokova nije učitana. Složi novi program.');}
    practicalWorkspace.addChangeListener(e=>{if(!e.isUiEvent&&$('program-language'))save();});
