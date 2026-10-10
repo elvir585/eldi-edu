@@ -40,3 +40,7 @@ syntax packages are bundled locally; editing makes no network requests.
 JSXGraph 1.14.0 (MIT license option), https://jsxgraph.org/. License: renderer/vendor/jsxgraph-LICENSE.txt.
 Three.js 0.186.1, MIT, https://threejs.org/. License: renderer/vendor/three-LICENSE.txt.
 Bundled locally with esbuild; source: renderer/lab/source.js.
+
+## Studio 33
+
+Three.js remains MIT licensed as above. sql.js 1.14.1, MIT, https://github.com/sql-js/sql.js; bundled license: renderer/vendor/sql-js-LICENSE.txt. SQLite is public domain. fflate 0.8.2, MIT, https://github.com/101arrowz/fflate; license: renderer/vendor/fflate-LICENSE.txt. Acorn 8.15.0, MIT, https://github.com/acornjs/acorn; license: renderer/vendor/acorn-LICENSE.txt. CodeMirror HTML, CSS, JavaScript and SQL languages are included under MIT licenses in ELDI-EDITOR-NOTICES.txt. Studio source: renderer/studio33/. All runtime libraries are shipped locally.

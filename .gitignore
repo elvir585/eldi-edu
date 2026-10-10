@@ -14,3 +14,12 @@ content/block-projects-data.js
 renderer/vendor/scratch/
 scratch-editor/node_modules/
 scratch-editor/upstream-*.zip
+
+# Built deterministically for Windows and the public_html ZIP.
+renderer/vendor/eldi-studio33.js
+renderer/vendor/eldi-studio33.js.LEGAL.txt
+renderer/vendor/sql-wasm.js
+renderer/vendor/sql-wasm.wasm
+website/eldi-edu/ucionica/renderer/
+website/eldi-edu/ucionica/app/
+website/eldi-edu/ucionica/THIRD_PARTY_NOTICES.txt

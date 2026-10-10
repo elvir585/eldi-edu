@@ -18,9 +18,9 @@ const entry = path.join(rendererRoot, 'index.html');
 const entryURL = pathToFileURL(entry).href;
 const runtimeRoot = app.isPackaged ? path.join(process.resourcesPath, 'runtimes') : path.resolve(__dirname, '..', 'runtimes');
 const runner = createRunner({ runtimeRoot, allowSystem: !app.isPackaged });
-const bundledPackFilename = 'ELDI-EDU-12.0.0-Zbirke-i-rjesenja.zip';
+const bundledPackFilename = 'ELDI-EDU-33.0.0-Zbirke-i-rjesenja.zip';
 const bundledPackPath = path.resolve(__dirname, '..', 'content', 'packs', bundledPackFilename);
-const bundledBlockFilename = 'ELDI-EDU-12.0.0-1000-Blokovskih-projekata.zip';
+const bundledBlockFilename = 'ELDI-EDU-33.0.0-1000-Blokovskih-projekata.zip';
 const bundledBlockPath = path.resolve(__dirname, '..', 'content', 'packs', bundledBlockFilename);
 let mainWindow, assistant, maintenance;
 const gradeService=createGradeService({runner:createRunner({runtimeRoot,allowSystem:!app.isPackaged})});
@@ -53,7 +53,7 @@ else {
     });
     mainWindow = new BrowserWindow({
       width: 1440, height: 940, minWidth: 900, minHeight: 640, backgroundColor: '#080f20',
-      title: 'ELDI EDU 12.0 — Digitalna učionica / Dark Edition', show: !smokeTest,
+      title: 'ELDI EDU 33.0 — Digitalna učionica / Studio Edition', show: !smokeTest,
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
@@ -214,7 +214,7 @@ async function runDesktopSmoke(window) {
     const deadline=Date.now()+5000;
     while(!window.__eldiReady&&Date.now()<deadline)await wait(50);
     ensure(window.__eldiReady,'Početni podaci i profil nisu učitani.');
-    ensure(document.body.classList.contains('dark'),'Dark Edition mora se pokrenuti u tamnoj temi.');
+    ensure(document.body.classList.contains('dark'),'Studio Edition mora se pokrenuti u tamnoj temi.');
     ensure($('theme').getAttribute('aria-pressed')==='true','Dugme teme mora prikazati aktivnu tamnu temu.');
     const bodyStyle=getComputedStyle(document.body);
     ensure(brightness(bodyStyle.backgroundColor)<60,'Pozadina aplikacije nije tamna: '+bodyStyle.backgroundColor);
@@ -718,6 +718,7 @@ async function runDesktopSmoke(window) {
     await ELDIStorage.flush();go('home');
   `);
   await require('./lab-smoke.cjs').runLabSmoke({stage,capture,evaluate,window});
+  await require('./studio33-smoke.cjs').runStudio33Smoke({stage,capture,evaluate,window});
   await require('./edition-smoke.cjs').runEditionSmoke({stage,capture,evaluate,window});
   await require('./program-smoke.cjs').runProgramSmoke({stage,capture,evaluate,window});
   await require('./scratch-smoke.cjs').runScratchSmoke({stage,capture,evaluate,window});
@@ -753,5 +754,5 @@ async function runDesktopSmoke(window) {
     ensure(document.body.classList.contains('dark')&&localStorage.getItem('eldi-theme-v2')==='dark','Tamna tema nije sačuvana nakon povratka.');
     ensure((window.__eldiErrors||[]).length===0,'Greške prikaza nakon promjene teme: '+JSON.stringify(window.__eldiErrors));
   `);
-  return { ...initial, theme: 'Dark Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, books: 2, workedMath: 53, workedProgramming: 162, programmingTheory: 109, bookEditorExecutions: 6, importedBookLanguages: ['c', 'java'], zipRoundtrip: true, blockProjects: 1000, blockZipRoundtrip: true, blockIndependentAndAssisted: true, ungradedInputGuard: true, aiUnconfiguredHonest: true, aiEncryptedStorage: true, aiLiveRequest: false, pdfReader: { loaded: true, pages: pdfReader.pages }, screenshotDirectory: output };
+  return { ...initial, theme: 'Studio Edition', themeTogglePreservesWork: true, themePreferenceRetained: true, worksheet: 50, exams: [50, 10], certificates: 2, books: 2, workedMath: 53, workedProgramming: 162, programmingTheory: 109, bookEditorExecutions: 6, importedBookLanguages: ['c', 'java'], zipRoundtrip: true, blockProjects: 1000, blockZipRoundtrip: true, blockIndependentAndAssisted: true, ungradedInputGuard: true, aiUnconfiguredHonest: true, aiEncryptedStorage: true, aiLiveRequest: false, pdfReader: { loaded: true, pages: pdfReader.pages }, screenshotDirectory: output };
 }

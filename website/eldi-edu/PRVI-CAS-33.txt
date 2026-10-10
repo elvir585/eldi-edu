@@ -1,0 +1,20 @@
+ELDI EDU 33.0 — PRVI ČAS (45 MINUTA)
+
+Priprema prije ponedjeljka, 12. 10. 2026.
+1. Raspakujte UPINITK-public_html ZIP u public_html. Mapa eldi-edu mora biti neposredno unutar public_html.
+2. Otvorite https://upinitk.com/eldi-edu/ i kliknite Počni u pregledniku.
+3. Na školskom računaru pokrenite početni blokovski primjer i SQL bazu. Provjerite preuzimanje JSON rada. Za vrlo slab računar izaberite Jednostavni 3D.
+4. Za rad s Python/C/C++/Java i Scratchom preuzmite Windows izdanje. Provjerite školska pravila za instalaciju prije časa.
+
+0–5 min: Učenici otvaraju /eldi-edu/ucionica/, unose svoju školsku oznaku i naziv rada. Nastavnik pokazuje Pokreni, Korak, Sačuvaj projekat i Izvezi rad.
+5–15 min: 3D studio. Pokrenite početni program. Pokažite zašto se visina valjka promijenila s 5 na 10. Vratite se kroz snimljene korake i pratite varijable.
+15–25 min: Promijenite poluprečnik, boju ili broj ponavljanja. Svaki učenik napiše šta je predvidio i šta je vidio. U svojstvima izaberite kocku, uključite Mrežu i pomičite rasklapanje.
+25–35 min: Robot. Pokrenite početni program i objasnite petlju i skretanje. Zatim promijenite program ili izaberite drugu stazu.
+35–40 min: Otvorite Moje objašnjenje i zaključak. Učenik napiše 3 rečenice o promjeni, rezultatu i provjeri.
+40–45 min: Sačuvaj projekat, zatim Izvezi rad. Datoteku preimenujte npr. 7a-oznaka-cas1.json i predajte dogovorenim školskim kanalom. Nastavnik uvozi primjer rada.
+
+Alternativa za programiranje: Web studio > stranica. Promijenite naslov, boju i tekst dugmeta; pokrenite JavaScript, provjerite telefon i izvezite vlastiti web ZIP.
+Alternativa za matematiku: Takmičenja > razred > matematika. Zajedno pregledajte objašnjenja po završetku; rezultat je vježba, nije službena rang-lista.
+
+Važno: ime u pregledniku je oznaka lokalnog rada, nije mrežni nalog. Na zajedničkom računaru naredni učenik može vidjeti prethodni rad. Za novi učenikov rad koristite odvojeni profil preglednika ili prvo izvezite i uklonite prethodne podatke preglednika. Windows izdanje ima zasebne lokalne profile.
+Nastavniku se ništa ne šalje automatski. Zatvaranje privatnog prozora ili brisanje podataka preglednika može ukloniti rad; zato izvoz na kraju časa ostaje obavezan korak.

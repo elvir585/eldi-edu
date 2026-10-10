@@ -10,12 +10,13 @@ function filesIn(directory) {
   return fs.existsSync(directory) ? fs.readdirSync(directory, { withFileTypes: true }).flatMap(item => item.isDirectory() ? filesIn(path.join(directory, item.name)) : [path.join(directory, item.name)]) : [];
 }
 async function main() {
-  require('./build-editor.cjs');require('./build-lab.cjs');
+  require('./build-editor.cjs');require('./build-lab.cjs');require('./build-studio33.cjs');
   const {maths,info}=require('./generate-content.cjs')();
   console.log('Zbirke i ZIP:',JSON.stringify(require('./build-learning-pack.cjs')()));
   console.log('Blokovski katalog:',JSON.stringify(require('./build-block-projects.cjs').build()));
   console.log('Blokovski ZIP:',JSON.stringify(require('./build-block-pack.cjs')()));
   console.log('Programerski ZIP:',JSON.stringify(require('./build-assessment-pack.cjs')()));
+  console.log('Radionice 33 ZIP:',JSON.stringify(require('./build-studio33-pack.cjs')()));
   const practice=require('../app/practice-engine.js');
   assert.equal(practice.topics.length,500);
   assert.equal(maths.length+info.length,1000);

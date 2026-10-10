@@ -1,33 +1,18 @@
-ELDI EDU 12.0.0 — POSTAVLJANJE NA UPINITK.COM
+ELDI EDU 33.0 — POSTAVLJANJE NA UPINITK
 
-Ovaj ZIP sadrži web centar. Windows EXE, kompletan paket i zbirke
-preuzimaju se s GitHub izdanja v12.0.0 preko dugmadi na stranici.
+1. Otvorite cPanel / File Manager > public_html.
+2. Postavite ELDI-EDU-33.0.0-UPINITK-public_html.zip i izaberite Extract.
+3. Provjerite da postoji public_html/eldi-edu/index.html i public_html/eldi-edu/ucionica/index.html.
+4. Otvorite https://upinitk.com/eldi-edu/ i kliknite Počni u pregledniku.
+5. Pokrenite blokovski primjer i otvorite SQL bazu. Zatim preuzmite probni JSON rada.
+6. Učenicima podijelite https://upinitk.com/eldi-edu/ucionica/.
 
-1. Ako već postoji public_html/eldi-edu/, prvo napravi kopiju te mape.
-2. U cPanel File Manageru otvori public_html.
-3. Učitaj ELDI-EDU-12.0.0-UPINITK-public_html.zip.
-4. Izaberi Extract / Raspakuj u public_html.
-5. Provjeri da je datoteka na putanji public_html/eldi-edu/index.html.
-   Ne treba dodatna mapa oko eldi-edu/. Ne mijenjaj postojeći index
-   glavne UPINITK stranice.
-6. Otvori https://upinitk.com/eldi-edu/ i provjeri slike, izbor razreda,
-   upute i dugmad za preuzimanje.
-7. U meni glavne stranice dodaj link ELDI EDU na /eldi-edu/ kada želiš
-   javno predstaviti centar. Tu promjenu napravi u postojećem UPINITK sistemu.
+ZIP sadrži samostalnu statičku web radionicu. PHP, MySQL, Node.js server i prijava nisu potrebni. Postojeću početnu stranicu UPINITK ne zamjenjuje: sadržaj je u novoj mapi eldi-edu/. Koristite HTTPS.
 
-Web centar radi bez baze podataka i bez posebnog serverskog programa.
-Ako se podmapa ne otvara, provjeri s hostingom pravila preusmjeravanja
-postojeće stranice i da je raspakovana baš navedena putanja.
+Sve biblioteke su uključene. Preglednik treba podržavati Web Workers, WebAssembly i IndexedDB. 3D ima jednostavniji prikaz za slabije računare. Hosting mora posluživati .js, .css i .wasm datoteke; ako SQL ne radi, provjerite da hosting nije zabranio .wasm (preporučeni tip application/wasm).
 
-SADRŽAJ
-- eldi-edu/index.html, style.css, site.js i catalog.js
-- stvarne slike radnog prostora, laboratorija i ranijih modula
-- kratki video osnovnih modula izdanja 11.0.1, označen na stranici
-- upute za početak, nastavnike i pregled sadržaja po razredima
+EXE i veliki kompletni ZIP preuzimaju se s GitHub izdanja v33.0.0. Ne morate ih smještati u public_html. Windows izdanje uključuje i stare zbirke, Scratch i Python/C/C++/Java.
 
-Windows aplikacija 12.0.0 ima link na centar u odjeljku O aplikaciji.
-Rad aplikacije, lokalno izvršavanje programa i čuvanje projekata koriste
-Windows EXE. Ovaj web paket ne pretvara EXE u aplikaciju u pregledniku.
-Mrežna učionica, zajednički nalozi i QR provjera nisu dio ovog paketa.
+Radovi se čuvaju lokalno u pregledniku učenika. Prenose se JSON datotekama; ovo nije zajednička serverska učionica. Za prvi čas pročitajte eldi-edu/PRVI-CAS-33.txt.
 
-Autori: Dino Isanović, Elvir Čajić, Damir Bajrić i Jasmin Suljkanović.
+Autori: Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović.

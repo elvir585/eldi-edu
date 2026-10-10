@@ -1,18 +1,20 @@
-# ELDI EDU 12.0.0 — digitalna učionica / Dark Edition
+# ELDI EDU 33.0.0 — digitalna učionica / Dark Edition
 
 **Matematika i informatika od 5. do 9. razreda kao Windows aplikacija.**
 
 Autori: **Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović**.
 
-## Novo u 12.0.0
+## Novo u 33.0
 
-Novi pregled napretka i posljednjih radova, sklopivi izbornik, Fokus (F9) i napredni offline editor za Python, C, C++ i Javu.
+**Studio 33** povezuje 3D blokove i mreže, robota, web razvoj, stvarni SQLite, algoritme, logiku/procesor, mreže/API simulaciju, podatke i grafikone, programerske vježbe, takmičarsku pripremu, projekte i izvještaje. Tamni/svijetli/kontrastni prikaz, Projektor, Olovka, žive varijable, snimljeni koraci i prenosivi JSON radovi.
 
-**2D/3D laboratorij:** funkcije i parametri, tabela vrijednosti, trougao s konstrukcijama, sedam prostornih tijela, presjeci, ravne mreže i diedri. Istraživanja se čuvaju uz bilješke i izvoze kao JSON ili slika.
+**Web radionica za UPINITK:** raspakujte web ZIP u `public_html`. Učenici zatim otvaraju `/eldi-edu/ucionica/` bez instalacije. Windows izdanje dodatno uključuje Scratch, postojeće zbirke i Python/C/C++/Java. Web rad se čuva lokalno, bez mrežnih naloga; prenosi se datotekom.
 
-**Blockly studio:** pretraga i raspored blokova, ruksak, verzije projekata, stvarni debugger s tačkama prekida, živi senzori, veza bloka i Python reda, nastavnički izazovi i provjera svih testova s bodovima i izvještajima.
+**Novi sadržaj:** 16 projektnih zadataka, 20 zadataka za ispravku s 80 testova, 160 matematičkih postavki i 20 informatičkih pitanja za 5–9. razred. To su originalne vježbe za pripremu, ne službeni takmičarski zadaci.
 
-[Detaljan opis i granice funkcija](docs/IZDANJE-12.md) · [Radni prostor i editor](docs/WORKSPACE-UI.md).
+[Detaljan opis i granice 33.0](docs/IZDANJE-33.md) · [Plan prvog časa](website/eldi-edu/PRVI-CAS-33.txt) · [Postavljanje na hosting](website/POSTAVLJANJE.txt).
+
+Raniji matematički laboratorij, 1000 blokovskih projekata i ostali Windows moduli ostaju dostupni.
 
 ## Preuzimanje i pokretanje
 
@@ -20,15 +22,16 @@ Otvorite **[najnovije GitHub izdanje](https://github.com/elvir585/eldi-edu/relea
 
 | Datoteka | Namjena |
 |---|---|
-| `ELDI-EDU-12.0.0-Kompletan-paket.zip` | Portable EXE, zbirke, Scratch izvori/primjeri, web paket i upute zajedno |
-| `ELDI-EDU-12.0.0-Portable-x64.exe` | Direktno pokretanje bez instalacije |
-| `ELDI-EDU-12.0.0-UPINITK-public_html.zip` | Web centar: raspakovati u public_html |
-| `ELDI-EDU-12.0.0-Setup-x64.exe` | Instalacija s prečicom |
-| `ELDI-EDU-12.0.0-1000-Blokovskih-projekata.zip` | 1000 riješenih Blockly projekata |
-| `ELDI-EDU-12.0.0-Zbirke-i-rjesenja.zip` | Obje originalne knjige i digitalna rješenja |
-| `ELDI-EDU-12.0.0-Programerski-izazovi.zip` | 55 zadataka, Python/C++ rješenja i početni kodovi |
-| `ELDI-EDU-12.0.0-Scratch-primjeri.zip` | Šest originalnih Scratch `.sb3` projekata |
-| `ELDI-EDU-12.0.0-Scratch-izvori.zip` | Odgovarajući izvori i licenca Scratch komponente |
+| `ELDI-EDU-33.0.0-Kompletan-paket.zip` | Portable EXE, zbirke, Scratch izvori/primjeri, web paket i upute zajedno |
+| `ELDI-EDU-33.0.0-Portable-x64.exe` | Direktno pokretanje bez instalacije |
+| `ELDI-EDU-33.0.0-UPINITK-public_html.zip` | Web centar i rad u pregledniku: raspakovati u public_html |
+| `ELDI-EDU-33.0.0-Radionice-i-takmicenja.zip` | Novi projekti, zadaci, rješenja i plan prvog časa |
+| `ELDI-EDU-33.0.0-Setup-x64.exe` | Instalacija s prečicom |
+| `ELDI-EDU-33.0.0-1000-Blokovskih-projekata.zip` | 1000 riješenih Blockly projekata |
+| `ELDI-EDU-33.0.0-Zbirke-i-rjesenja.zip` | Obje originalne knjige i digitalna rješenja |
+| `ELDI-EDU-33.0.0-Programerski-izazovi.zip` | 55 zadataka, Python/C++ rješenja i početni kodovi |
+| `ELDI-EDU-33.0.0-Scratch-primjeri.zip` | Šest originalnih Scratch `.sb3` projekata |
+| `ELDI-EDU-33.0.0-Scratch-izvori.zip` | Odgovarajući izvori i licenca Scratch komponente |
 
 Windows 10/11 x64. Ugrađeni su nastavni sadržaj, Scratch/Blockly, Python, GCC/G++ i Java JDK. Poslije preuzimanja internet nije potreban za nastavu i školske programe. ChatGPT i API odgovori trebaju internet. Aplikacija nije digitalno potpisana.
 

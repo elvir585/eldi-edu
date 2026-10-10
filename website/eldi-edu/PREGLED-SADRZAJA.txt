@@ -1,4 +1,7 @@
-ELDI EDU 12.0.0 — PREGLED SADRŽAJA
+ELDI EDU 33.0 — postojeće zbirke u Windows izdanju
+Nove radionice opisane su u UPUTE-ZA-POCETAK.txt i PRVI-CAS-33.txt.
+
+ELDI EDU 33.0.0 — PREGLED SADRŽAJA
 Urednički plan; nastavnik provjerava povezanost sa službenim ishodima.
 
 5. RAZRED / Matematika

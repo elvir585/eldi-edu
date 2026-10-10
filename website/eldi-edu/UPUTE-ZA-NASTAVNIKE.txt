@@ -1,40 +1,25 @@
-ELDI EDU 12.0.0 — KRATKE UPUTE ZA NASTAVNIKE
+ELDI EDU 33.0 — NASTAVNIČKE UPUTE
 
-1. PRIPREMA
-Preuzmite Windows aplikaciju ili kompletan ZIP s ELDI GitHub izdanja.
-Koristite Windows 10/11 x64. ZIP prvo raspakujte, pa pokrenite Portable EXE.
-Sadržaji i alati za školske programe ugrađeni su u aplikaciju.
+Prvi čas: PRVI-CAS-33.txt.
+Web link za učenike: https://upinitk.com/eldi-edu/ucionica/ (nakon postavljanja paketa).
 
-2. PROFILI I ODJELJENJA
-Kreirajte profil i otvorite Nastavnički centar. Dodajte odjeljenje i spisak.
-Profili su lokalni. Ne predstavljaju zajedničke mrežne naloge.
+PROJEKTNI RAD
+1. Otvorite radionicu, pripremite početni program/scenu/stranicu i naziv rada.
+2. U Projektima izaberite Nastavnička projektna radionica. Unesite uputu i kriterije.
+3. Izvezi zadatak s trenutnim radom preuzima nastavnički JSON. Učenik ga uvozi dugmetom Uvezi rad / zadatak.
+4. Učenik uređuje, provjerava, piše objašnjenje i izvozi rad. Datoteku predaje vašim dogovorenim kanalom.
+5. Uvezite učenikov rad; u Izvještajima dodajte komentar i zasebnu nastavničku ocjenu. Automatski bodovi ostaju odvojeni. CSV i štampa služe za vlastitu evidenciju.
 
-3. ZADUŽENJE I PREGLED
-Odaberite razred, oblast i zaduženje od 1 do 50 zadataka.
-Dodijelite rad lokalnim profilima. Pregledajte predaju, automatski rezultat,
-matematički postupak i bilješke. Dodajte komentar i nastavničku ocjenu.
-Dokaze i tekstualna obrazloženja procjenjuje nastavnik.
+KRITERIJI
+Podržani su object (vrsta tijela), property (brojčano svojstvo s tolerancijom), robot (cilj) i output (tačan tekst). Primjer:
+[{"kind":"property","id":"valjak","property":"h","expected":10,"tolerance":0.01,"points":100}]
+Prazni kriteriji [] znače da nastavnik pregleda projekat. Smisao stranice, objašnjenja i dokaze ne ocjenjuje automatski program. Ugrađenih 16 projekata pokriva više radionica.
 
-4. PRENOS I SIGURNOSNE KOPIJE
-Koristite izvoz/uvoz datoteka za prenos između računara. U sekciji Moj napredak
-izvezite profil JSON ili tabelu CSV. U Kopije i nova izdanja sačuvajte cijelu
-učionicu. Kopije držite na sigurnom mjestu; automatske lokalne kopije nisu
-zaštita od gubitka cijelog računara. Prijava asistenta nije dio kopija.
+SADRŽAJ I GRANICE
+Takmičarska priprema: 40 matematičkih porodica po 4 brojčane varijante (160 postavki), 20 informatičkih pitanja, 20 programerskih zadataka za ispravku i 80 referentnih testova. Originalne vježbe, bez tvrdnje da su službeni takmičarski zadaci ili potpuno usklađeni s nastavnim planom. Rješenja su dostupna u lokalnom paketu: ovo je alat za učenje, ne nadzirani ispit.
 
-5. SADRŽAJ I ISHODI
-Moj put učenja povezuje 500 matematičkih i 500 informatičkih vještina.
-Početni raspored je urednički plan. Za nastavnu upotrebu provjerite sadržaj,
-povežite ga sa službenim ishodima, izvorom i školskom godinom.
+Mreže kocke, kvadra, pravilne prizme i piramide imaju animirane šarke. Valjak i kupa imaju razmjerne ravne mreže. Lopta nema tačnu ravnu mrežu bez deformacije. Kosi presjeci zakrivljenih tijela su poligonalne aproksimacije.
 
-6. SCRATCH, BLOCKLY I PROGRAMIRANJE
-Scratch studio koristi .sb3 projekte. Blockly zbirka je zaseban skup od
-1000 riješenih projekata. Programerski izazovi imaju testne primjere;
-Python, C, C++ i Java izvršavaju se na lokalnom računaru.
-Pokrećite samo kod koji ste provjerili: izvršava se s pravima Windows korisnika.
+Web rad je lokalni, bez zajedničke baze, automatske predaje ili rang-liste. API i mreža su obrazovne simulacije. Pregled učeničkog web koda nema pristup mreži ni lokalnom profilu. SQLite datoteka uvozi se do 1 MB; CSV ima najviše 1000 redova i 30 kolona. Projektni JSON do 2,5 MB.
 
-7. PODRŠKA
-https://github.com/elvir585/eldi-edu/issues
-U javnoj prijavi navedite verziju, korake, očekivani i stvarni rezultat.
-Ne objavljujte imena i privatne podatke učenika.
-
-Autori: Dino Isanović · Elvir Čajić · Damir Bajrić · Jasmin Suljkanović
+Windows zadržava i Nastavnički centar za odjeljenja i zaduženja iz prethodnog izdanja. Za obradu tekstualnih programa koristi se pravi lokalni alat s pravima Windows korisnika. Školski računar pripremite s administratorom prije časa.

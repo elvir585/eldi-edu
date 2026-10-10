@@ -8,10 +8,14 @@ import {tags} from '@lezer/highlight';
 import {python} from '@codemirror/lang-python';
 import {cpp} from '@codemirror/lang-cpp';
 import {java} from '@codemirror/lang-java';
+import {html} from '@codemirror/lang-html';
+import {css} from '@codemirror/lang-css';
+import {javascript} from '@codemirror/lang-javascript';
+import {sql} from '@codemirror/lang-sql';
 const instances=new Map();
 const valueDescriptor=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value');
 const readOnlyDescriptor=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'readOnly');
-const names={python:'Python',cpp:'C++',c:'C',java:'Java'};
+const names={html:'HTML',css:'CSS',javascript:'JavaScript',sql:'SQL',python:'Python',cpp:'C++',c:'C',java:'Java'};
 const colors=dark=>syntaxHighlighting(HighlightStyle.define([
  {tag:tags.keyword,color:dark?'#c7b4ff':'#6944b8'},
  {tag:[tags.string,tags.special(tags.string)],color:dark?'#96e4ba':'#1b7449'},
@@ -30,7 +34,7 @@ function attach(textarea,options={}){
  let syncing=false,simple=false,currentKey='',language='python',dark=document.body.classList.contains('dark'),view,disposed=false;
  const currentLanguage=()=>options.language?.()||'python';
  const currentContext=()=>String(options.key?.()||currentLanguage());
- const langExtension=()=>language==='python'?python():language==='java'?java():cpp();
+ const langExtension=()=>({python,java,html,css,javascript,sql}[language]||cpp)();
  const makeState=doc=>EditorState.create({doc,extensions:[keymap.of([{key:'Mod-Enter',run:()=>{if(!textarea.readOnly)options.onRun?.();return true;}},indentWithTab]),basicSetup,indentUnit.of('    '),EditorState.phrases.of(translations),syntax.of(langExtension()),editable.of([EditorState.readOnly.of(textarea.readOnly),EditorView.editable.of(!textarea.readOnly)]),theme.of([EditorView.theme({}, {dark}),colors(dark)]),EditorView.contentAttributes.of({'aria-label':textarea.getAttribute('aria-label')||'Programski kod','spellcheck':'false'}),highlightActiveLine(),EditorView.updateListener.of(update=>{
    if(update.docChanged&&!syncing){valueDescriptor.set.call(textarea,update.state.doc.toString());textarea.dispatchEvent(new Event('input',{bubbles:true}));}
    if(view)updateStatus();

@@ -16,7 +16,7 @@ let server,browser;
  assert.equal(await page.locator('.ws-subject').count(),3);assert.match(await page.locator('.ws-empty').first().innerText(),/Ovdje počinje/);
  await page.screenshot({path:path.join(out,'01-pregled-1366.png'),fullPage:true,animations:'disabled'});
  // Every existing destination remains reachable through the grouped menu.
- const navIds=await page.locator('nav [data-page]').evaluateAll(nodes=>nodes.map(n=>n.dataset.page));assert.equal(new Set(navIds).size,19);
+ const navIds=await page.locator('nav [data-page]').evaluateAll(nodes=>nodes.map(n=>n.dataset.page));assert.equal(new Set(navIds).size,20);
  await page.locator('[data-nav-group=math] summary').click();await page.locator('[data-page=notebook]').click();
  await page.locator('#mn-line-0').fill('2 + 2');await page.locator('#mn-notes').fill('Sačuvani postupak prije promjene izgleda.');
  const notebookBefore=await page.evaluate(()=>JSON.stringify(state().mathNotebook));
