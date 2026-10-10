@@ -47,6 +47,15 @@ jobs:
         run: npm run scratch:bundle
       - name: Provjeri kod, sadržaj i integracije
         run: npm run check
+      - name: Provjeri početno učitavanje iz ASAR paketa
+        shell: pwsh
+        run: |
+          npx electron-builder --config scripts/startup-audit.config.cjs --win --x64 --dir --publish never
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $auditApplication = Join-Path $PWD 'release-startup-audit/win-unpacked/ELDI EDU.exe'
+          $auditProcess = Start-Process -FilePath $auditApplication -ArgumentList '--startup-test' -WorkingDirectory $PWD -PassThru -Wait -RedirectStandardOutput 'smoke-previews/startup-stdout.log' -RedirectStandardError 'smoke-previews/startup-stderr.log'
+          Get-Content 'smoke-previews/startup-stdout.log','smoke-previews/startup-stderr.log'
+          if ($auditProcess.ExitCode -ne 0) { throw 'Početno učitavanje ASAR paketa nije uspjelo.' }
       - name: Ugradi Python, GCC/G++ i JDK
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
@@ -96,7 +105,8 @@ jobs:
         shell: pwsh
         run: |
           $application = Join-Path $PWD 'release/win-unpacked/ELDI EDU.exe'
-          $process = Start-Process -FilePath $application -ArgumentList '--smoke-test' -WorkingDirectory $PWD -PassThru -Wait
+          $process = Start-Process -FilePath $application -ArgumentList '--smoke-test' -WorkingDirectory $PWD -PassThru -Wait -RedirectStandardOutput 'smoke-previews/packaged-stdout.log' -RedirectStandardError 'smoke-previews/packaged-stderr.log'
+          Get-Content 'smoke-previews/packaged-stdout.log','smoke-previews/packaged-stderr.log'
           if ($process.ExitCode -ne 0) { throw 'Zapakovana aplikacija nije prošla provjeru pokretanja.' }
           $executables = Get-ChildItem release -Filter '*.exe'
           if ($executables.Count -ne 2) { throw 'Očekivana su dva EXE fajla.' }

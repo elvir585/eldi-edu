@@ -11,7 +11,8 @@ const {createCodexAssistant} = require('./codex-assistant.cjs');
 const {createMaintenance,releaseURL}=require('./maintenance.cjs');
 const {createGradeService}=require('./program-assessment.cjs');
 
-const smokeTest = process.argv.includes('--smoke-test');
+const startupTest = process.argv.includes('--startup-test');
+const smokeTest = process.argv.includes('--smoke-test') || startupTest;
 const rendererRoot = path.resolve(__dirname, '..', 'renderer');
 const assetRoots = [rendererRoot, path.resolve(__dirname, '..', 'app'), path.resolve(__dirname, '..', 'content')];
 const entry = path.join(rendererRoot, 'index.html');
@@ -57,6 +58,12 @@ else {
       icon: path.join(rendererRoot, 'assets', 'eldi.ico'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, plugins: true, backgroundThrottling: !smokeTest }
     });
+    if(smokeTest){
+      const diagnosticRoot=path.join(process.cwd(),'smoke-previews',app.isPackaged?'packaged':'development');
+      fs.mkdirSync(diagnosticRoot,{recursive:true});
+      mainWindow.webContents.on('console-message',(...args)=>{const e=args[0]||{};const details=typeof args[1]==='number'?{level:args[1],message:args[2],line:args[3],sourceId:args[4]}:{level:e.level,message:e.message,line:e.lineNumber,sourceId:e.sourceId};fs.appendFileSync(path.join(diagnosticRoot,'renderer-console.log'),JSON.stringify(details)+'\n');});
+      mainWindow.webContents.on('did-fail-load',(_event,code,description,url)=>fs.appendFileSync(path.join(diagnosticRoot,'renderer-console.log'),JSON.stringify({code,description,url})+'\n'));
+    }
     assistant.subscribe(status=>{if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send('ai-status',status);});
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       { label: 'ELDI EDU', submenu: [{ label: 'Zatvori', role: 'quit' }] },
@@ -161,6 +168,13 @@ async function runDesktopSmoke(window) {
   window.showInactive();
   const output = path.join(process.cwd(), 'smoke-previews', app.isPackaged ? 'packaged' : 'development');
   await fs.promises.mkdir(output, { recursive: true });
+  if(startupTest){
+    const deadline=Date.now()+5000;let snapshot;
+    do{snapshot=await window.webContents.executeJavaScript('JSON.stringify({ready:window.__eldiReady,errors:window.__eldiErrors,storage:typeof window.ELDIStorage,workspace:typeof window.ELDIWorkspace,studio:typeof window.ELDIStudio33,view:document.getElementById("view")?.textContent,profile:document.getElementById("profile")?.innerHTML})');if(JSON.parse(snapshot).ready)break;await new Promise(resolve=>setTimeout(resolve,100));}while(Date.now()<deadline);
+    await fs.promises.writeFile(path.join(output,'startup.json'),snapshot);
+    if(!JSON.parse(snapshot).ready)throw Error('Packaged startup failed: '+snapshot);
+    return JSON.parse(snapshot);
+  }
   const bundledBytes = await fs.promises.readFile(bundledPackPath);
   const bundled = learningPacks.readPack(bundledBytes);
   const bundledBlockBytes = await fs.promises.readFile(bundledBlockPath);
@@ -199,6 +213,7 @@ async function runDesktopSmoke(window) {
     console.log('Desktop smoke stage:', name);
     try { return await evaluate(code); }
     catch (error) {
+      try { await fs.promises.writeFile(path.join(output,'FAILED-details.json'),JSON.stringify({stage:name,error:error.message,renderer:await evaluate('return {ready:window.__eldiReady,errors:window.__eldiErrors,storage:typeof window.ELDIStorage,workspace:typeof window.ELDIWorkspace};')},null,2)); } catch {}
       try { await capture('FAILED-'+name.replace(/[^a-z0-9]+/gi,'-')); }
       catch (captureError) { console.error('Failure screenshot:',captureError.message); }
       throw error;

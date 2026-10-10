@@ -23,3 +23,5 @@ renderer/vendor/sql-wasm.wasm
 website/eldi-edu/ucionica/renderer/
 website/eldi-edu/ucionica/app/
 website/eldi-edu/ucionica/THIRD_PARTY_NOTICES.txt
+
+release-startup-audit/
