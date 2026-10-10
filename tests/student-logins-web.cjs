@@ -1,0 +1,43 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {spawn}=require('node:child_process');
+const {chromium}=require('playwright');
+const root=path.resolve(__dirname,'..');
+let browser,server;
+(async()=>{
+ const base='http://127.0.0.1:18434/eldi-edu/online/';
+ server=spawn('php',['-S','127.0.0.1:18434','-t',path.join(root,'website')],{env:{...process.env,ELDI3333_CONFIG:path.join(root,'.qa-config.php')},stdio:'ignore'});
+ for(let i=0;i<50;i++){try{await fetch(base);break;}catch{await new Promise(r=>setTimeout(r,100));}}
+ browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1366,height:900}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ const fixture=JSON.parse(fs.readFileSync(path.join(root,'.qa-online.json'),'utf8'));
+ await page.goto(base);
+ await page.locator('#username').fill(fixture.teacher.username);
+ await page.locator('#password').fill(fixture.teacher.password);
+ await page.locator('#login button').click();
+ await page.locator('[data-class="'+fixture.class+'"]').click();
+ await page.locator('#names').fill('Učenik ručni | ucenik.web.qa | Web-QA-password-2026...\nAutomatski učenik');
+ await page.locator('#students-form button').click();
+ await page.waitForSelector('#save-credentials');
+ assert.match(await page.locator('#credentials pre').innerText(),/Učenik ručni \| ucenik\.web\.qa \| Web-QA-password-2026\.\.\./);
+ assert.equal((await page.locator('#credentials pre').innerText()).split('\n').length,2);
+ await page.locator('#names').fill('Novi | ucenik.rollback.qa | Web-QA-password-2026...\nDupli | ucenik.web.qa | Web-QA-password-2026...');
+ await page.locator('#students-form button').click();
+ await page.waitForFunction(()=>document.getElementById('message').textContent.includes('već postoji'));
+ await page.locator('#refresh-roster').click();
+ await page.waitForFunction(()=>document.querySelectorAll('tbody tr').length===4);
+ assert.doesNotMatch(await page.locator('tbody').innerText(),/ucenik\.rollback\.qa/);
+ for(const width of [1366,390]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+2));}
+ await page.locator('#logout').click();
+ await page.locator('#username').fill('ucenik.web.qa');
+ await page.locator('#password').fill('Web-QA-password-2026...');
+ await page.locator('#login button').click();
+ await page.waitForSelector('[data-assignment]');
+ assert.match(await page.locator('h1').innerText(),/Učenik ručni/);
+ assert.equal(await page.locator('#class-form').count(),0);
+ assert.deepEqual(errors,[]);
+ console.log('Custom and automatic credentials, duplicate rollback, student login and mobile layout: PASS');
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)server.kill();});

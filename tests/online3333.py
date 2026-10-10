@@ -31,6 +31,24 @@ try:
  class1=teacher.call('create_class',{'title':'V-1 · provjera'})['id'];class2=teacher.call('create_class',{'title':'VI-2 · provjera'})['id']
  students=teacher.call('create_students',{'class_id':class1,'names':['Učenik A','Učenik B']})['students']
  outsider=teacher.call('create_students',{'class_id':class2,'names':['Drugo odjeljenje']})['students'][0]
+ custom={'name':'Ručno zadani učenik','username':'ucenik.qa1','password':'QA-only-student-2026...'}
+ created=teacher.call('create_students',{'class_id':class1,'names':[custom]})['students'][0]
+ assert created['username']==custom['username'] and created['password']==custom['password']
+ manual=Client();manual.call('status');manual.call('login',{'username':custom['username'],'password':custom['password']})
+ assert manual.call('status')['user']['role']=='student'
+ manual.call('create_students',{'class_id':class1,'names':[dict(custom,username='forbidden.qa')]},403)
+ teacher.call('create_students',{'class_id':class1,'names':[custom]},409)
+ teacher.call('create_students',{'class_id':class1,'names':[dict(custom,username='new-before-duplicate.qa'),custom]},409)
+ teacher.call('create_students',{'class_id':class1,'names':[dict(custom,username='same-in-batch.qa'),dict(custom,username='same-in-batch.qa')]},409)
+ for patch in [{'username':'invalid space'},{'password':'short'},{'password':123456789012},{'name':''},{'username':'x'*61}]:
+  teacher.call('create_students',{'class_id':class1,'names':[dict(custom,username='invalid.qa',**patch) if 'username' not in patch else dict(custom,**patch)]},400)
+ teacher.call('create_students',{'class_id':class1,'names':[dict(custom,username='new-before-invalid.qa'),dict(custom,username='bad name')]},400)
+ teacher.call('create_students',{'class_id':class1,'names':[]},400)
+ teacher.call('create_students',{'class_id':class1,'names':['Ime']*41},400)
+ roster=teacher.call('roster',{'class_id':class1})['students']
+ assert len(roster)==3 and all(x['username'] not in ['new-before-duplicate.qa','same-in-batch.qa','new-before-invalid.qa'] for x in roster)
+ assert all('password' not in x and 'password_hash' not in x for x in roster)
+ teacher.call('remove_student',{'class_id':class1,'student_id':created['id']})
  a,b,other=Client(),Client(),Client()
  for client,credentials in [(a,students[0]),(b,students[1]),(other,outsider)]:client.call('status');client.call('login',{'username':credentials['username'],'password':credentials['password']})
  a.call('create_class',{'title':'Nedozvoljeno'},403)
@@ -58,5 +76,5 @@ try:
  anonymous=Client();anonymous.call('status');anonymous.call('dashboard',{},401)
  teacher.call('remove_student',{'class_id':class2,'student_id':outsider['id']});assert other.call('status')['user'] is None
  (ROOT/'.qa-online.json').write_text(json.dumps({'teacher':{'username':'nastavnik.qa','password':'Teacher-QA-3333-password'},'student':{'username':students[0]['username'],'password':'Student-QA-new-password'},'class':class1,'quiz':quiz,'project':project}))
- print('Online 33.33: real MySQL/HTTP auth, CSRF, roles, class isolation, hidden answers, exact scoring, deadlines, projects, review, password reset and deletion: PASS')
+ print('Online 33.33: MySQL/HTTP auth, custom and automatic student logins, duplicate/invalid batch rollback, CSRF, roles, isolation, grading, deadlines, projects, password reset and deletion: PASS')
 finally:server.terminate();server.wait(timeout=10);log.close()

@@ -28,7 +28,34 @@ final class Classroom {
  public function teacher(array $u):void{if($u['role']!=='teacher')throw new ClassroomError('Ova radnja je dostupna nastavniku.',403);}
  public function classFor(array $u,string $id):array{$c=$this->run('SELECT * FROM eldi3333_classes WHERE id=?',[$id])->fetch();if(!$c)throw new ClassroomError('Odjeljenje nije pronađeno.',404);if($u['role']==='teacher'){if($c['owner_id']!==$u['id'])throw new ClassroomError('Nemate pristup ovom odjeljenju.',403);}elseif(!$this->run('SELECT user_id FROM eldi3333_enrollments WHERE class_id=? AND user_id=?',[$id,$u['id']])->fetch())throw new ClassroomError('Nemate pristup ovom odjeljenju.',403);return $c;}
  public function createClass(array $u,string $title):array{$this->teacher($u);$id=self::id();$this->run('INSERT INTO eldi3333_classes VALUES(?,?,?,?)',[$id,self::text($title),$u['id'],time()]);return ['id'=>$id];}
- public function students(array $u,string $class,array $names):array{$this->teacher($u);$this->classFor($u,$class);if(count($names)<1||count($names)>40)throw new ClassroomError('Unesite 1–40 učenika po grupi.');$created=[];$this->db->beginTransaction();try{foreach($names as $name){$name=self::text($name,80);$id=self::id();$login='u'.bin2hex(random_bytes(5));$pass=bin2hex(random_bytes(8));$this->run('INSERT INTO eldi3333_users VALUES(?,?,?,?,?,?)',[$id,$login,$name,self::password($pass),'student',time()]);$this->run('INSERT INTO eldi3333_enrollments VALUES(?,?)',[$class,$id]);$created[]=['id'=>$id,'name'=>$name,'username'=>$login,'password'=>$pass];}$this->db->commit();return $created;}catch(Throwable $e){$this->db->rollBack();throw $e;}}
+ public function students(array $u,string $class,array $names):array{
+  $this->teacher($u);$this->classFor($u,$class);
+  if(count($names)<1||count($names)>40)throw new ClassroomError('Unesite 1–40 učenika po grupi.');
+  $created=[];$this->db->beginTransaction();
+  try{
+   foreach($names as $entry){
+    if(is_array($entry)){
+     $name=self::text($entry['name']??'',80);
+     $login=strtolower(self::text($entry['username']??'',60));
+     if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$login))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');
+     $pass=$entry['password']??null;
+     if(!is_string($pass))throw new ClassroomError('Unesite lozinku za učenika '.$login.'.');
+    }else{
+     $name=self::text($entry,80);$login='u'.bin2hex(random_bytes(5));$pass=bin2hex(random_bytes(8));
+    }
+    $hash=self::password($pass);$id=self::id();
+    if($this->run('SELECT id FROM eldi3333_users WHERE username=?',[$login])->fetchColumn())throw new ClassroomError('Korisničko ime '.$login.' već postoji. Promijenite ga i ponovite unos; ovaj spisak nije upisan.',409);
+    $this->run('INSERT INTO eldi3333_users VALUES(?,?,?,?,?,?)',[$id,$login,$name,$hash,'student',time()]);
+    $this->run('INSERT INTO eldi3333_enrollments VALUES(?,?)',[$class,$id]);
+    $created[]=['id'=>$id,'name'=>$name,'username'=>$login,'password'=>$pass];
+   }
+   $this->db->commit();return $created;
+  }catch(Throwable $e){
+   $this->db->rollBack();
+   if($e instanceof PDOException&&(string)$e->getCode()==='23000')throw new ClassroomError('Korisničko ime već postoji. Promijenite ga i ponovite unos; ovaj spisak nije upisan.',409);
+   throw $e;
+  }
+ }
  public function resetStudent(array $u,string $class,string $student):array{$this->teacher($u);$this->classFor($u,$class);if(!$this->run('SELECT user_id FROM eldi3333_enrollments WHERE class_id=? AND user_id=?',[$class,$student])->fetch())throw new ClassroomError('Učenik nije u odjeljenju.',404);$pass=bin2hex(random_bytes(8));$this->run('UPDATE eldi3333_users SET password_hash=? WHERE id=? AND role=?',[self::password($pass),$student,'student']);return ['password'=>$pass];}
  public function createAssignment(array $u,array $v):array{$this->teacher($u);$class=self::text($v['class_id']??'');$this->classFor($u,$class);$kind=$v['kind']??'project';if(!in_array($kind,['quiz','project'],true))throw new ClassroomError('Nepoznata vrsta zadatka.');$questions=[];if($kind==='quiz'){if(!is_array($v['questions']??null)||count($v['questions'])<1||count($v['questions'])>30)throw new ClassroomError('Provjera sadrži 1–30 pitanja.');foreach($v['questions'] as $q){$answer=self::number($q['answer']??null);if($answer===null)throw new ClassroomError('Svako pitanje treba brojčani odgovor.');$points=(float)($q['points']??10);$tolerance=(float)($q['tolerance']??1e-6);if(!is_finite($points)||$points<1||$points>100||!is_finite($tolerance)||$tolerance<0||$tolerance>.01)throw new ClassroomError('Neispravni bodovi ili tolerancija.');$questions[]=['prompt'=>self::text($q['prompt']??'',2000),'answer'=>$answer,'points'=>$points,'tolerance'=>$tolerance,'explanation'=>self::text($q['explanation']??'',3000,false)];}}
   $due=(int)($v['due_at']??0);if($due!==0&&($due<=time()||$due>time()+366*86400))throw new ClassroomError('Rok mora biti u narednih 366 dana ili prazan.');$id=self::id();$this->run('INSERT INTO eldi3333_assignments VALUES(?,?,?,?,?,?,?,?,?)',[$id,$class,self::text($v['title']??'',150),self::text($v['instructions']??'',10000,false),$kind,json_encode($questions,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),$due,0,time()]);return ['id'=>$id];}

@@ -1,0 +1,39 @@
+name: Student login update QA
+on:
+  push:
+    branches: [codex/student-logins-3333-20261010]
+permissions:
+  contents: read
+jobs:
+  online:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: eldi-ci-only-password
+          MYSQL_DATABASE: eldi3333qa
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -peldi-ci-only-password"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+      - name: Prepare PHP and browser
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y php-cli php-mysql
+          npm install --prefix "$RUNNER_TEMP/eldi-login-qa" --no-audit --no-fund playwright@1.62.1
+          "$RUNNER_TEMP/eldi-login-qa/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Verify PHP and real MySQL requests
+        run: |
+          for file in website/eldi-edu/online/*.php; do php -l "$file"; done
+          node --check website/eldi-edu/online/online.js
+          python3 tests/online3333.py
+      - name: Verify custom credentials through teacher and student screens
+        run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/student-logins-web.cjs
