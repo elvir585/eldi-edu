@@ -1,0 +1,71 @@
+'use strict';
+function inviteToken(value){const m=String(value).match(/(?:registracija=)?([a-f0-9]{48})(?:$|[&#?])/i);return m?m[1].toLowerCase():String(value).trim();}
+function qMarkup(q){return (q.code?`<pre class="program-code"><code>${esc(q.code)}</code></pre>`:'')+(q.blocks?`<div class="block-stack" aria-label="Blokovske naredbe">${q.blocks.map(line=>`<div class="logic-block ${/^\s/.test(line)?'nested-block':''}">${esc(line)}</div>`).join('')}</div>`:'');}
+async function registrationForm(token=''){
+ history.replaceState(null,'','#registracija'+(token?'='+token:''));
+ let info=null;if(token)info=await api('invite_info',{token});
+ const schools=info?.schools||['JU OŠ „Prokosovići“, Prokosovići, Lukavac','JU OŠ „Hasan Kikić“, Gradačac'];
+ app.innerHTML=`<section class="panel login"><p class="eyebrow">MLADI MATEMATIČARI · UČENIČKI PRISTUP</p><h1>Pridruži se sekciji.</h1><p>${info?esc(info.class.title):'Otvori nastavnikov link sekcije ili ga zalijepi ispod.'}</p><p>Izaberi svoje korisničko ime i lozinku. Nastavnik zatim odobrava pristup zadacima. Ako već imaš učenički račun, unesi njegovo korisničko ime i lozinku.</p><form id="registration-form">${!token?field('join-token','Link ili kod sekcije','text','required autocomplete="off"'):''}${field('join-name','Ime i prezime','text','required maxlength="80" autocomplete="name"')}<label>Škola<select id="join-school" required><option value="">Izaberi školu</option>${schools.map(s=>`<option>${esc(s)}</option>`).join('')}</select></label>${field('join-username','Korisničko ime — slova bez kvačica, brojevi i tačka','text','required minlength="3" maxlength="60" autocomplete="username"')}${field('join-password','Lozinka — najmanje 12 znakova','password','required minlength="12" maxlength="128" autocomplete="new-password"')}${field('join-confirm','Ponovi lozinku','password','required minlength="12" maxlength="128" autocomplete="new-password"')}<label class="check-line"><input type="checkbox" id="show-join-password"> Prikaži lozinku dok je unosim</label><button class="primary">Registruj se i zatraži odobrenje</button></form><p><a href="#ucenik" id="join-back">Već imam pristup — prijava učenika</a></p></section>`;
+ $('show-join-password').onchange=()=>{for(const id of ['join-password','join-confirm'])$(id).type=$('show-join-password').checked?'text':'password';};
+ $('join-back').onclick=e=>{e.preventDefault();history.replaceState(null,'','#ucenik');loginForm('','student');};
+ $('registration-form').onsubmit=wrap(async()=>{
+  if($('join-password').value!==$('join-confirm').value)throw Error('Lozinke se ne podudaraju.');
+  const out=await api('register_student',{token:token||inviteToken($('join-token').value),name:$('join-name').value,school:$('join-school').value,username:$('join-username').value,password:$('join-password').value});
+  history.replaceState(null,'','#ucenik');loginForm(out.username,'student');
+  message(out.pending?'Račun je kreiran / prepoznat. Prijavi se svojom lozinkom. Zadaci će se pojaviti nakon nastavnikovog odobrenja.':'Već imaš pristup ovoj sekciji. Prijavi se svojom lozinkom.');
+ });
+}
+function previewHeader(){
+ let button=$('return-teacher');if(!button){button=document.createElement('button');button.id='return-teacher';button.textContent='← Vrati se na nastavnički račun';document.querySelector('header nav').prepend(button);button.onclick=wrap(async()=>{await api('return_teacher',{});await boot();});}
+ button.hidden=!previewMode;
+}
+function enhanceDashboard(){
+ if(user.role==='teacher'&&data.classes.length){
+  const section=document.createElement('section');section.className='panel section-banner';
+  section.innerHTML=`<p class="eyebrow">INOVATIVNI NASTAVNICI · STEP BY STEP</p><h2>Sekcija „Mladi matematičari“</h2><p>Pripremljeni testovi matematike, Pythona i blokova. Do 20 zadataka, automatska ocjena, značka i diploma nakon predaje.</p><div class="actions"><button id="section-setup" class="primary">Pripremi testove sekcije</button><button id="section-students">Učenici i registracija</button></div>`;
+  app.querySelector('.heading').after(section);$('section-setup').onclick=wrap(()=>sectionSetup(data.classes[0].id));$('section-students').onclick=wrap(()=>roster(data.classes[0].id));
+ }
+ if(user.role==='student'){
+  const box=document.createElement('section');box.className='panel';
+  const requests=data.join_requests||[];
+  box.innerHTML=`${previewMode?'<p class="eyebrow">PROBNI UČENIČKI RAČUN</p><p>Ovo je tvoj probni učenički račun. Riješi test i pogledaj rezultat. Dugme na vrhu vraća te nastavničkom računu.</p>':''}${requests.map(r=>`<p><b>${esc(r.title)}</b>: ${r.state==='pending'?'čeka se nastavnikovo odobrenje':'zahtjev nije odobren; obrati se nastavniku'}.</p>`).join('')}<button id="student-refresh">Osvježi moje zadatke</button>`;
+  app.querySelector('.heading').after(box);$('student-refresh').onclick=wrap(dashboard);
+ }
+}
+async function enhanceRoster(id){
+ const access=await api('section_access',{class_id:id});const box=document.createElement('section');box.className='panel section-banner';
+ const enabled=!!Number(access.invite?.enabled),link=access.invite?location.origin+location.pathname+'#registracija='+access.invite.token:'';
+ box.innerHTML=`<p class="eyebrow">JEDNOSTAVAN PRISTUP SEKCIJI</p><h2>Učenici sami biraju lozinku.</h2><p>Podijeli link sekcije. Učenik se registruje, a ti ovdje odobravaš pristup. Postojeći učenik može istim računom zatražiti ulazak.</p><div class="actions"><button id="toggle-invite">${enabled?'Zatvori registraciju':'Uključi registraciju učenika'}</button><button id="demo-student" class="primary">Isprobaj kao učenik</button><button id="roster-tests">Pripremi testove sekcije</button></div>${enabled?`<label>Link za učenike<input id="invite-link" readonly value="${esc(link)}"></label><button id="copy-invite">Kopiraj link</button>`:''}<h3>Zahtjevi za odobrenje (${access.requests.length})</h3>${access.requests.map(r=>`<article class="request-card"><b>${esc(r.display_name)}</b><p>${esc(r.username)} · ${esc(r.school)}</p><div class="actions"><button class="primary" data-approve="${r.user_id}">Odobri</button><button data-reject="${r.user_id}">Odbij</button></div></article>`).join('')||'<p>Trenutno nema zahtjeva. Nakon učeničke registracije osvježi ovaj pregled.</p>'}<button id="refresh-requests">Osvježi zahtjeve</button>`;
+ app.querySelector('h1').after(box);
+ $('toggle-invite').onclick=wrap(async()=>{await api('set_invite',{class_id:id,enabled:!enabled});await roster(id);});
+ $('copy-invite')?.addEventListener('click',wrap(async()=>{try{await navigator.clipboard.writeText(link);message('Link je kopiran. Pošalji ga učenicima.');}catch{$('invite-link').select();message('Pritisni Ctrl + C da kopiraš označeni link.');}}));
+ $('demo-student').onclick=wrap(async()=>{await api('preview_student',{class_id:id});history.replaceState(null,'','#ucenik');await boot();});
+ $('roster-tests').onclick=wrap(()=>sectionSetup(id));$('refresh-requests').onclick=wrap(()=>roster(id));
+ for(const [attr,approve] of [['approve',true],['reject',false]])box.querySelectorAll('[data-'+attr+']').forEach(b=>b.onclick=wrap(async()=>{await api('approve_student',{class_id:id,student_id:b.dataset[attr],approve});await roster(id);message(approve?'Pristup je odobren. Učenik sada može otvoriti zadatke.':'Zahtjev je odbijen.');}));
+}
+function nextSectionDate(){const now=new Date(),d=new Date(now.getFullYear(),now.getMonth(),now.getDate());d.setDate(d.getDate()+((8-d.getDay())%7||7));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+async function sectionSetup(classId){
+ const {catalog}=await api('section_catalog',{}),entries=Object.entries(catalog),featured=entries.filter(([,b])=>b.featured),lessons=entries.filter(([,b])=>!b.featured);
+ app.innerHTML=`<button id="section-back">← Pregled</button><p class="eyebrow">INOVATIVNI NASTAVNICI · STEP BY STEP</p><h1>Pripremi sekciju.</h1><p>JU OŠ „Prokosovići“, Prokosovići, Lukavac · JU OŠ „Hasan Kikić“, Gradačac</p><p>Voditelji: Dino Isanović i Elvir Čajić</p><form id="section-form" class="panel"><div class="two"><label>Sekcija / odjeljenje<select id="section-class">${data.classes.map(c=>`<option value="${c.id}" ${c.id===classId?'selected':''}>${esc(c.title)}</option>`).join('')}</select></label>${field('section-date','Datum sekcije — predaja do 23:59 po vremenu u BiH','date',`required value="${nextSectionDate()}"`)}</div><h2>Izaberi testove za svoju grupu</h2><p>Svaki veliki test ima 20 zadataka i 100 bodova. Objavljuju se samo označeni testovi; učenici u sekciji vide sve koje objaviš.</p><div class="test-options">${featured.map(([key,b])=>`<label class="check-line"><input type="checkbox" name="bank" value="${key}"><span><b>${esc(b.title)}</b><br>${b.questions.length} zadataka · ${b.grade?b.grade+'. razred':'od osnovnog do naprednog nivoa'}</span></label>`).join('')}</div><details><summary>Dodaj provjeru iz postojeće baze (${lessons.length} testova)</summary><label>Nastavna cjelina<select id="extra-bank"><option value="">Bez dodatne provjere</option>${lessons.map(([key,b])=>`<option value="${key}">${b.grade}. razred · ${esc(b.title)} · ${b.questions.length} zadataka</option>`).join('')}</select></label></details><p>Ocjene: 1 ispod 50%; 2 od 50%; 3 od 65%; 4 od 80%; 5 od 90%. Značke: bronzana od 50%, srebrna od 75%, zlatna od 90%; ispod 50% dobija se značka upornog istraživača.</p><p>Diploma o učešću s rezultatom, školama, projektom i imenima voditelja dostupna je nakon predaje. Predviđeno je mjesto za njihove potpise.</p><button class="primary">Objavi izabrane testove</button><p class="muted">Ponovni klik za isti datum i isti test neće napraviti duplikat.</p></form><section class="panel"><h2>Pregled zadataka i rješenja za nastavnika</h2><label>Test<select id="preview-bank">${entries.map(([key,b])=>`<option value="${key}">${esc(b.title)}${b.grade?' · '+b.grade+'. razred':''}</option>`).join('')}</select></label><div id="bank-preview"></div></section>`;
+ $('section-back').onclick=wrap(dashboard);
+ const render=()=>{$('bank-preview').innerHTML=catalog[$('preview-bank').value].questions.map((q,i)=>`<details><summary>${i+1}. ${esc(q.prompt)}</summary>${qMarkup(q)}<p><b>Odgovor: ${esc(q.answer)}</b> · ${q.points} bodova</p><p>${esc(q.explanation)}</p></details>`).join('');};$('preview-bank').onchange=render;render();
+ $('section-form').onsubmit=wrap(async()=>{const banks=Array.from(document.querySelectorAll('[name="bank"]:checked'),e=>e.value);if($('extra-bank').value)banks.push($('extra-bank').value);if(!banks.length)throw Error('Označi barem jedan test.');const out=await api('publish_section',{class_id:$('section-class').value,event_date:$('section-date').value,banks});await dashboard();message('Spremno: '+out.assignments.length+' testova. Otvori sekciju za registraciju i probni učenički prikaz.');});
+}
+function enableQuestionSteps(){
+ const form=$('submit-form');if(!form)return;const questions=Array.from(form.querySelectorAll('.question'));if(!questions.length)return;
+ const submit=form.querySelector('button.primary');const controls=document.createElement('div');controls.className='step-controls';controls.innerHTML='<p id="step-progress" aria-live="polite"></p><progress id="test-progress" max="'+questions.length+'" value="1"></progress><div class="actions"><button type="button" id="previous-question">← Prethodni</button><button type="button" id="next-question">Sljedeći →</button><button type="button" id="show-all-questions">Pregled svih odgovora</button></div>';form.prepend(controls);
+ let index=0,all=false;
+ const render=()=>{questions.forEach((q,i)=>q.hidden=!all&&i!==index);$('previous-question').disabled=index===0;$('next-question').disabled=index===questions.length-1;$('step-progress').textContent=all?'Pregled odgovora prije konačne predaje':'Zadatak '+(index+1)+' od '+questions.length;$('test-progress').value=index+1;$('show-all-questions').textContent=all?'Vrati se korak po korak':'Pregled svih odgovora';submit.hidden=!all&&index!==questions.length-1;};
+ $('previous-question').onclick=()=>{all=false;index=Math.max(0,index-1);render();};$('next-question').onclick=()=>{all=false;index=Math.min(questions.length-1,index+1);render();};$('show-all-questions').onclick=()=>{all=!all;render();};
+ form.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[data-answer]')){e.preventDefault();if(index<questions.length-1){index++;all=false;render();questions[index].querySelector('input').focus();}}});render();
+}
+function addSectionResult(a,done){
+ if(!a.section)return;
+ if(!done){enableQuestionSteps();return;}
+ const button=document.createElement('button');button.className='primary';button.id='student-certificate';button.textContent='Moja značka i diploma';button.onclick=wrap(()=>showCertificate(done.id,()=>openAssignment(a.id)));app.querySelector('.score')?.after(button);
+}
+async function showCertificate(submissionId,back){
+ const {certificate:c}=await api('certificate',{submission_id:submissionId}),m=c.meta;
+ app.innerHTML=`<div class="actions no-print"><button id="certificate-back">← Nazad na rezultat</button><button id="print-certificate" class="primary">Štampaj / sačuvaj kao PDF</button></div><article class="certificate"><div class="certificate-top"><span>ELDI EDU · 33.33</span><span>${esc(c.id)}</span></div><p class="certificate-schools">${m.schools.map(esc).join('<br>')}</p><p class="certificate-project">${esc(m.project)}</p><div class="award-emblem" aria-hidden="true">★</div><p class="certificate-kicker">SEKCIJA „MLADI MATEMATIČARI“</p><h1>DIPLOMA</h1><p>o učešću i ostvarenom rezultatu</p><h2 class="recipient">${esc(c.name)}</h2><p>${esc(m.test_title)}</p><div class="certificate-result"><b>${c.score} / ${c.max_score} bodova</b><span>Ocjena aktivnosti: ${esc(c.grade)}</span><span>${esc(c.badge)}</span></div><p>Datum aktivnosti: ${esc(m.event_date.split('-').reverse().join('.'))}.</p><div class="signatures">${m.mentors.map(n=>`<div><div class="signature-line"></div><b>${esc(n)}</b><span>Voditelj aktivnosti · potpis</span></div>`).join('')}</div><p class="certificate-foot">Rezultat je evidentiran u online učionici · ${esc(c.id)}</p></article>`;
+ $('certificate-back').onclick=wrap(back);$('print-certificate').onclick=()=>window.print();
+}

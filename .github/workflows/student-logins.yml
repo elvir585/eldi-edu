@@ -1,4 +1,4 @@
-name: Student login update QA
+name: Classroom sections and login QA
 on:
   push:
     branches: [codex/student-logins-3333-20261010]
@@ -34,6 +34,20 @@ jobs:
         run: |
           for file in website/eldi-edu/online/*.php; do php -l "$file"; done
           node --check website/eldi-edu/online/online.js
+          node --check website/eldi-edu/online/sections.js
+          node scripts/build-section-bank.cjs
+          git diff --exit-code -- website/eldi-edu/online/section-tests.php
           python3 tests/online3333.py
       - name: Verify custom credentials through teacher and student screens
         run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/student-logins-web.cjs
+
+      - name: Verify registration, section tests and certificates in Chromium
+        run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/sections-web.cjs
+      - name: Preserve section visual checks
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: section-visual-checks
+          path: .qa-sections
+          if-no-files-found: ignore
+          retention-days: 7

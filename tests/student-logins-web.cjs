@@ -28,7 +28,7 @@ let browser,server;
  await page.waitForSelector('#login');
  assert.equal(await page.locator('#username').inputValue(),'nastavnik.web.qa');
  assert.match(await page.locator('h1').innerText(),/Prijava nastavnika/);
- fixture.teacher={username:'nastavnik.web.qa',password:'Recovered-Web-QA-2026'};
+ fixture.teacher={username:'nastavnik.web.qa',password:'Recovered-Web-QA-2026'};fs.writeFileSync(path.join(root,'.qa-online.json'),JSON.stringify(fixture));
  await page.locator('#username').fill(fixture.teacher.username);
  await page.locator('#password').fill(fixture.teacher.password);
  await page.locator('#login button').click();

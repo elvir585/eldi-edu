@@ -11,8 +11,9 @@ try {
  if(isset($_SESSION['last'])&&time()-$_SESSION['last']>7200){$_SESSION=[];session_regenerate_id(true);}$_SESSION['last']=time();$_SESSION['csrf']??=bin2hex(random_bytes(24));
  $path=getenv('ELDI3333_CONFIG')?:dirname(__DIR__,3).'/eldi3333-config.php';$configured=is_file($path);$action=$_GET['action']??'status';$app=null;
  if($configured){$config=require $path;if(!is_array($config)||!str_starts_with($config['dsn']??'','mysql:'))throw new ClassroomError('Provjerite privatnu MySQL konfiguraciju.',503);$app=new Classroom(new PDO($config['dsn'],$config['user'],$config['password']));}
+ if($app&&$app->installed())$app->upgradeSections();
  if($app&&isset($_SESSION['user'])&&(!isset($_SESSION['auth_tag'])||!hash_equals($_SESSION['auth_tag'],$app->sessionTag($_SESSION['user'])))){unset($_SESSION['user'],$_SESSION['auth_tag']);session_regenerate_id(true);}
- if($action==='status'){$installed=$app?->installed()??false;$u=$installed&&isset($_SESSION['user'])?$app->user($_SESSION['user']):null;echo json_encode(['ok'=>true,'configured'=>$configured,'installed'=>$installed,'user'=>$u,'csrf'=>$_SESSION['csrf'],'version'=>'33.33.0']);exit;}
+ if($action==='status'){$installed=$app?->installed()??false;$u=$installed&&isset($_SESSION['user'])?$app->user($_SESSION['user']):null;echo json_encode(['ok'=>true,'configured'=>$configured,'installed'=>$installed,'user'=>$u,'csrf'=>$_SESSION['csrf'],'version'=>'33.33.0','features'=>'sections-1','preview'=>isset($_SESSION['teacher_preview'])]);exit;}
  if(!$app)throw new ClassroomError('Najprije postavite privatnu konfiguraciju iznad public_html. Upute su uz paket.',503);
  if(($_SERVER['REQUEST_METHOD']??'GET')!=='POST')throw new ClassroomError('Koristite POST zahtjev.',405);
  if(!hash_equals($_SESSION['csrf'],$_SERVER['HTTP_X_CSRF_TOKEN']??''))throw new ClassroomError('Sesija je istekla. Osvježite stranicu.',403);
@@ -20,15 +21,32 @@ try {
  $raw=file_get_contents('php://input',false,null,0,2800001);if(strlen($raw)>2800000)throw new ClassroomError('Zahtjev je prevelik.',413);$v=json_decode($raw,true,64,JSON_THROW_ON_ERROR);if(!is_array($v))throw new ClassroomError('Neispravan zahtjev.');
  if($action==='install'){$token=$config['install_token']??'';if(strlen($token)<24||str_contains($token,'ZAMIJENITE')||!hash_equals($token,(string)($v['token']??'')))throw new ClassroomError('Instalacijski ključ nije tačan ili nije podešen.',403);$app->install((string)($v['username']??''),(string)($v['name']??''),(string)($v['password']??''));$result=['installed'=>true];}
  elseif(!$app->installed())throw new ClassroomError('Nastavnik prvo treba završiti instalaciju.',503);
+ elseif($action==='invite_info'){$result=$app->inviteInfo((string)($v['token']??''));}
+ elseif($action==='register_student'){$result=$app->registerStudent($v,hash_hmac('sha256','registration:'.($_SERVER['REMOTE_ADDR']??'unknown'),(string)$config['install_token']));}
+ elseif($action==='return_teacher'){
+  $saved=$_SESSION['teacher_preview']??null;
+  if(!$saved||!hash_equals($saved['tag'],$app->sessionTag($saved['id'])))throw new ClassroomError('Nastavnički pristup je istekao. Prijavite se ponovo.',401);
+  $u=$app->user($saved['id']);$app->teacher($u);unset($_SESSION['teacher_preview']);session_regenerate_id(true);$_SESSION['user']=$u['id'];$_SESSION['auth_tag']=$app->sessionTag($u['id']);$_SESSION['csrf']=bin2hex(random_bytes(24));$result=['user'=>$u,'csrf'=>$_SESSION['csrf']];
+ }
+ elseif($action==='preview_student'){
+  $teacher=$app->user($_SESSION['user']??'');$app->teacher($teacher);$u=$app->demoStudent($teacher,(string)($v['class_id']??''));
+  $_SESSION['teacher_preview']=['id'=>$teacher['id'],'tag'=>$app->sessionTag($teacher['id'])];session_regenerate_id(true);$_SESSION['user']=$u['id'];$_SESSION['auth_tag']=$app->sessionTag($u['id']);$_SESSION['csrf']=bin2hex(random_bytes(24));$result=['user'=>$u,'csrf'=>$_SESSION['csrf']];
+ }
  elseif($action==='recover_teacher'){
   $expected=(string)($config['install_token']??'');$ip=$_SERVER['REMOTE_ADDR']??'unknown';
   $result=$app->recoverTeacher((string)($v['token']??''),$expected,(string)($v['username']??''),(string)($v['password']??''),hash_hmac('sha256','teacher-recovery:'.$ip,$expected),hash_hmac('sha256',$ip,$expected));
-  unset($_SESSION['user'],$_SESSION['auth_tag']);session_regenerate_id(true);$_SESSION['csrf']=bin2hex(random_bytes(24));$result['csrf']=$_SESSION['csrf'];
+  unset($_SESSION['user'],$_SESSION['auth_tag'],$_SESSION['teacher_preview']);session_regenerate_id(true);$_SESSION['csrf']=bin2hex(random_bytes(24));$result['csrf']=$_SESSION['csrf'];
  }
- elseif($action==='login'){$bucket=hash_hmac('sha256',($_SERVER['REMOTE_ADDR']??'unknown'),$config['install_token']);$u=$app->login((string)($v['username']??''),(string)($v['password']??''),$bucket);session_regenerate_id(true);$_SESSION['user']=$u['id'];$_SESSION['auth_tag']=$app->sessionTag($u['id']);$_SESSION['csrf']=bin2hex(random_bytes(24));$result=['user'=>$u,'csrf'=>$_SESSION['csrf']];}
+ elseif($action==='login'){unset($_SESSION['teacher_preview']);$bucket=hash_hmac('sha256',($_SERVER['REMOTE_ADDR']??'unknown'),$config['install_token']);$u=$app->login((string)($v['username']??''),(string)($v['password']??''),$bucket);session_regenerate_id(true);$_SESSION['user']=$u['id'];$_SESSION['auth_tag']=$app->sessionTag($u['id']);$_SESSION['csrf']=bin2hex(random_bytes(24));$result=['user'=>$u,'csrf'=>$_SESSION['csrf']];}
  elseif($action==='logout'){$_SESSION=[];session_regenerate_id(true);$result=[];}
  else{$u=$app->user($_SESSION['user']??'');$result=match($action){
  'dashboard'=>$app->dashboard($u),
+ 'section_access'=>$app->sectionAccess($u,(string)($v['class_id']??'')),
+ 'set_invite'=>$app->setInvite($u,(string)($v['class_id']??''),(bool)($v['enabled']??true)),
+ 'approve_student'=>$app->approveStudent($u,(string)($v['class_id']??''),(string)($v['student_id']??''),(bool)($v['approve']??false)),
+ 'section_catalog'=>(function()use($app,$u){$app->teacher($u);return ['catalog'=>Classroom::sectionCatalog()];})(),
+ 'publish_section'=>$app->publishSection($u,$v),
+ 'certificate'=>$app->certificate($u,(string)($v['submission_id']??'')),
  'create_class'=>$app->createClass($u,(string)($v['title']??'')),
  'create_students'=>['students'=>$app->students($u,(string)($v['class_id']??''),$v['names']??[])],
  'roster'=>['students'=>$app->roster($u,(string)($v['class_id']??''))],

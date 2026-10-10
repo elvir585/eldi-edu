@@ -1,5 +1,5 @@
 Options -Indexes
-<FilesMatch "^(config\.example|service)\.php$">
+<FilesMatch "^(config\.example|service|section-service|section-tests)\.php$">
   Require all denied
 </FilesMatch>
 <IfModule mod_headers.c>

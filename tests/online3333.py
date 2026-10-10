@@ -96,6 +96,83 @@ try:
  assert teacher.call('dashboard',{})['classes']==classes_before
  assert a.call('status')['user']['id']==students[0]['id']
  assert teacher.call('submission',{'id':sub['id']})['submission']['grade']=='5'
+
+ # Section access, approval, server grading, awards, and teacher preview.
+ section_class=teacher.call('create_class',{'title':'Mladi matematičari QA'})['id']
+ second_section=teacher.call('create_class',{'title':'Druga sekcija QA'})['id']
+ catalog=teacher.call('section_catalog',{})['catalog']
+ assert len(catalog)==112 and all(1<=len(t['questions'])<=20 for t in catalog.values())
+ assert sum(t['featured'] for t in catalog.values())==7
+ assert all(len(t['questions'])==20 for t in catalog.values() if t['featured'])
+ anonymous.call('section_catalog',{},401)
+ a.call('section_catalog',{},403)
+ token=teacher.call('set_invite',{'class_id':section_class,'enabled':True})['invite']['token']
+ school=anonymous.call('invite_info',{'token':token})['schools'][0]
+ anonymous.call('invite_info',{'token':'invalid'},404)
+ registration={'token':token,'name':'Učenik registracija QA','school':school,'username':'registracija.qa','password':'Self-selected-QA-password'}
+ anonymous.call('register_student',registration,403,csrf='invalid')
+ anonymous.call('register_student',dict(registration,password='short'),400)
+ assert anonymous.call('register_student',registration)['pending']
+ registered=Client();registered.call('status');registered.call('login',{'username':registration['username'],'password':registration['password']})
+ registered_id=registered.call('status')['user']['id']
+ assert registered.call('dashboard',{})['classes']==[]
+ assert registered.call('dashboard',{})['join_requests'][0]['state']=='pending'
+ registered.call('approve_student',{'class_id':section_class,'student_id':registered_id,'approve':True},403)
+ request=teacher.call('section_access',{'class_id':section_class})['requests'][0]
+ assert request['user_id']==registered_id
+ teacher.call('approve_student',{'class_id':second_section,'student_id':registered_id,'approve':True},409)
+ teacher.call('approve_student',{'class_id':section_class,'student_id':registered_id,'approve':True})
+ assert registered.call('dashboard',{})['classes'][0]['id']==section_class
+ teacher.call('approve_student',{'class_id':section_class,'student_id':registered_id,'approve':True},409)
+ anonymous.call('register_student',dict(registration,password='Wrong-but-long-password'),409)
+ assert not anonymous.call('register_student',registration)['pending']
+ from datetime import datetime,timedelta,timezone
+ event=(datetime.now(timezone.utc)+timedelta(days=2)).date().isoformat()
+ teacher.call('publish_section',{'class_id':section_class,'event_date':event,'banks':['missing']},400)
+ pub=teacher.call('publish_section',{'class_id':section_class,'event_date':event,'banks':['math5','python','blocks']})['assignments']
+ again=teacher.call('publish_section',{'class_id':section_class,'event_date':event,'banks':['math5','python','blocks']})['assignments']
+ assert [x['id'] for x in pub]==[x['id'] for x in again] and all(x['existing'] for x in again)
+ section_quiz,python_quiz,block_quiz=[x['id'] for x in pub]
+ a.call('assignment',{'id':section_quiz},403)
+ for test in pub:
+  visible=registered.call('assignment',{'id':test['id']})['assignment']
+  assert len(visible['questions'])==20
+  assert all('answer' not in q and 'explanation' not in q for q in visible['questions'])
+ assert registered.call('assignment',{'id':python_quiz})['assignment']['questions'][0]['code'].startswith('a = 7')
+ assert registered.call('assignment',{'id':block_quiz})['assignment']['questions'][0]['blocks']
+ answers=[str(q['answer']) for q in catalog['math5']['questions']]
+ graded=registered.call('submit',{'id':section_quiz,'payload':{'answers':answers,'score':0,'grade':'1'}})
+ assert graded['score']==100 and graded['max_score']==100
+ done=registered.call('assignment',{'id':section_quiz})['submission']
+ assert done['grade']=='5'
+ cert=registered.call('certificate',{'submission_id':graded['id']})['certificate']
+ assert cert['grade']=='5' and cert['percent']==100 and cert['badge']=='Zlatna značka znanja'
+ assert cert['meta']['mentors']==['Dino Isanović','Elvir Čajić']
+ b.call('certificate',{'submission_id':graded['id']},403)
+ assert teacher.call('certificate',{'submission_id':graded['id']})['certificate']['id']==cert['id']
+ wrong=registered.call('submit',{'id':python_quiz,'payload':{'answers':['999999']*20,'score':100,'grade':'5'}})
+ assert wrong['score']==0
+ assert registered.call('certificate',{'submission_id':wrong['id']})['certificate']['grade']=='1'
+ registered.call('preview_student',{'class_id':section_class},403)
+ registered.call('return_teacher',{},401)
+ teacher_id=teacher.call('status')['user']['id']
+ demo=teacher.call('preview_student',{'class_id':section_class})['user']
+ assert demo['role']=='student' and '(probni učenik)' in demo['display_name']
+ assert teacher.call('status')['preview']
+ teacher.call('set_invite',{'class_id':section_class,'enabled':True},403)
+ assert teacher.call('return_teacher',{})['user']['id']==teacher_id
+ assert not teacher.call('status')['preview']
+ assert teacher.call('preview_student',{'class_id':section_class})['user']['id']==demo['id']
+ teacher.call('return_teacher',{})
+ second_token=teacher.call('set_invite',{'class_id':second_section,'enabled':True})['invite']['token']
+ assert anonymous.call('register_student',dict(registration,token=second_token))['pending']
+ teacher.call('approve_student',{'class_id':second_section,'student_id':registered_id,'approve':True})
+ teacher.call('remove_student',{'class_id':second_section,'student_id':registered_id})
+ assert registered.call('status')['user']['id']==registered_id
+ assert registered.call('certificate',{'submission_id':graded['id']})['certificate']['score']==100
+ teacher.call('set_invite',{'class_id':section_class,'enabled':False})
+ anonymous.call('invite_info',{'token':token},404)
+ print('Sections: 112 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
  (ROOT/'.qa-online.json').write_text(json.dumps({'teacher':{'username':recover_data['username'],'password':recover_data['password']},'student':{'username':students[0]['username'],'password':'Student-QA-new-password'},'class':class1,'quiz':quiz,'project':project}))
  print('Online 33.33: MySQL/HTTP auth, custom logins, duplicate rollback, teacher recovery with key and CSRF, login lock clearing after recovery, session invalidation, preserved classes and work, grading, reset and deletion: PASS')
 finally:server.terminate();server.wait(timeout=10);log.close()
