@@ -6,7 +6,7 @@ const {spawn}=require('node:child_process'),{chromium}=require('playwright');con
  server=spawn('php',['-S','127.0.0.1:18436','-t',path.join(root,'website')],{env:{...process.env,ELDI3333_CONFIG:path.join(root,'.qa-config.php')},stdio:'ignore'});
  for(let i=0;i<50;i++){try{await fetch(base);break;}catch{await new Promise(r=>setTimeout(r,100));}}
  browser=await chromium.launch({headless:true,args:['--no-sandbox']});
- const teacher=await browser.newPage({viewport:{width:1366,height:900}}),student=await browser.newPage({viewport:{width:390,height:844}}),device=await browser.newPage({viewport:{width:1366,height:900}}),errors=[];
+ const teacher=await browser.newPage({viewport:{width:1366,height:900}}),student=await (await browser.newContext({viewport:{width:390,height:844}})).newPage(),device=await browser.newPage({viewport:{width:1366,height:900}}),errors=[];
  for(const p of [teacher,student,device])p.on('pageerror',e=>errors.push(e.message));
  const fixture=JSON.parse(fs.readFileSync(path.join(root,'.qa-online.json'),'utf8'));
  async function login(p,username,password){await p.goto(base+'#ucenik');await p.locator('#username').fill(username);await p.locator('#password').fill(password);await p.locator('#login button').click();await p.waitForSelector('.heading');}
