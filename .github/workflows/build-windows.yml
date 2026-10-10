@@ -52,6 +52,7 @@ jobs:
         run: |
           npx electron-builder --config scripts/startup-audit.config.cjs --win --x64 --dir --publish never
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force -Path 'smoke-previews' | Out-Null
           $auditApplication = Join-Path $PWD 'release-startup-audit/win-unpacked/ELDI EDU.exe'
           $auditProcess = Start-Process -FilePath $auditApplication -ArgumentList '--startup-test' -WorkingDirectory $PWD -PassThru -Wait -RedirectStandardOutput 'smoke-previews/startup-stdout.log' -RedirectStandardError 'smoke-previews/startup-stderr.log'
           Get-Content 'smoke-previews/startup-stdout.log','smoke-previews/startup-stderr.log'
