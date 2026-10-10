@@ -43,7 +43,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Provjeri PHP i stvarni MySQL rad
         run: |
-          rg --files -g '*.php' website/eldi-edu/online | xargs -n 1 php -l
+          for file in website/eldi-edu/online/*.php; do php -l "$file"; done
           python3 tests/online3333.py
       - name: Provjeri web radionicu i offline rad
         run: |
