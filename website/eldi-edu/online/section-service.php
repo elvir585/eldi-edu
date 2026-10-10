@@ -31,7 +31,7 @@ trait SectionFeatures {
   return ['class'=>$c,'schools'=>self::sectionSchools()];
  }
  public function registerStudent(array $v,string $bucket):array {
-  $this->throttle($bucket);$info=$this->inviteInfo((string)($v['token']??''));$class=$info['class']['id'];
+  $this->throttle($bucket);if(!empty($v['token'])){$info=$this->inviteInfo((string)$v['token']);$class=$info['class']['id'];}else{$class=(string)($v['class_id']??'');if(!$this->run('SELECT class_id FROM eldi3333_invites WHERE class_id=? AND enabled=1',[$class])->fetchColumn())throw new ClassroomError('Nastavnik još nije otvorio registraciju za ovu sekciju.',404);}
   $username=strtolower(self::text($v['username']??'',60));
   if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$username))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');
   $password=(string)($v['password']??'');$hash=self::password($password);
@@ -72,7 +72,7 @@ trait SectionFeatures {
   $id=$students[0]['id'];$this->run('INSERT INTO eldi3333_demo_students VALUES(?,?,?) ON DUPLICATE KEY UPDATE user_id=VALUES(user_id)',[$u['id'],$class,$id]);
   return $this->user($id);
  }
- public static function sectionCatalog():array{return require __DIR__.'/section-tests.php';}
+ public static function sectionCatalog():array{return (require __DIR__.'/section-tests.php')+self::practicalCatalog();}
  public function sectionMetadata(string $assignment):?array {
   $raw=$this->run('SELECT metadata FROM eldi3333_section_tests WHERE assignment_id=?',[$assignment])->fetchColumn();
   return $raw?json_decode($raw,true,512,JSON_THROW_ON_ERROR):null;
@@ -82,7 +82,7 @@ trait SectionFeatures {
   $event=self::text($v['event_date']??'',10);$day=DateTimeImmutable::createFromFormat('!Y-m-d',$event,new DateTimeZone('Europe/Sarajevo'));
   if(!$day||$day->format('Y-m-d')!==$event)throw new ClassroomError('Izaberi važeći datum sekcije.');
   $due=$day->setTime(23,59,59)->getTimestamp();if($due<=time()||$due>time()+366*86400)throw new ClassroomError('Datum sekcije treba biti danas ili u narednih godinu dana.');
-  $levels=$v['banks']??[];if(!is_array($levels)||!count($levels)||count($levels)>12)throw new ClassroomError('Izaberi od 1 do 12 testova.');
+  $levels=$v['banks']??[];if(!is_array($levels)||!count($levels)||count($levels)>20)throw new ClassroomError('Izaberi od 1 do 20 provjera.');
   $catalog=self::sectionCatalog();foreach($levels as $level)if(!is_string($level)||!isset($catalog[$level]))throw new ClassroomError('Izaberi test iz baze zadataka.');$levels=array_values(array_unique($levels));
   $created=[];$this->db->beginTransaction();
   try{
@@ -90,7 +90,8 @@ trait SectionFeatures {
     $existing=$this->run('SELECT assignment_id FROM eldi3333_section_tests WHERE class_id=? AND bank_key=? AND event_date=?',[$class,$level,$event])->fetchColumn();
     if($existing){$created[]=['id'=>$existing,'level'=>$level,'existing'=>true];continue;}
     $test=$catalog[$level];$meta=['bank'=>$level,'level'=>$test['grade'],'subject'=>$test['subject'],'test_title'=>$test['title'],'event_date'=>$event,'project'=>'Inovativni nastavnici – Step by Step','schools'=>self::sectionSchools(),'mentors'=>['Dino Isanović','Elvir Čajić'],'section'=>'Mladi matematičari'];
-    $a=$this->createAssignment($u,['class_id'=>$class,'kind'=>'quiz','title'=>'Sekcija · '.$test['title'].' · '.$day->format('d.m.Y.'),'instructions'=>$test['intro']."\n".count($test['questions'])." zadataka · ".array_sum(array_column($test['questions'],'points'))." bodova · preporučeno vrijeme 45 minuta. Vrijeme nije automatski ograničeno. Svaki tačan odgovor donosi 5 bodova; nema negativnih bodova.\nUpiši samo broj ili razlomak, bez mjerne jedinice. Ocjena: manje od 50% = 1; 50–64% = 2; 65–79% = 3; 80–89% = 4; 90–100% = 5.\nNakon konačne predaje dobijaš rezultat, značku, diplomu o učešću i objašnjenja korak po korak.",'questions'=>$test['questions'],'due_at'=>$due]);
+    if(!empty($test['practical'])){$id=self::id();$this->run('INSERT INTO eldi3333_assignments VALUES(?,?,?,?,?,?,?,?,?)',[$id,$class,self::text('Sekcija · '.$test['title'].' · '.$day->format('d.m.Y.'),150),$test['intro'].' Riješi zadatak u Python školskom režimu ili blokovima. Probaj dva prikazana primjera prije konačne predaje. Ocjena se računa iz 10 provjera na serveru; svaka nosi 10 bodova. Jedna konačna predaja.','program','[]',$due,0,time()]);$a=['id'=>$id];}
+    else $a=$this->createAssignment($u,['class_id'=>$class,'kind'=>'quiz','title'=>'Sekcija · '.$test['title'].' · '.$day->format('d.m.Y.'),'instructions'=>$test['intro']."\n".count($test['questions'])." zadataka · ".array_sum(array_column($test['questions'],'points'))." bodova · preporučeno vrijeme 45 minuta. Vrijeme nije automatski ograničeno. Svaki tačan odgovor donosi 5 bodova; nema negativnih bodova.\nUpiši samo broj ili razlomak, bez mjerne jedinice. Ocjena: manje od 50% = 1; 50–64% = 2; 65–79% = 3; 80–89% = 4; 90–100% = 5.\nNakon konačne predaje dobijaš rezultat, značku, diplomu o učešću i objašnjenja korak po korak.",'questions'=>$test['questions'],'due_at'=>$due]);
     $this->run('INSERT INTO eldi3333_section_tests VALUES(?,?,?,?,?)',[$a['id'],$class,$level,$event,json_encode($meta,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE)]);
     $created[]=['id'=>$a['id'],'level'=>$level,'existing'=>false];
    }

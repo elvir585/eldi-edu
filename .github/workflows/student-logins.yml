@@ -36,13 +36,22 @@ jobs:
           node --check website/eldi-edu/online/online.js
           node --check website/eldi-edu/online/sections.js
           node scripts/build-section-bank.cjs
+          node scripts/build-online119.cjs
           git diff --exit-code -- website/eldi-edu/online/section-tests.php
+          php tests/school-runtime.php
           python3 tests/online3333.py
       - name: Verify custom credentials through teacher and student screens
         run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/student-logins-web.cjs
 
       - name: Verify registration, section tests and certificates in Chromium
         run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/sections-web.cjs
+      - name: Verify practical programs, blocks and cloud saves
+        run: |
+          ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci --no-audit --no-fund
+          npm run editor:bundle
+          npm run studio33:bundle
+          node scripts/build-browser33.cjs
+          NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/complete119-web.cjs
       - name: Preserve section visual checks
         uses: actions/upload-artifact@v6
         if: always()

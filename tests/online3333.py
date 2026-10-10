@@ -7,7 +7,7 @@ config.write_text("<?php return ['dsn'=>'mysql:host=127.0.0.1;port=3306;dbname=e
 os.environ['ELDI3333_CONFIG']=str(config)
 sock=socket.socket();sock.bind(('127.0.0.1',0));port=sock.getsockname()[1];sock.close()
 log=open(ROOT/'.qa-php.log','w');server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(ROOT/'website')],stdout=log,stderr=log,env=os.environ)
-BASE=f'http://127.0.0.1:{port}/eldi-edu/online/api.php?action='
+BASE=f'http://127.0.0.1:{port}/eldi-edu/online/classroom-119.php?action='
 class Client:
  def __init__(self): self.opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()));self.csrf=''
  def call(self,action,data=None,expected=200,csrf=None):
@@ -101,7 +101,7 @@ try:
  section_class=teacher.call('create_class',{'title':'Mladi matematičari QA'})['id']
  second_section=teacher.call('create_class',{'title':'Druga sekcija QA'})['id']
  catalog=teacher.call('section_catalog',{})['catalog']
- assert len(catalog)==112 and all(1<=len(t['questions'])<=20 for t in catalog.values())
+ assert len(catalog)==119 and all(1<=len(t['questions'])<=20 for t in catalog.values())
  assert sum(t['featured'] for t in catalog.values())==7
  assert all(len(t['questions'])==20 for t in catalog.values() if t['featured'])
  anonymous.call('section_catalog',{},401)
@@ -172,7 +172,61 @@ try:
  assert registered.call('certificate',{'submission_id':graded['id']})['certificate']['score']==100
  teacher.call('set_invite',{'class_id':section_class,'enabled':False})
  anonymous.call('invite_info',{'token':token},404)
- print('Sections: 112 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
+ # Public selection gives only enabled sections, never pupils or invite keys.
+ public=anonymous.call('public_sections',{})
+ assert all(set(c)=={'id','title'} for c in public['classes'])
+ assert section_class not in [c['id'] for c in public['classes']]
+ teacher.call('set_invite',{'class_id':section_class,'enabled':True})
+ public_reg=dict(registration,token='',class_id=section_class,username='public119.qa')
+ anonymous.call('register_student',public_reg)
+ pending=Client();pending.call('status');pending.call('login',{'username':public_reg['username'],'password':public_reg['password']})
+ pending.call('project_load',{},403)
+ pupil_id=pending.call('status')['user']['id']
+ teacher.call('approve_student',{'class_id':section_class,'student_id':pupil_id,'approve':True})
+ # Per-account cloud storage, optimistic revision, and forbidden identity override.
+ anonymous.call('project_load',{},401)
+ assert registered.call('project_load',{})['revision']==0
+ profile={'name':'Rad učenika','studio33Work':{'module':'blocks','blocks':{'example':'private-A'}}}
+ saved=registered.call('project_save',{'revision':0,'profile':profile,'user_id':pupil_id});assert saved['revision']==1
+ assert registered.call('project_load',{})['profile']==profile
+ assert pending.call('project_load',{})['profile'] is None
+ registered.call('project_save',{'revision':0,'profile':profile},409)
+ registered.call('project_save',{'revision':1,'profile':profile},403,csrf='wrong')
+ registered.call('project_save',{'revision':1,'profile':{'name':'x','studio33Work':{'text':'x'*2100000}}},400)
+ profile['name']='Nova verzija'
+ assert registered.call('project_save',{'revision':1,'profile':profile})['revision']==2
+ registered.call('project_save',{'revision':1,'profile':profile},409)
+ # Practical grading executes submitted work against private cases on server.
+ keys=[k for k,t in catalog.items() if t.get('practical')]
+ assert len(keys)==7
+ programs=teacher.call('publish_section',{'class_id':section_class,'event_date':event,'banks':keys})['assignments']
+ for task in programs:
+  ident,key=task['id'],task['level']
+  visible=registered.call('assignment',{'id':ident})['assignment']
+  assert visible['kind']=='program' and 'reference' not in visible['practical'] and 'cases' not in visible['practical'] and visible['questions']==[]
+  a.call('try_program',{'id':ident,'payload':{'language':'python','source':'print(1)'}},403)
+  reference=catalog[key]['reference']
+  payload={'language':'python','source':reference,'score':0,'grade':'1'}
+  probed=registered.call('try_program',{'id':ident,'payload':payload})
+  assert probed['passed']==2
+  out=registered.call('submit',{'id':ident,'payload':payload})
+  assert out['score']==100 and registered.call('certificate',{'submission_id':out['id']})['certificate']['grade']=='5'
+  assert registered.call('submit',{'id':ident,'payload':{'language':'python','source':'print(0)'}})['id']==out['id']
+ first=programs[0]['id']
+ pending.call('try_program',{'id':first,'payload':{'language':'python','source':'import os'}},400)
+ loop=pending.call('try_program',{'id':first,'payload':{'language':'python','source':'while True:\n    pass'}})
+ assert loop['passed']==0 and all('ograničenje' in r['error'] for r in loop['results'])
+ # A hard-coded sample answer earns only matching cases, never the client score.
+ result=pending.call('submit',{'id':first,'payload':{'language':'python','source':'print(5)','score':100,'grade':'5'}})
+ assert 0<=result['score']<100 and pending.call('certificate',{'submission_id':result['id']})['certificate']['grade']=='1'
+ block_task=next(t['id'] for t in programs if t['level']=='practice-maximum')
+ workspace={'blocks':{'blocks':[{'type':'task_read','fields':{'NAME':'a'},'next':{'block':{'type':'task_read','fields':{'NAME':'b'},'next':{'block':{'type':'task_print','fields':{'EXPR':'max(a, b)'}}}}}}]}}
+ blocks=pending.call('submit',{'id':block_task,'payload':{'language':'blocks','workspace':workspace,'source':'print(9999)'}})
+ assert blocks['score']==100
+ b.call('submission',{'id':blocks['id']},403)
+ assert pending.call('assignment',{'id':block_task})['submission']['payload']['source'].endswith('print(max(a, b))\n')
+ print('Complete119: public registration, account isolation, CAS conflicts, limits, private cases, Python and block grading, forged-score protection PASS')
+ print('Sections: 119 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
  (ROOT/'.qa-online.json').write_text(json.dumps({'teacher':{'username':recover_data['username'],'password':recover_data['password']},'student':{'username':students[0]['username'],'password':'Student-QA-new-password'},'class':class1,'quiz':quiz,'project':project}))
  print('Online 33.33: MySQL/HTTP auth, custom logins, duplicate rollback, teacher recovery with key and CSRF, login lock clearing after recovery, session invalidation, preserved classes and work, grading, reset and deletion: PASS')
 finally:server.terminate();server.wait(timeout=10);log.close()

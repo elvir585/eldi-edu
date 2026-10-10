@@ -1,5 +1,5 @@
 Options -Indexes
-<FilesMatch "^(config\.example|service|section-service|section-tests)\.php$">
+<FilesMatch "^(config\.example|service|section-service|section-tests|complete-service|school-runtime|practical-tasks)\.php$">
   Require all denied
 </FilesMatch>
 <IfModule mod_headers.c>
@@ -9,5 +9,9 @@ Options -Indexes
   Header always set Cache-Control "no-store"
 </IfModule>
 <Files "api.php">
+  Require all granted
+</Files>
+
+<Files "classroom-119.php">
   Require all granted
 </Files>

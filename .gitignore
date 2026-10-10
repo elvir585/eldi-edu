@@ -29,3 +29,6 @@ release-startup-audit/
 website/eldi-edu/ucionica/sw.js
 website/eldi-edu/ucionica/offline-files.json
 .qa-*
+# Generated classroom deployment; rebuilt and tested in CI.
+website/eldi-edu/online/v119/
+website/eldi-edu/online/classroom-119.php
