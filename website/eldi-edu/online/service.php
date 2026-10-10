@@ -23,6 +23,24 @@ final class Classroom {
  public function install(string $username,string $name,string $password):void{if($this->installed())throw new ClassroomError('Instalacija je već završena.',409);$username=strtolower(self::text($username,60));if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$username))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');$hash=self::password($password);$this->schema();$this->db->beginTransaction();try{$this->run('INSERT INTO eldi3333_settings(name,value) VALUES(?,?)',['installed',(string)time()]);$this->run('INSERT INTO eldi3333_users VALUES(?,?,?,?,?,?)',[self::id(),$username,self::text($name),$hash,'teacher',time()]);$this->db->commit();}catch(Throwable $e){$this->db->rollBack();throw $e;}}
  public function throttle(string $bucket):void{$this->run('DELETE FROM eldi3333_limits WHERE until_at < ?',[time()]);$v=$this->run('SELECT * FROM eldi3333_limits WHERE bucket=?',[$bucket])->fetch();if($v&&$v['attempts']>=15)throw new ClassroomError('Previše pokušaja. Sačekajte 15 minuta.',429);if($v)$this->run('UPDATE eldi3333_limits SET attempts=attempts+1 WHERE bucket=?',[$bucket]);else $this->run('INSERT INTO eldi3333_limits VALUES(?,?,?)',[$bucket,1,time()+900]);}
  public function login(string $username,string $password,string $bucket):array{$this->throttle($bucket);$user=$this->run('SELECT * FROM eldi3333_users WHERE username=?',[strtolower(trim($username))])->fetch();if(!$user||!password_verify($password,$user['password_hash']))throw new ClassroomError('Korisničko ime ili lozinka nisu tačni.',401);$this->run('DELETE FROM eldi3333_limits WHERE bucket=?',[$bucket]);unset($user['password_hash']);return $user;}
+ public function recoverTeacher(string $token,string $expected,string $username,string $password,string $recoveryBucket,string $loginBucket):array{
+  $this->throttle($recoveryBucket);
+  if(strlen($expected)<24||str_contains($expected,'ZAMIJENITE')||!hash_equals($expected,$token))throw new ClassroomError('Instalacijski ključ nije tačan ili nije podešen.',403);
+  $username=strtolower(self::text($username,60));
+  if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$username))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');
+  $hash=self::password($password);
+  $teachers=$this->run('SELECT id FROM eldi3333_users WHERE role=? ORDER BY created_at LIMIT 2',['teacher'])->fetchAll();
+  if(count($teachers)!==1)throw new ClassroomError('Obnova očekuje jedan nastavnički račun. Provjerite račune kroz hosting.',409);
+  $id=$teachers[0]['id'];
+  if($this->run('SELECT id FROM eldi3333_users WHERE username=? AND id<>?',[$username,$id])->fetchColumn())throw new ClassroomError('To korisničko ime već pripada drugom računu. Izaberite drugo.',409);
+  $this->db->beginTransaction();
+  try{
+   $this->run('UPDATE eldi3333_users SET username=?,password_hash=? WHERE id=? AND role=?',[$username,$hash,$id,'teacher']);
+   $this->run('DELETE FROM eldi3333_limits WHERE bucket IN (?,?)',[$recoveryBucket,$loginBucket]);
+   $this->db->commit();
+  }catch(Throwable $e){$this->db->rollBack();if($e instanceof PDOException&&(string)$e->getCode()==='23000')throw new ClassroomError('Korisničko ime već postoji. Izaberite drugo.',409);throw $e;}
+  return ['username'=>$username];
+ }
  public function user(string $id):array{$u=$this->run('SELECT id,username,display_name,role FROM eldi3333_users WHERE id=?',[$id])->fetch();if(!$u)throw new ClassroomError('Prijavite se ponovo.',401);return $u;}
  public function sessionTag(string $id):string{return hash('sha256',(string)$this->run('SELECT password_hash FROM eldi3333_users WHERE id=?',[$id])->fetchColumn());}
  public function teacher(array $u):void{if($u['role']!=='teacher')throw new ClassroomError('Ova radnja je dostupna nastavniku.',403);}

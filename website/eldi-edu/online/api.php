@@ -20,6 +20,11 @@ try {
  $raw=file_get_contents('php://input',false,null,0,2800001);if(strlen($raw)>2800000)throw new ClassroomError('Zahtjev je prevelik.',413);$v=json_decode($raw,true,64,JSON_THROW_ON_ERROR);if(!is_array($v))throw new ClassroomError('Neispravan zahtjev.');
  if($action==='install'){$token=$config['install_token']??'';if(strlen($token)<24||str_contains($token,'ZAMIJENITE')||!hash_equals($token,(string)($v['token']??'')))throw new ClassroomError('Instalacijski ključ nije tačan ili nije podešen.',403);$app->install((string)($v['username']??''),(string)($v['name']??''),(string)($v['password']??''));$result=['installed'=>true];}
  elseif(!$app->installed())throw new ClassroomError('Nastavnik prvo treba završiti instalaciju.',503);
+ elseif($action==='recover_teacher'){
+  $expected=(string)($config['install_token']??'');$ip=$_SERVER['REMOTE_ADDR']??'unknown';
+  $result=$app->recoverTeacher((string)($v['token']??''),$expected,(string)($v['username']??''),(string)($v['password']??''),hash_hmac('sha256','teacher-recovery:'.$ip,$expected),hash_hmac('sha256',$ip,$expected));
+  unset($_SESSION['user'],$_SESSION['auth_tag']);session_regenerate_id(true);$_SESSION['csrf']=bin2hex(random_bytes(24));$result['csrf']=$_SESSION['csrf'];
+ }
  elseif($action==='login'){$bucket=hash_hmac('sha256',($_SERVER['REMOTE_ADDR']??'unknown'),$config['install_token']);$u=$app->login((string)($v['username']??''),(string)($v['password']??''),$bucket);session_regenerate_id(true);$_SESSION['user']=$u['id'];$_SESSION['auth_tag']=$app->sessionTag($u['id']);$_SESSION['csrf']=bin2hex(random_bytes(24));$result=['user'=>$u,'csrf'=>$_SESSION['csrf']];}
  elseif($action==='logout'){$_SESSION=[];session_regenerate_id(true);$result=[];}
  else{$u=$app->user($_SESSION['user']??'');$result=match($action){

@@ -75,6 +75,27 @@ try:
  a.call('password',{'old':reset['password'],'password':'Student-QA-new-password'});assert a.call('status')['user']
  anonymous=Client();anonymous.call('status');anonymous.call('dashboard',{},401)
  teacher.call('remove_student',{'class_id':class2,'student_id':outsider['id']});assert other.call('status')['user'] is None
- (ROOT/'.qa-online.json').write_text(json.dumps({'teacher':{'username':'nastavnik.qa','password':'Teacher-QA-3333-password'},'student':{'username':students[0]['username'],'password':'Student-QA-new-password'},'class':class1,'quiz':quiz,'project':project}))
- print('Online 33.33: MySQL/HTTP auth, custom and automatic student logins, duplicate/invalid batch rollback, CSRF, roles, isolation, grading, deadlines, projects, password reset and deletion: PASS')
+ recovery=Client();recovery.call('status')
+ recover_data={'token':'ci-only-install-key-not-for-production-3333','username':'nastavnik.obnovljen.qa','password':'Recovered-Teacher-QA-2026'}
+ teacher_before=teacher.call('status')['user'];classes_before=teacher.call('dashboard',{})['classes']
+ recovery.call('recover_teacher',recover_data,403,csrf='wrong-csrf')
+ recovery.call('recover_teacher',dict(recover_data,token='wrong-token'),403)
+ recovery.call('recover_teacher',dict(recover_data,password='short'),400)
+ recovery.call('recover_teacher',dict(recover_data,username='bad name'),400)
+ recovery.call('recover_teacher',dict(recover_data,username=students[0]['username']),409)
+ assert teacher.call('status')['user']['id']==teacher_before['id']
+ blocked=Client();blocked.call('status')
+ for _ in range(15):blocked.call('login',{'username':'unknown.qa','password':'invalid'},401)
+ blocked.call('login',{'username':'nastavnik.qa','password':'Teacher-QA-3333-password'},429)
+ recovered=recovery.call('recover_teacher',recover_data)
+ assert recovered['username']==recover_data['username'] and 'password' not in recovered
+ assert recovery.call('status')['user'] is None and teacher.call('status')['user'] is None
+ teacher.call('login',{'username':'nastavnik.qa','password':'Teacher-QA-3333-password'},401)
+ teacher.call('login',{'username':recover_data['username'],'password':recover_data['password']})
+ assert teacher.call('status')['user']['id']==teacher_before['id']
+ assert teacher.call('dashboard',{})['classes']==classes_before
+ assert a.call('status')['user']['id']==students[0]['id']
+ assert teacher.call('submission',{'id':sub['id']})['submission']['grade']=='5'
+ (ROOT/'.qa-online.json').write_text(json.dumps({'teacher':{'username':recover_data['username'],'password':recover_data['password']},'student':{'username':students[0]['username'],'password':'Student-QA-new-password'},'class':class1,'quiz':quiz,'project':project}))
+ print('Online 33.33: MySQL/HTTP auth, custom logins, duplicate rollback, teacher recovery with key and CSRF, login lock clearing after recovery, session invalidation, preserved classes and work, grading, reset and deletion: PASS')
 finally:server.terminate();server.wait(timeout=10);log.close()
