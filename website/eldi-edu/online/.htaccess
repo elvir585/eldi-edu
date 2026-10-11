@@ -31,3 +31,7 @@ Options -Indexes
 <Files "classroom-competition.php">
   Require all granted
 </Files>
+
+<Files "classroom-competition2.php">
+  Require all granted
+</Files>

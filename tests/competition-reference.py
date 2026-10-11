@@ -10,6 +10,7 @@ ids=set();count=0
 for bank in banks.values():
  assert len(bank['questions'])==10 and sum(q['points'] for q in bank['questions'])==100
  for q in bank['questions']:
+  assert q['for_only'] and 'while' not in q['reference']
   assert q['id'] not in ids;ids.add(q['id'])
   if q['mode']=='fill':
    src=q['template']
@@ -21,8 +22,11 @@ for bank in banks.values():
    assert [p['id'] for p in q['pieces']]!=q['solution']
   for c in q['cases']:
    run=subprocess.run([sys.executable,'-c',q['reference']],input='\n'.join(c['input'])+'\n',capture_output=True,text=True,timeout=2,check=True)
+   if q.get('response_kind')=='count':
+    assert run.stdout.splitlines()==q['execution_output']
+    assert len(q['execution_output'])==int(q['answer']);count+=1;continue
    actual=run.stdout.split();assert len(actual)==len(c['output']),q['id']
    assert all(math.isclose(float(x),float(y),rel_tol=1e-9,abs_tol=1e-9) for x,y in zip(actual,c['output'])),(q['id'],c,actual)
    count+=1
-assert count==246
-print('Competition: CPython independently verifies all 246 cases and all 30 reference tasks PASS')
+assert count==219
+print('Competition: CPython independently verifies all 219 cases and all 30 reference tasks PASS')

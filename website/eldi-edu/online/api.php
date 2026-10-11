@@ -13,7 +13,7 @@ try {
  if($configured){$config=require $path;if(!is_array($config)||!str_starts_with($config['dsn']??'','mysql:'))throw new ClassroomError('Provjerite privatnu MySQL konfiguraciju.',503);$app=new Classroom(new PDO($config['dsn'],$config['user'],$config['password']));}
  if($app&&$app->installed()){$app->upgradeSections();$app->upgradeComplete();$app->upgradeStaff();$app->upgradeCleanup();}
  if($app&&isset($_SESSION['user'])&&(!isset($_SESSION['auth_tag'])||!hash_equals($_SESSION['auth_tag'],$app->sessionTag($_SESSION['user'])))){unset($_SESSION['user'],$_SESSION['auth_tag']);session_regenerate_id(true);}
- if($action==='status'){$installed=$app?->installed()??false;$u=$installed&&isset($_SESSION['user'])?$app->user($_SESSION['user']):null;echo json_encode(['ok'=>true,'configured'=>$configured,'installed'=>$installed,'user'=>$u,'csrf'=>$_SESSION['csrf'],'version'=>'33.33.0','features'=>'complete-119','algorithms'=>'20-blokba-1','staff'=>'accounts-1','cleanup'=>'trash-1','competition'=>'3x10-1','preview'=>isset($_SESSION['teacher_preview'])]);exit;}
+ if($action==='status'){$installed=$app?->installed()??false;$u=$installed&&isset($_SESSION['user'])?$app->user($_SESSION['user']):null;echo json_encode(['ok'=>true,'configured'=>$configured,'installed'=>$installed,'user'=>$u,'csrf'=>$_SESSION['csrf'],'version'=>'33.33.0','features'=>'complete-119','algorithms'=>'20-blokba-1','staff'=>'accounts-1','cleanup'=>'trash-1','competition'=>'3x10-for-2','preview'=>isset($_SESSION['teacher_preview'])]);exit;}
  if(!$app)throw new ClassroomError('Najprije postavite privatnu konfiguraciju iznad public_html. Upute su uz paket.',503);
  if(($_SERVER['REQUEST_METHOD']??'GET')!=='POST')throw new ClassroomError('Koristite POST zahtjev.',405);
  if(!hash_equals($_SESSION['csrf'],$_SERVER['HTTP_X_CSRF_TOKEN']??''))throw new ClassroomError('Sesija je istekla. Osvježite stranicu.',403);
@@ -62,6 +62,7 @@ try {
  'set_invite'=>$app->setInvite($u,(string)($v['class_id']??''),(bool)($v['enabled']??true)),
  'approve_student'=>$app->approveStudent($u,(string)($v['class_id']??''),(string)($v['student_id']??''),(bool)($v['approve']??false)),
  'section_catalog'=>(function()use($app,$u){$app->teacher($u);return ['catalog'=>Classroom::sectionCatalog()];})(),
+ 'refresh_competitions'=>$app->refreshCompetitions($u,(string)($v['class_id']??'')),
  'publish_section'=>$app->publishSection($u,$v),
  'certificate'=>$app->certificate($u,(string)($v['submission_id']??'')),
  'create_class'=>$app->createClass($u,(string)($v['title']??'')),

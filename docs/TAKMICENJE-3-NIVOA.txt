@@ -1,72 +1,89 @@
-ELDI EDU 33.33 — TAKMIČENJE: TRI NIVOA PO DESET ZADATAKA
+ELDI EDU 33.33 — ISPRAVKE PREMA DININIM PRIMJEDBAMA
 Elvir Čajić · Dino Isanović
 
-POSTAVLJANJE NADOGRADNJE
-1. Sačuvajte kopiju postojećeg foldera public_html/eldi-edu/online i baze u cPanelu.
-2. ZIP ELDI-33.33-TAKMICENJE-3-NIVOA.zip učitajte u public_html.
-3. Kliknite Extract / Raspakuj u /public_html. Potvrdite zamjenu datoteka.
-4. Otvorite https://upinitk.com/eldi-edu/online/#nastavnik i pritisnite Ctrl + F5.
+POSTAVLJANJE
+1. Sačuvajte kopiju foldera public_html/eldi-edu/online i baze u cPanelu.
+2. ELDI-33.33-TAKMICENJE-FOR-ISPRAVKE.zip učitajte u public_html.
+3. Extract / Raspakuj u /public_html. Potvrdite zamjenu datoteka.
+4. Otvorite https://upinitk.com/eldi-edu/online/#nastavnik pa Ctrl + F5.
 5. Prijavite se postojećim nastavničkim računom. Kliknite „Takmičenje · 3 nivoa“.
-6. Izaberite odjeljenje, datum i jedan ili sva tri nivoa. Kliknite „Objavi izabrane testove“.
-7. Učenici se prijavljuju postojećim računima i otvaraju dodijeljeni test.
+6. Izaberite odjeljenje i kliknite „Ažuriraj već objavljene testove“.
+   Ažuriraju se postojeći takmičarski testovi koji još nemaju konačnih predaja.
+   Datum, rok, status zatvorenosti i identitet testa ostaju isti.
+   Učenici osvježe stranicu i otvore test ponovo. Za novo izdanje počinju novu skicu.
+7. Ako test već ima makar jednu konačnu predaju, ostaje staro izdanje sa svim
+   rezultatima. Za novu verziju označite željene nivoe, izaberite DRUGI datum
+   i kliknite „Objavi izabrane testove“. Stari radovi ostaju sačuvani.
+   Isto dugme koristite ako testovi još nisu bili objavljeni.
 
-Paket je nadogradnja postojeće ELDI učionice s paketom Algoritmi 20 i BlokBa.
-Ne traži novu instalaciju, novu bazu, novi ključ ili promjenu lozinki.
-Sadrži i ranije dodatke za nastavnike/administratore i vraćanje obrisanih stavki.
-Privatna konfiguracija iznad public_html i podaci u bazi ostaju postojeći.
-Ne zamjenjuje početnu stranicu portala ni njegovu glavnu .htaccess datoteku.
-Promjene su za online učionicu; ne mijenjaju instaliranu desktop aplikaciju BlokBa.
+Samo raspakivanje ZIP-a ažurira katalog, ali NE mijenja zadatke već sačuvane
+u objavljenim testovima. Zato je potreban korak 6 ili nova objava iz koraka 7.
+Obrisani testovi preskaču se; prvo ih vratite ako želite njihovo ažuriranje.
 
-TRI NIVOA
-1. Ulaz, varijable i ispis: zbir, razlika, proizvod, količnik i realni brojevi.
-2. Linijska struktura i uslovi: prosjek, apsolutna vrijednost, poređenja,
-   popust, dijeljenje nulom, kalkulator i trougao.
-3. Petlje i takmičarski izazovi: akumulator, range, proizvod, unos više
-   brojeva, ponovljeno sabiranje, parni brojevi, cifre i NZD.
+Ovo je nadogradnja postojeće ELDI učionice s paketom Algoritmi 20 i BlokBa.
+Nema nove instalacije, baze, ključa ili promjene lozinki. Paket sadrži prethodne
+online dodatke za učenike, nastavnike/administratore i obrisane stavke.
+Ne sadrži privatnu konfiguraciju, korisničke podatke ni lozinke.
+Ne mijenja početnu stranicu portala ni instaliranu desktop aplikaciju BlokBa.
 
-Svaki nivo ima 2 zadatka predviđanja ispisa, 2 dopunjavanja, 2 slaganja
-naredbi i 4 programska zadatka. Ukupno: 30 različitih zadataka.
-U katalogu je sada 135 provjera: 112 ranijih testova, 20 praktičnih zadataka
-koji se objavljuju pojedinačno i 3 nova testa po 10 zadataka.
+ŠTA JE IZMIJENJENO
+- U sva tri takmičarska testa koriste se samo FOR petlje. WHILE je uklonjen
+  iz zadataka i ponude blokova, a takva rješenja se odbijaju u novom izdanju.
+- Nivo 2 počinje slaganjem naredbi za prosjek. Slaganje apsolutne vrijednosti
+  također je ranije. Pitanja s IF i programi za dopunjavanje ostaju.
+- Umjesto suhoparnog „ulaz“ koriste se formulacije poput „Zamisli da su
+  uneseni brojevi 6 i 10“. Probni primjeri imaju jasno imenovan unos i ispis.
+- Nivo 1, zadatak 9: razlomak kao decimalni broj, npr. 3/4 = 0.75;
+  primjeri prikazuju brojnik iznad nazivnika.
+- Teži dosadašnji prvi zadatak o zbiru u petlji ostaje kao zadatak 7 nivoa 3.
+- NZD je izdvojen u nastavnički dodatak za sekciju, zajedno sa zbirom cifara
+  i zbirom parnih brojeva. Sva tri dodatna programa koriste FOR.
+- Rješenja, redoslijed i provjere usklađeni su s novim zadacima.
 
-RAD UČENIKA
-Učenik rješava zadatak po zadatak, može se vraćati i pregledati sve odgovore.
-Skica se čuva u istom pregledniku na istom uređaju; nije automatski prenesena
-na drugi uređaj. Konačna predaja se čuva na serveru.
-Kod slaganja blokova može koristiti strelice gore/dolje ili prevlačenje.
-Program piše u Pythonu, slaže blokovima ovdje ili učitava svoj .py iz BlokBa.
-Dugme „Pretvori moj kod u blokove“ prevodi podržani vlastiti kod u blokove.
-Dva vidljiva primjera služe za probu. Može unijeti i vlastite ulazne brojeve.
-„Pregled i predaja“ prikazuje svih deset zadataka; „Predaj cijeli test i završi“
-šalje sve odgovore zajedno. Postoji jedna konačna predaja po dodijeljenom testu.
-Nastavnik za novi pokušaj može objaviti isti nivo za drugi datum.
+NOVI REDOSLIJED NIVOA 3
+1. for i in range(5): print("Volim školu") — koliko ispisa? Odgovor: 5.
+2. for i in range(2, 5): print("Volim informatiku") — koliko ispisa? Odgovor: 3.
+3. for i in range(1, 6, 2): print(i) — ispis 1, 3, 5.
+4. Dopuni X u range(X, 10, 2) za tačan ispis 2, 4, 6, 8. X = 2.
+5. Složi FOR petlju za zbir od 1 do n.
+6. Dopuni gornju granicu range sa n + 1.
+7. Prati zbir u petlji — teži zadatak pomjeren sa početka. Odgovor: 20.
+8. Dopuni množenje u akumulatoru proizvoda.
+9. Složi učitavanje i sabiranje više brojeva.
+10. Napiši množenje ponovljenim sabiranjem pomoću FOR petlje.
+Programi iz tačaka 1–4 gore prikazani su sažeto; u aplikaciji su uvlačenja
+naredbi pravilno prikazana u više redova.
 
-BODOVANJE
-Svaki zadatak nosi 10 bodova; cijeli test nosi 100 bodova.
-Predviđanje ispisa: 10 za potpuno tačan odgovor, inače 0.
-Dopunjavanje, slaganje i programiranje: 10 provjera na serveru, po 1 bod.
-Prihvaća se drugo ispravno rješenje koje zadovoljava navedene uslove.
-Zadaci drugog nivoa za pisanje programa zahtijevaju if, trećeg nivoa petlju.
-Nema negativnih bodova. Prazan ili neispravan program dobija 0 za taj zadatak.
+RAD UČENIKA I OCJENJIVANJE
+Tri nivoa po deset zadataka, svaki nivo 100 bodova, svaki zadatak 10 bodova.
+Predviđanje ispisa / brojanje: 10 za potpuno tačan odgovor, inače 0.
+Dopunjavanje, slaganje i programiranje: 10 × uspješne provjere / sve provjere.
+Zadatak o početku parnog niza ima jednu provjeru i donosi 10 ili 0 bodova.
+Ostali izvršivi zadaci imaju deset provjera; prva dva primjera su vidljiva.
+Ukupno: 219 provjera za 30 zadataka. Nema negativnih bodova.
+Nivo 2, programski zadaci 7–10, traži IF. Nivo 3, zadatak 10, traži FOR.
+Prihvata se svako ispravno rješenje koje ispunjava zadane uslove.
 Ocjene: 1 ispod 50%; 2 od 50%; 3 od 65%; 4 od 80%; 5 od 90%.
-Nakon predaje učenik vidi bodove po zadatku, primjer rješenja, značku i diplomu.
-Nastavnik vidi sve predaje i može upisati komentar i nastavničku ocjenu.
-Diploma navodi škole, projekt Inovativni nastavnici – Step by Step,
-Elvira Čajića i Dinu Isanovića te digitalne oznake potpisa i pečat projekta.
 
-BLOKBA
-Službena preuzimanja: https://github.com/DinoIsanovic/BlokBa-app/releases
-Otvori BlokBa, složi blokove, sačuvaj dobiveni Python kao .py, pa učitaj .py
-u online zadatak. Stranica ne pokreće desktop BlokBa automatski.
-Ocjenjivanje koristi ograničeni školski režim: brojevi, input/print, varijable,
-aritmetika, poređenja, if/elif/else, for/range, while, break, continue,
-abs/min/max i logički operatori. Bez biblioteka, datoteka, mreže i lista.
-Uvlačenje: četiri razmaka. Decimalna tačka u kodu; ulaz može imati i zarez.
-Program ispisuje samo tražene brojeve. Preduge petlje se zaustavljaju.
+Učenik se može vraćati na zadatke. Skica ostaje u istom pregledniku i uređaju.
+Kod slaganja koristi strelice ili prevlačenje. Program može pisati Pythonom,
+slagati blokovima u aplikaciji ili učitati .py iz BlokBa. Može probati primjere
+i vlastite brojeve. „Pregled i predaja“ pa „Predaj cijeli test i završi“ šalje
+sve odgovore zajedno. Postoji jedna konačna predaja po dodijeljenom testu.
+Poslije predaje dostupni su rezultat, rješenja, značka i diploma.
+Nastavnik vidi radove i može dodati komentar i nastavničku ocjenu.
+
+Školski izvršivač za pisanje programa podržava brojčane naredbe, varijable,
+računske operatore, input/print, if/elif/else, for/range, abs/min/max,
+and/or/not, break, continue i pass. Bez biblioteka, datoteka i lista.
+U prva dva pitanja učenik čita dati program s tekstom i upisuje samo broj
+ponavljanja; ti tekstualni programi nisu zadaci za brojčani izvršivač.
+U kodu koristi se decimalna tačka; vlastiti unos može imati decimalni zarez.
+Podrška drugih, ranijih dijelova platforme ostaje postojeća.
 
 RJEŠENJA ZA NASTAVNIKE
-Poseban ZIP ELDI-33.33-RJESENJA-30-ZADATAKA.zip sadrži svih 30 rješenja,
-objašnjenja, .py programe i sve provjere. Čuvajte ga na svom računaru.
-Nemojte taj ZIP raspakivati u public_html — služi kao nastavnički priručnik.
-U nastavničkom panelu također postoji „Pregled zadataka i rješenja za nastavnika“.
-Učeniku se rješenja na platformi otkrivaju tek nakon njegove konačne predaje.
+ELDI-33.33-RJESENJA-FOR-ISPRAVKE.zip sadrži svih 30 rješenja i 3 dodatne
+vježbe za sekciju: NZD, zbir cifara i zbir parnih brojeva. Svako ima tekst
+zadatka, objašnjenje, Python program i provjere. Tu je i zbirni priručnik.
+Taj ZIP čuvajte na računaru, ne raspakujte ga u public_html.
+Dodatne tri vježbe su nastavnički materijal; nisu četvrti online test.

@@ -16,3 +16,6 @@ fs.writeFileSync(path.join(root,'classroom-cleanup.php'),fs.readFileSync(path.jo
 
 const competition=path.join(root,'vcompetition');fs.mkdirSync(competition,{recursive:true});fs.cpSync(dir,competition,{recursive:true});
 fs.writeFileSync(path.join(root,'classroom-competition.php'),fs.readFileSync(path.join(root,'api.php'),'utf8').replace("require __DIR__.'/service.php';","require __DIR__.'/vcompetition/service.php';"));
+
+const competition2=path.join(root,'vcompetition2');fs.mkdirSync(competition2,{recursive:true});fs.cpSync(dir,competition2,{recursive:true});
+fs.writeFileSync(path.join(root,'classroom-competition2.php'),fs.readFileSync(path.join(root,'api.php'),'utf8').replace("require __DIR__.'/service.php';","require __DIR__.'/vcompetition2/service.php';"));

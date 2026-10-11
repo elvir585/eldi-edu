@@ -10,13 +10,14 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
     "subject": "informatika",
     "featured": false,
     "competition": true,
+    "revision": 2,
     "level": 1,
     "questions": [
       {
         "id": "l1-zbir",
         "mode": "output",
         "title": "Varijable i zbir",
-        "prompt": "Koji broj ispisuje program? Ulaz nije potreban.",
+        "prompt": "Koji broj ispisuje program? Ovdje ne treba unositi brojeve.",
         "points": 10,
         "reference": "a = 7\nb = 5\nprint(a + b)\n",
         "cases": [
@@ -30,13 +31,14 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         "explanation": "Varijable a i b čuvaju 7 i 5. Njihov zbir je 12.",
         "code": "a = 7\nb = 5\nprint(a + b)",
         "input": [],
-        "answer": "12"
+        "answer": "12",
+        "for_only": true
       },
       {
         "id": "l1-ulaz",
         "mode": "output",
         "title": "Od ulaza do ispisa",
-        "prompt": "Ulazni brojevi su 9 i 4, svaki u svom redu. Napiši ispis programa.",
+        "prompt": "Zamisli da su uneseni brojevi 9 i 4, tim redom. Napiši ispis programa.",
         "points": 10,
         "reference": "a = int(input())\nb = int(input())\nprint(a - b)\n",
         "cases": [
@@ -56,7 +58,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           "9",
           "4"
         ],
-        "answer": "5"
+        "answer": "5",
+        "for_only": true
       },
       {
         "id": "l1-dopuni-zbir",
@@ -164,7 +167,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "solution": [
           "b"
-        ]
+        ],
+        "for_only": true
       },
       {
         "id": "l1-dopuni-proizvod",
@@ -272,7 +276,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "solution": [
           "*"
-        ]
+        ],
+        "for_only": true
       },
       {
         "id": "l1-slozi-duplo",
@@ -382,7 +387,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
             "id": "b335ef62e8",
             "code": "n = int(input())"
           }
-        ]
+        ],
+        "for_only": true
       },
       {
         "id": "l1-slozi-razliku",
@@ -507,7 +513,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
             "id": "65876e0a71",
             "code": "r = a - b"
           }
-        ]
+        ],
+        "for_only": true
       },
       {
         "id": "l1-realni-zbir",
@@ -609,7 +616,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           }
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "starter": "a = float(input())\nb = float(input())\n# Napiši računanje i ispis.\n"
+        "starter": "a = float(input())\nb = float(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       },
       {
         "id": "l1-mnozenje",
@@ -711,23 +719,42 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           }
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "starter": "a = int(input())\nb = int(input())\n# Napiši računanje i ispis.\n"
+        "starter": "a = int(input())\nb = int(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       },
       {
         "id": "l1-dijeljenje",
         "mode": "program",
-        "title": "Dijeljenje bez gubitka decimala",
-        "prompt": "Učitaj realne brojeve a i b. Broj b nije nula. Ispiši a / b, uključujući decimalni dio. Koristi /, a ne cjelobrojno dijeljenje //.",
+        "title": "Razlomak kao decimalni broj",
+        "prompt": "Zamisli da prvi uneseni broj a predstavlja brojnik, a drugi broj b nazivnik razlomka. Napiši program koji ih učitava i ispisuje razlomak kao decimalni broj. Naprimjer, 3/4 = 0.75. Nazivnik nije nula. Koristi dijeljenje /.",
         "points": 10,
         "reference": "a = float(input())\nb = float(input())\nprint(a / b)\n",
         "cases": [
           {
             "input": [
-              "9",
+              "3",
+              "4"
+            ],
+            "output": [
+              "0.75"
+            ]
+          },
+          {
+            "input": [
+              "1",
               "2"
             ],
             "output": [
-              "4.5"
+              "0.5"
+            ]
+          },
+          {
+            "input": [
+              "5",
+              "2"
+            ],
+            "output": [
+              "2.5"
             ]
           },
           {
@@ -741,6 +768,15 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           },
           {
             "input": [
+              "-3",
+              "4"
+            ],
+            "output": [
+              "-0.75"
+            ]
+          },
+          {
+            "input": [
               "0",
               "5"
             ],
@@ -750,29 +786,20 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           },
           {
             "input": [
-              "-7",
+              "7",
               "2"
             ],
             "output": [
-              "-3.5"
+              "3.5"
             ]
           },
           {
             "input": [
-              "8",
-              "-4"
+              "2",
+              "5"
             ],
             "output": [
-              "-2.0"
-            ]
-          },
-          {
-            "input": [
-              "-9",
-              "-3"
-            ],
-            "output": [
-              "3.0"
+              "0.4"
             ]
           },
           {
@@ -786,34 +813,18 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           },
           {
             "input": [
-              "0.5",
-              "2"
+              "10",
+              "4"
             ],
             "output": [
-              "0.25"
-            ]
-          },
-          {
-            "input": [
-              "100",
-              "0.25"
-            ],
-            "output": [
-              "400.0"
-            ]
-          },
-          {
-            "input": [
-              "7.5",
-              "1.5"
-            ],
-            "output": [
-              "5.0"
+              "2.5"
             ]
           }
         ],
-        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "starter": "a = float(input())\nb = float(input())\n# Napiši računanje i ispis.\n"
+        "explanation": "Razlomak a/b predstavlja dijeljenje brojnika nazivnikom. Operator / daje decimalni zapis: 3/4 = 0.75, 1/2 = 0.5. Float čuva decimalni dio, a // ovdje ne treba koristiti.",
+        "fraction_inputs": true,
+        "starter": "a = float(input())\nb = float(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       },
       {
         "id": "l1-dva-ispisa",
@@ -925,7 +936,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           }
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "starter": "a = int(input())\nb = int(input())\n# Napiši računanje i ispis.\n"
+        "starter": "a = int(input())\nb = int(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       }
     ]
   },
@@ -936,270 +948,9 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
     "subject": "informatika",
     "featured": false,
     "competition": true,
+    "revision": 2,
     "level": 2,
     "questions": [
-      {
-        "id": "l2-prioritet",
-        "mode": "output",
-        "title": "Redoslijed računanja",
-        "prompt": "Napiši broj koji program ispisuje. Obrati pažnju na zagrade, množenje i dijeljenje.",
-        "points": 10,
-        "reference": "a = 8\nb = 4\nprint((a + b) * 2 - 6 / 3)\n",
-        "cases": [
-          {
-            "input": [],
-            "output": [
-              "22"
-            ]
-          }
-        ],
-        "explanation": "Zagrada daje 12, zatim 12 · 2 − 6 / 3 = 24 − 2 = 22.",
-        "code": "a = 8\nb = 4\nprint((a + b) * 2 - 6 / 3)",
-        "input": [],
-        "answer": "22"
-      },
-      {
-        "id": "l2-grana",
-        "mode": "output",
-        "title": "Koja grana se izvršava?",
-        "prompt": "Ulaz je 6, zatim 10. Koji broj će biti ispisan?",
-        "points": 10,
-        "reference": "a = float(input())\nb = float(input())\nif a > b:\n    print(a / b)\nelse:\n    print(b - a)\n",
-        "cases": [
-          {
-            "input": [
-              "6",
-              "10"
-            ],
-            "output": [
-              "4"
-            ]
-          }
-        ],
-        "explanation": "Uslov 6 > 10 nije tačan. Izvršava se else i ispisuje 10 − 6 = 4.",
-        "code": "a = float(input())\nb = float(input())\nif a > b:\n    print(a / b)\nelse:\n    print(b - a)",
-        "input": [
-          "6",
-          "10"
-        ],
-        "answer": "4"
-      },
-      {
-        "id": "l2-dopuni-uslov",
-        "mode": "fill",
-        "title": "Dopuni poređenje",
-        "prompt": "Dopuni uslov da se ispiše veći od dva realna broja. Kada su jednaki, ispisuje se taj broj.",
-        "points": 10,
-        "reference": "a = float(input())\nb = float(input())\nif a > b:\n    print(a)\nelse:\n    print(b)\n",
-        "cases": [
-          {
-            "input": [
-              "2.5",
-              "1.25"
-            ],
-            "output": [
-              "2.5"
-            ]
-          },
-          {
-            "input": [
-              "-3.5",
-              "2"
-            ],
-            "output": [
-              "2"
-            ]
-          },
-          {
-            "input": [
-              "0",
-              "0"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "0.1",
-              "0.2"
-            ],
-            "output": [
-              "0.2"
-            ]
-          },
-          {
-            "input": [
-              "12.5",
-              "-4"
-            ],
-            "output": [
-              "12.5"
-            ]
-          },
-          {
-            "input": [
-              "-1.25",
-              "-2.75"
-            ],
-            "output": [
-              "-1.25"
-            ]
-          },
-          {
-            "input": [
-              "100",
-              "0.5"
-            ],
-            "output": [
-              "100"
-            ]
-          },
-          {
-            "input": [
-              "1",
-              "1"
-            ],
-            "output": [
-              "1"
-            ]
-          },
-          {
-            "input": [
-              "-8",
-              "8"
-            ],
-            "output": [
-              "8"
-            ]
-          },
-          {
-            "input": [
-              "999.9",
-              "0.1"
-            ],
-            "output": [
-              "999.9"
-            ]
-          }
-        ],
-        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "template": "a = float(input())\nb = float(input())\nif a __1__ b:\n    print(a)\nelse:\n    print(b)\n",
-        "blanks": [
-          "Operator poređenja"
-        ],
-        "solution": [
-          ">"
-        ]
-      },
-      {
-        "id": "l2-dopuni-nulu",
-        "mode": "fill",
-        "title": "Zaštiti dijeljenje",
-        "prompt": "Ako je b različit od nule, ispiši a / b. Ako je b nula, ispiši 0. Dopuni provjeru.",
-        "points": 10,
-        "reference": "a = float(input())\nb = float(input())\nif b != 0:\n    print(a / b)\nelse:\n    print(0)\n",
-        "cases": [
-          {
-            "input": [
-              "8",
-              "2"
-            ],
-            "output": [
-              "4.0"
-            ]
-          },
-          {
-            "input": [
-              "7",
-              "0"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "0",
-              "0"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "-9",
-              "3"
-            ],
-            "output": [
-              "-3.0"
-            ]
-          },
-          {
-            "input": [
-              "1",
-              "4"
-            ],
-            "output": [
-              "0.25"
-            ]
-          },
-          {
-            "input": [
-              "5",
-              "-2"
-            ],
-            "output": [
-              "-2.5"
-            ]
-          },
-          {
-            "input": [
-              "0",
-              "5"
-            ],
-            "output": [
-              "0.0"
-            ]
-          },
-          {
-            "input": [
-              "12.5",
-              "2.5"
-            ],
-            "output": [
-              "5.0"
-            ]
-          },
-          {
-            "input": [
-              "10",
-              "0"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "1",
-              "3"
-            ],
-            "output": [
-              "0.3333333333333333"
-            ]
-          }
-        ],
-        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "template": "a = float(input())\nb = float(input())\nif b __1__ 0:\n    print(a / b)\nelse:\n    print(0)\n",
-        "blanks": [
-          "Operator za različito"
-        ],
-        "solution": [
-          "!="
-        ]
-      },
       {
         "id": "l2-slozi-prosjek",
         "mode": "order",
@@ -1338,7 +1089,35 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
             "id": "d39599fec4",
             "code": "s = a + b + c"
           }
-        ]
+        ],
+        "for_only": true
+      },
+      {
+        "id": "l2-grana",
+        "mode": "output",
+        "title": "Koja grana se izvršava?",
+        "prompt": "Zamisli da su uneseni brojevi 6 i 10, tim redom. Koji broj će se pojaviti na ekranu?",
+        "points": 10,
+        "reference": "a = float(input())\nb = float(input())\nif a > b:\n    print(a / b)\nelse:\n    print(b - a)\n",
+        "cases": [
+          {
+            "input": [
+              "6",
+              "10"
+            ],
+            "output": [
+              "4"
+            ]
+          }
+        ],
+        "explanation": "Uslov 6 > 10 nije tačan. Izvršava se else i ispisuje 10 − 6 = 4.",
+        "code": "a = float(input())\nb = float(input())\nif a > b:\n    print(a / b)\nelse:\n    print(b - a)",
+        "input": [
+          "6",
+          "10"
+        ],
+        "answer": "4",
+        "for_only": true
       },
       {
         "id": "l2-slozi-aps",
@@ -1453,7 +1232,247 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
             "id": "7c97e67ba3",
             "code": "    n = -n"
           }
-        ]
+        ],
+        "for_only": true
+      },
+      {
+        "id": "l2-prioritet",
+        "mode": "output",
+        "title": "Redoslijed računanja",
+        "prompt": "Napiši broj koji program ispisuje. Obrati pažnju na zagrade, množenje i dijeljenje.",
+        "points": 10,
+        "reference": "a = 8\nb = 4\nprint((a + b) * 2 - 6 / 3)\n",
+        "cases": [
+          {
+            "input": [],
+            "output": [
+              "22"
+            ]
+          }
+        ],
+        "explanation": "Zagrada daje 12, zatim 12 · 2 − 6 / 3 = 24 − 2 = 22.",
+        "code": "a = 8\nb = 4\nprint((a + b) * 2 - 6 / 3)",
+        "input": [],
+        "answer": "22",
+        "for_only": true
+      },
+      {
+        "id": "l2-dopuni-uslov",
+        "mode": "fill",
+        "title": "Dopuni poređenje",
+        "prompt": "Dopuni uslov da se ispiše veći od dva realna broja. Kada su jednaki, ispisuje se taj broj.",
+        "points": 10,
+        "reference": "a = float(input())\nb = float(input())\nif a > b:\n    print(a)\nelse:\n    print(b)\n",
+        "cases": [
+          {
+            "input": [
+              "2.5",
+              "1.25"
+            ],
+            "output": [
+              "2.5"
+            ]
+          },
+          {
+            "input": [
+              "-3.5",
+              "2"
+            ],
+            "output": [
+              "2"
+            ]
+          },
+          {
+            "input": [
+              "0",
+              "0"
+            ],
+            "output": [
+              "0"
+            ]
+          },
+          {
+            "input": [
+              "0.1",
+              "0.2"
+            ],
+            "output": [
+              "0.2"
+            ]
+          },
+          {
+            "input": [
+              "12.5",
+              "-4"
+            ],
+            "output": [
+              "12.5"
+            ]
+          },
+          {
+            "input": [
+              "-1.25",
+              "-2.75"
+            ],
+            "output": [
+              "-1.25"
+            ]
+          },
+          {
+            "input": [
+              "100",
+              "0.5"
+            ],
+            "output": [
+              "100"
+            ]
+          },
+          {
+            "input": [
+              "1",
+              "1"
+            ],
+            "output": [
+              "1"
+            ]
+          },
+          {
+            "input": [
+              "-8",
+              "8"
+            ],
+            "output": [
+              "8"
+            ]
+          },
+          {
+            "input": [
+              "999.9",
+              "0.1"
+            ],
+            "output": [
+              "999.9"
+            ]
+          }
+        ],
+        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
+        "template": "a = float(input())\nb = float(input())\nif a __1__ b:\n    print(a)\nelse:\n    print(b)\n",
+        "blanks": [
+          "Operator poređenja"
+        ],
+        "solution": [
+          ">"
+        ],
+        "for_only": true
+      },
+      {
+        "id": "l2-dopuni-nulu",
+        "mode": "fill",
+        "title": "Zaštiti dijeljenje",
+        "prompt": "Ako je b različit od nule, ispiši a / b. Ako je b nula, ispiši 0. Dopuni provjeru.",
+        "points": 10,
+        "reference": "a = float(input())\nb = float(input())\nif b != 0:\n    print(a / b)\nelse:\n    print(0)\n",
+        "cases": [
+          {
+            "input": [
+              "8",
+              "2"
+            ],
+            "output": [
+              "4.0"
+            ]
+          },
+          {
+            "input": [
+              "7",
+              "0"
+            ],
+            "output": [
+              "0"
+            ]
+          },
+          {
+            "input": [
+              "0",
+              "0"
+            ],
+            "output": [
+              "0"
+            ]
+          },
+          {
+            "input": [
+              "-9",
+              "3"
+            ],
+            "output": [
+              "-3.0"
+            ]
+          },
+          {
+            "input": [
+              "1",
+              "4"
+            ],
+            "output": [
+              "0.25"
+            ]
+          },
+          {
+            "input": [
+              "5",
+              "-2"
+            ],
+            "output": [
+              "-2.5"
+            ]
+          },
+          {
+            "input": [
+              "0",
+              "5"
+            ],
+            "output": [
+              "0.0"
+            ]
+          },
+          {
+            "input": [
+              "12.5",
+              "2.5"
+            ],
+            "output": [
+              "5.0"
+            ]
+          },
+          {
+            "input": [
+              "10",
+              "0"
+            ],
+            "output": [
+              "0"
+            ]
+          },
+          {
+            "input": [
+              "1",
+              "3"
+            ],
+            "output": [
+              "0.3333333333333333"
+            ]
+          }
+        ],
+        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
+        "template": "a = float(input())\nb = float(input())\nif b __1__ 0:\n    print(a / b)\nelse:\n    print(0)\n",
+        "blanks": [
+          "Operator za različito"
+        ],
+        "solution": [
+          "!="
+        ],
+        "for_only": true
       },
       {
         "id": "l2-veci",
@@ -1556,7 +1575,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
         "requires": "if",
-        "starter": "a = float(input())\nb = float(input())\n# Napiši računanje i ispis.\n"
+        "starter": "a = float(input())\nb = float(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       },
       {
         "id": "l2-popust",
@@ -1649,7 +1669,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
         "requires": "if",
-        "starter": "c = float(input())\n# Napiši računanje i ispis.\n"
+        "starter": "c = float(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       },
       {
         "id": "l2-kalkulator",
@@ -1762,7 +1783,8 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
         "requires": "if",
-        "starter": "a = float(input())\nb = float(input())\nop = int(input())\n# Napiši računanje i ispis.\n"
+        "starter": "a = float(input())\nb = float(input())\nop = int(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       },
       {
         "id": "l2-trougao",
@@ -1875,58 +1897,251 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
         "requires": "if",
-        "starter": "a = float(input())\nb = float(input())\nc = float(input())\n# Napiši računanje i ispis.\n"
+        "starter": "a = float(input())\nb = float(input())\nc = float(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       }
     ]
   },
   "competition-3": {
-    "title": "Takmičenje · Nivo 3 · Petlje i takmičarski izazovi",
-    "intro": "Napredni nivo: akumulatori, ponavljanje, cifre i najveći zajednički djelilac.",
+    "title": "Takmičenje · Nivo 3 · FOR petlje korak po korak",
+    "intro": "Od brojanja ponavljanja i neparnih brojeva do dopunjavanja, slaganja i pisanja FOR petlje.",
     "grade": 0,
     "subject": "informatika",
     "featured": false,
     "competition": true,
+    "revision": 2,
     "level": 3,
     "questions": [
       {
-        "id": "l3-prati-for",
+        "id": "l3-broj-ispisa",
         "mode": "output",
-        "title": "Prati zbir u petlji",
-        "prompt": "Napiši završni ispis. Range(1, 5) daje brojeve 1, 2, 3 i 4.",
+        "title": "Koliko puta: volim školu?",
+        "prompt": "Koliko će se puta na ekranu ispisati tekst „Volim školu“? Upiši samo broj ponavljanja.",
         "points": 10,
-        "reference": "s = 0\nfor i in range(1, 5):\n    s += i * 2\nprint(s)\n",
+        "reference": "for i in range(5):\n    print(\"Volim školu\")\n",
         "cases": [
           {
             "input": [],
             "output": [
-              "20"
+              "5"
             ]
           }
         ],
-        "explanation": "Sabira se 2 + 4 + 6 + 8 = 20.",
-        "code": "s = 0\nfor i in range(1, 5):\n    s += i * 2\nprint(s)",
+        "explanation": "Range(5) daje vrijednosti 0, 1, 2, 3 i 4. To je pet ponavljanja, pa se tekst ispisuje 5 puta.",
+        "response_kind": "count",
+        "answer_label": "Broj ponavljanja",
+        "execution_output": [
+          "Volim školu",
+          "Volim školu",
+          "Volim školu",
+          "Volim školu",
+          "Volim školu"
+        ],
+        "code": "for i in range(5):\n    print(\"Volim školu\")",
         "input": [],
-        "answer": "20"
+        "answer": "5",
+        "for_only": true
       },
       {
-        "id": "l3-prati-while",
+        "id": "l3-broj-od-do",
         "mode": "output",
-        "title": "Prati cjelobrojno dijeljenje",
-        "prompt": "Koliki je završni ispis brojača k? Operator // odbacuje decimalni dio za ove pozitivne brojeve.",
+        "title": "Koliko puta: volim informatiku?",
+        "prompt": "Koliko će se puta ispisati tekst „Volim informatiku“? Range(2, 5) počinje od 2, a broj 5 nije uključen.",
         "points": 10,
-        "reference": "n = 20\nk = 0\nwhile n > 1:\n    n //= 2\n    k += 1\nprint(k)\n",
+        "reference": "for i in range(2, 5):\n    print(\"Volim informatiku\")\n",
         "cases": [
           {
             "input": [],
             "output": [
-              "4"
+              "3"
             ]
           }
         ],
-        "explanation": "Vrijednosti n su 20 → 10 → 5 → 2 → 1. Petlja se izvrši četiri puta.",
-        "code": "n = 20\nk = 0\nwhile n > 1:\n    n //= 2\n    k += 1\nprint(k)",
+        "explanation": "Petlja prolazi kroz 2, 3 i 4. To su tri ponavljanja. Broj 5 nije uključen.",
+        "response_kind": "count",
+        "answer_label": "Broj ponavljanja",
+        "execution_output": [
+          "Volim informatiku",
+          "Volim informatiku",
+          "Volim informatiku"
+        ],
+        "code": "for i in range(2, 5):\n    print(\"Volim informatiku\")",
         "input": [],
-        "answer": "4"
+        "answer": "3",
+        "for_only": true
+      },
+      {
+        "id": "l3-neparni-do5",
+        "mode": "output",
+        "title": "Neparni brojevi do 5",
+        "prompt": "Koji će se brojevi ispisati, redom? Napiši ih odvojene razmakom ili svaki u svom redu. Kraj range nije uključen.",
+        "points": 10,
+        "reference": "for i in range(1, 6, 2):\n    print(i)\n",
+        "cases": [
+          {
+            "input": [],
+            "output": [
+              "1",
+              "3",
+              "5"
+            ]
+          }
+        ],
+        "explanation": "Počinjemo od 1 i povećavamo za 2: 1, 3, 5. Granica 6 nije uključena, tako da je posljednji ispisani broj 5.",
+        "answer_label": "Brojevi koji će se ispisati",
+        "code": "for i in range(1, 6, 2):\n    print(i)",
+        "input": [],
+        "answer": "1\n3\n5",
+        "for_only": true
+      },
+      {
+        "id": "l3-dopuni-parne",
+        "mode": "fill",
+        "title": "Dopuni početak: parni brojevi",
+        "prompt": "Šta treba upisati umjesto X da program ispiše tačno 2, 4, 6 i 8? Dopuni početak petlje. Broj 10 nije uključen.",
+        "points": 10,
+        "reference": "for i in range(2, 10, 2):\n    print(i)\n",
+        "cases": [
+          {
+            "input": [],
+            "output": [
+              "2",
+              "4",
+              "6",
+              "8"
+            ]
+          }
+        ],
+        "explanation": "X treba biti 2. Korak 2 zatim daje 4, 6 i 8. Ako bismo počeli od 0, ispisao bi se i 0, što nije traženi ispis.",
+        "template": "for i in range(__1__, 10, 2):\n    print(i)\n",
+        "blanks": [
+          "Početna vrijednost X"
+        ],
+        "solution": [
+          "2"
+        ],
+        "for_only": true
+      },
+      {
+        "id": "l3-slozi-for",
+        "mode": "order",
+        "title": "Složi FOR petlju: zbir",
+        "prompt": "Složi blokove tako da program sabere brojeve od 1 do n i ispiše zbir. Zamisli da je unesen n = 4: sabiraju se 1 + 2 + 3 + 4. Broj n je od 0 do 100.",
+        "points": 10,
+        "reference": "n = int(input())\ns = 0\nfor i in range(1, n + 1):\n    s += i\nprint(s)\n",
+        "cases": [
+          {
+            "input": [
+              "4"
+            ],
+            "output": [
+              "10"
+            ]
+          },
+          {
+            "input": [
+              "0"
+            ],
+            "output": [
+              "0"
+            ]
+          },
+          {
+            "input": [
+              "1"
+            ],
+            "output": [
+              "1"
+            ]
+          },
+          {
+            "input": [
+              "2"
+            ],
+            "output": [
+              "3"
+            ]
+          },
+          {
+            "input": [
+              "5"
+            ],
+            "output": [
+              "15"
+            ]
+          },
+          {
+            "input": [
+              "10"
+            ],
+            "output": [
+              "55"
+            ]
+          },
+          {
+            "input": [
+              "20"
+            ],
+            "output": [
+              "210"
+            ]
+          },
+          {
+            "input": [
+              "50"
+            ],
+            "output": [
+              "1275"
+            ]
+          },
+          {
+            "input": [
+              "99"
+            ],
+            "output": [
+              "4950"
+            ]
+          },
+          {
+            "input": [
+              "100"
+            ],
+            "output": [
+              "5050"
+            ]
+          }
+        ],
+        "explanation": "Prvo učitaj n i postavi s na 0. U petlji dodaj svaki i u s. Ispis mora biti poslije petlje. Range(1, n + 1) uključuje i n.",
+        "solution": [
+          "d60c8b5dde",
+          "edd61847a3",
+          "9b4e6b13cf",
+          "0c0a0d5dc2",
+          "c33721f158"
+        ],
+        "pieces": [
+          {
+            "id": "edd61847a3",
+            "code": "s = 0"
+          },
+          {
+            "id": "d60c8b5dde",
+            "code": "n = int(input())"
+          },
+          {
+            "id": "c33721f158",
+            "code": "print(s)"
+          },
+          {
+            "id": "0c0a0d5dc2",
+            "code": "    s += i"
+          },
+          {
+            "id": "9b4e6b13cf",
+            "code": "for i in range(1, n + 1):"
+          }
+        ],
+        "for_only": true
       },
       {
         "id": "l3-dopuni-range",
@@ -2024,12 +2239,34 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "solution": [
           "n + 1"
-        ]
+        ],
+        "for_only": true
+      },
+      {
+        "id": "l3-prati-for",
+        "mode": "output",
+        "title": "Prati zbir u petlji",
+        "prompt": "Sada malo izazovniji primjer: napiši završni ispis. Range(1, 5) daje brojeve 1, 2, 3 i 4.",
+        "points": 10,
+        "reference": "s = 0\nfor i in range(1, 5):\n    s += i * 2\nprint(s)\n",
+        "cases": [
+          {
+            "input": [],
+            "output": [
+              "20"
+            ]
+          }
+        ],
+        "explanation": "Sabira se 2 + 4 + 6 + 8 = 20. Dosadašnji prvi zadatak sada je kasnije, nakon jednostavnijih primjera.",
+        "code": "s = 0\nfor i in range(1, 5):\n    s += i * 2\nprint(s)",
+        "input": [],
+        "answer": "20",
+        "for_only": true
       },
       {
         "id": "l3-dopuni-proizvod",
         "mode": "fill",
-        "title": "Proizvod pomoću petlje",
+        "title": "Proizvod pomoću FOR petlje",
         "prompt": "Dopuni operator da p računa proizvod 1 · 2 · ... · n. Za n = 0 rezultat je 1. Broj n je od 0 do 10.",
         "points": 10,
         "reference": "n = int(input())\np = 1\nfor i in range(1, n + 1):\n    p = p * i\nprint(p)\n",
@@ -2122,138 +2359,14 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
         ],
         "solution": [
           "*"
-        ]
-      },
-      {
-        "id": "l3-slozi-while",
-        "mode": "order",
-        "title": "Složi: zbir unazad",
-        "prompt": "Složi program koji sabira od n do 1. Ne zaboravi smanjivanje n da se petlja završi. Broj n je od 0 do 100.",
-        "points": 10,
-        "reference": "n = int(input())\ns = 0\nwhile n > 0:\n    s += n\n    n -= 1\nprint(s)\n",
-        "cases": [
-          {
-            "input": [
-              "4"
-            ],
-            "output": [
-              "10"
-            ]
-          },
-          {
-            "input": [
-              "0"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "1"
-            ],
-            "output": [
-              "1"
-            ]
-          },
-          {
-            "input": [
-              "2"
-            ],
-            "output": [
-              "3"
-            ]
-          },
-          {
-            "input": [
-              "5"
-            ],
-            "output": [
-              "15"
-            ]
-          },
-          {
-            "input": [
-              "10"
-            ],
-            "output": [
-              "55"
-            ]
-          },
-          {
-            "input": [
-              "20"
-            ],
-            "output": [
-              "210"
-            ]
-          },
-          {
-            "input": [
-              "50"
-            ],
-            "output": [
-              "1275"
-            ]
-          },
-          {
-            "input": [
-              "99"
-            ],
-            "output": [
-              "4950"
-            ]
-          },
-          {
-            "input": [
-              "100"
-            ],
-            "output": [
-              "5050"
-            ]
-          }
         ],
-        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "solution": [
-          "ca497c8ca0",
-          "3ab309a648",
-          "957d84d385",
-          "c2d9f2fa38",
-          "4682f42f40",
-          "242170156e"
-        ],
-        "pieces": [
-          {
-            "id": "242170156e",
-            "code": "print(s)"
-          },
-          {
-            "id": "4682f42f40",
-            "code": "    n -= 1"
-          },
-          {
-            "id": "957d84d385",
-            "code": "while n > 0:"
-          },
-          {
-            "id": "c2d9f2fa38",
-            "code": "    s += n"
-          },
-          {
-            "id": "ca497c8ca0",
-            "code": "n = int(input())"
-          },
-          {
-            "id": "3ab309a648",
-            "code": "s = 0"
-          }
-        ]
+        "for_only": true
       },
       {
         "id": "l3-slozi-ulaze",
         "mode": "order",
-        "title": "Složi: zbir n ulaza",
-        "prompt": "Prvi ulaz je broj n (0–20), zatim slijedi n realnih brojeva. Složi program koji ih učitava u petlji i ispisuje zbir. Za n = 0 ispis je 0.",
+        "title": "Složi: saberi unesene brojeve",
+        "prompt": "Zamisli da prvi uneseni broj n govori koliko brojeva slijedi. Složi program koji te brojeve učitava FOR petljom i ispisuje njihov zbir. Broj n je od 0 do 20; za n = 0 ispis je 0.",
         "points": 10,
         "reference": "n = int(input())\ns = 0\nfor i in range(n):\n    x = float(input())\n    s += x\nprint(s)\n",
         "cases": [
@@ -2396,106 +2509,14 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
             "id": "5a107a305a",
             "code": "for i in range(n):"
           }
-        ]
-      },
-      {
-        "id": "l3-parni",
-        "mode": "program",
-        "title": "Zbir parnih brojeva",
-        "prompt": "Učitaj n (0–100). Pomoću petlje saberi parne brojeve od 1 do n, uključujući n ako je paran. Ispiši zbir.",
-        "points": 10,
-        "reference": "n = int(input())\ns = 0\nfor i in range(1, n + 1):\n    if i % 2 == 0:\n        s += i\nprint(s)\n",
-        "cases": [
-          {
-            "input": [
-              "4"
-            ],
-            "output": [
-              "6"
-            ]
-          },
-          {
-            "input": [
-              "0"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "1"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "2"
-            ],
-            "output": [
-              "2"
-            ]
-          },
-          {
-            "input": [
-              "5"
-            ],
-            "output": [
-              "6"
-            ]
-          },
-          {
-            "input": [
-              "10"
-            ],
-            "output": [
-              "30"
-            ]
-          },
-          {
-            "input": [
-              "20"
-            ],
-            "output": [
-              "110"
-            ]
-          },
-          {
-            "input": [
-              "50"
-            ],
-            "output": [
-              "650"
-            ]
-          },
-          {
-            "input": [
-              "99"
-            ],
-            "output": [
-              "2450"
-            ]
-          },
-          {
-            "input": [
-              "100"
-            ],
-            "output": [
-              "2550"
-            ]
-          }
         ],
-        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "requires": "loop",
-        "starter": "n = int(input())\n# Napiši računanje i ispis.\n"
+        "for_only": true
       },
       {
         "id": "l3-ponovljeno",
         "mode": "program",
         "title": "Množenje ponovljenim sabiranjem",
-        "prompt": "Učitaj realni broj a, zatim cijeli broj n (0–30). U petlji saberi a tačno n puta i ispiši rezultat. Za n = 0 ispiši 0. U rješenju koristi petlju.",
+        "prompt": "Napiši program koji učitava realni broj a, zatim cijeli broj n (0–30). FOR petljom saberi a tačno n puta i ispiši rezultat. Zamisli da su uneseni 2.5 i 4: rezultat je 10. Za n = 0 ispiši 0.",
         "points": 10,
         "reference": "a = float(input())\nn = int(input())\ns = 0\nfor i in range(n):\n    s += a\nprint(s)\n",
         "cases": [
@@ -2591,204 +2612,9 @@ return json_decode(<<<'ELDI_COMPETITION_JSON'
           }
         ],
         "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "requires": "loop",
-        "starter": "a = float(input())\nn = int(input())\n# Napiši računanje i ispis.\n"
-      },
-      {
-        "id": "l3-cifre",
-        "mode": "program",
-        "title": "Saberi cifre broja",
-        "prompt": "Učitaj nenegativan cijeli broj n (0–999999). Pomoću petlje, ostatka pri dijeljenju i cjelobrojnog dijeljenja izračunaj zbir cifara. Za n = 0 ispiši 0.",
-        "points": 10,
-        "reference": "n = int(input())\ns = 0\nwhile n > 0:\n    s += n % 10\n    n //= 10\nprint(s)\n",
-        "cases": [
-          {
-            "input": [
-              "347"
-            ],
-            "output": [
-              "14"
-            ]
-          },
-          {
-            "input": [
-              "0"
-            ],
-            "output": [
-              "0"
-            ]
-          },
-          {
-            "input": [
-              "1"
-            ],
-            "output": [
-              "1"
-            ]
-          },
-          {
-            "input": [
-              "10"
-            ],
-            "output": [
-              "1"
-            ]
-          },
-          {
-            "input": [
-              "99"
-            ],
-            "output": [
-              "18"
-            ]
-          },
-          {
-            "input": [
-              "1000"
-            ],
-            "output": [
-              "1"
-            ]
-          },
-          {
-            "input": [
-              "123456"
-            ],
-            "output": [
-              "21"
-            ]
-          },
-          {
-            "input": [
-              "999999"
-            ],
-            "output": [
-              "54"
-            ]
-          },
-          {
-            "input": [
-              "50005"
-            ],
-            "output": [
-              "10"
-            ]
-          },
-          {
-            "input": [
-              "808"
-            ],
-            "output": [
-              "16"
-            ]
-          }
-        ],
-        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "requires": "loop",
-        "starter": "n = int(input())\n# Napiši računanje i ispis.\n"
-      },
-      {
-        "id": "l3-nzd",
-        "mode": "program",
-        "title": "Najveći zajednički djelilac",
-        "prompt": "Učitaj nenegativne cijele brojeve a i b do 10000; barem jedan je pozitivan. Pomoću petlje i ostatka pri dijeljenju izračunaj NZD. Primjer: NZD(18, 12) = 6. Ako je jedan broj 0, rezultat je drugi broj.",
-        "points": 10,
-        "reference": "a = int(input())\nb = int(input())\nwhile b != 0:\n    r = a % b\n    a = b\n    b = r\nprint(a)\n",
-        "cases": [
-          {
-            "input": [
-              "18",
-              "12"
-            ],
-            "output": [
-              "6"
-            ]
-          },
-          {
-            "input": [
-              "7",
-              "5"
-            ],
-            "output": [
-              "1"
-            ]
-          },
-          {
-            "input": [
-              "0",
-              "9"
-            ],
-            "output": [
-              "9"
-            ]
-          },
-          {
-            "input": [
-              "9",
-              "0"
-            ],
-            "output": [
-              "9"
-            ]
-          },
-          {
-            "input": [
-              "100",
-              "25"
-            ],
-            "output": [
-              "25"
-            ]
-          },
-          {
-            "input": [
-              "48",
-              "18"
-            ],
-            "output": [
-              "6"
-            ]
-          },
-          {
-            "input": [
-              "1",
-              "1"
-            ],
-            "output": [
-              "1"
-            ]
-          },
-          {
-            "input": [
-              "9999",
-              "3333"
-            ],
-            "output": [
-              "3333"
-            ]
-          },
-          {
-            "input": [
-              "270",
-              "192"
-            ],
-            "output": [
-              "6"
-            ]
-          },
-          {
-            "input": [
-              "10000",
-              "9999"
-            ],
-            "output": [
-              "1"
-            ]
-          }
-        ],
-        "explanation": "Prati redoslijed ulaza, izračunaj traženi izraz i ispiši samo tražene brojeve.",
-        "requires": "loop",
-        "starter": "a = int(input())\nb = int(input())\n# Napiši računanje i ispis.\n"
+        "requires": "for",
+        "starter": "a = float(input())\nn = int(input())\n# Napiši računanje i ispis.\n",
+        "for_only": true
       }
     ]
   }
