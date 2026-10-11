@@ -7,7 +7,7 @@ config.write_text("<?php return ['dsn'=>'mysql:host=127.0.0.1;port=3306;dbname=e
 os.environ['ELDI3333_CONFIG']=str(config)
 sock=socket.socket();sock.bind(('127.0.0.1',0));port=sock.getsockname()[1];sock.close()
 log=open(ROOT/'.qa-php.log','w');server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(ROOT/'website')],stdout=log,stderr=log,env=os.environ)
-BASE=f'http://127.0.0.1:{port}/eldi-edu/online/classroom-cleanup.php?action='
+BASE=f'http://127.0.0.1:{port}/eldi-edu/online/classroom-competition.php?action='
 class Client:
  def __init__(self): self.opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()));self.csrf=''
  def call(self,action,data=None,expected=200,csrf=None):
@@ -151,7 +151,7 @@ try:
  section_class=teacher.call('create_class',{'title':'Mladi matematičari QA'})['id']
  second_section=teacher.call('create_class',{'title':'Druga sekcija QA'})['id']
  catalog=teacher.call('section_catalog',{})['catalog']
- assert len(catalog)==132 and all(1<=len(t['questions'])<=20 for t in catalog.values())
+ assert len(catalog)==135 and all(1<=len(t['questions'])<=20 for t in catalog.values())
  assert sum(t['featured'] for t in catalog.values())==7
  assert all(len(t['questions'])==20 for t in catalog.values() if t['featured'])
  anonymous.call('section_catalog',{},401)
@@ -287,7 +287,7 @@ try:
  b.call('submission',{'id':blocks['id']},403)
  assert pending.call('assignment',{'id':block_task})['submission']['payload']['source'].endswith('print(max(a, b))\n')
  print('Complete119: public registration, account isolation, CAS conflicts, limits, private cases, Python and block grading, forged-score protection PASS')
- print('Sections: 132 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
+ print('Sections: 135 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
  # Recoverable removal of classes and assignments, with grades and accounts intact.
  clean_class=teacher.call('create_class',{'title':'Odjeljenje za brisanje QA'})['id']
  keep_class=teacher.call('create_class',{'title':'Odjeljenje koje ostaje QA'})['id']

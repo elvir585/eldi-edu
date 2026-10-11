@@ -6,9 +6,9 @@ final class SchoolRuntime {
  private array $tokens=[],$lines=[],$vars=[],$input=[],$output=[];
  private int $pos=0,$line=0,$steps=0,$depth=0;
  private float $started;
- public function __construct(){ $this->started=microtime(true); }
+ public function __construct(private float $timeLimit=1.0,private int $stepLimit=40000){ $this->started=microtime(true); }
  private function fail(string $s):never {throw new ClassroomError($s);}
- private function tick():void {if(++$this->steps>40000||microtime(true)-$this->started>1.0)$this->fail('Program je prekoračio ograničenje rada. Provjeri završava li petlja.');}
+ private function tick():void {if(++$this->steps>$this->stepLimit||microtime(true)-$this->started>$this->timeLimit)$this->fail('Program je prekoračio ograničenje rada. Provjeri završava li petlja.');}
  private function num(mixed $n):float|int {
   if(is_bool($n))return $n?1:0;
   if((!is_int($n)&&!is_float($n))||!is_finite((float)$n)||abs($n)>1e12)$this->fail('Koristi brojeve do 10¹². Ulaz pretvori naredbom int(input()) ili float(input()).');

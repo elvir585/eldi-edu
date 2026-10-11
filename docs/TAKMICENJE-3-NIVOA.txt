@@ -1,0 +1,72 @@
+ELDI EDU 33.33 — TAKMIČENJE: TRI NIVOA PO DESET ZADATAKA
+Elvir Čajić · Dino Isanović
+
+POSTAVLJANJE NADOGRADNJE
+1. Sačuvajte kopiju postojećeg foldera public_html/eldi-edu/online i baze u cPanelu.
+2. ZIP ELDI-33.33-TAKMICENJE-3-NIVOA.zip učitajte u public_html.
+3. Kliknite Extract / Raspakuj u /public_html. Potvrdite zamjenu datoteka.
+4. Otvorite https://upinitk.com/eldi-edu/online/#nastavnik i pritisnite Ctrl + F5.
+5. Prijavite se postojećim nastavničkim računom. Kliknite „Takmičenje · 3 nivoa“.
+6. Izaberite odjeljenje, datum i jedan ili sva tri nivoa. Kliknite „Objavi izabrane testove“.
+7. Učenici se prijavljuju postojećim računima i otvaraju dodijeljeni test.
+
+Paket je nadogradnja postojeće ELDI učionice s paketom Algoritmi 20 i BlokBa.
+Ne traži novu instalaciju, novu bazu, novi ključ ili promjenu lozinki.
+Sadrži i ranije dodatke za nastavnike/administratore i vraćanje obrisanih stavki.
+Privatna konfiguracija iznad public_html i podaci u bazi ostaju postojeći.
+Ne zamjenjuje početnu stranicu portala ni njegovu glavnu .htaccess datoteku.
+Promjene su za online učionicu; ne mijenjaju instaliranu desktop aplikaciju BlokBa.
+
+TRI NIVOA
+1. Ulaz, varijable i ispis: zbir, razlika, proizvod, količnik i realni brojevi.
+2. Linijska struktura i uslovi: prosjek, apsolutna vrijednost, poređenja,
+   popust, dijeljenje nulom, kalkulator i trougao.
+3. Petlje i takmičarski izazovi: akumulator, range, proizvod, unos više
+   brojeva, ponovljeno sabiranje, parni brojevi, cifre i NZD.
+
+Svaki nivo ima 2 zadatka predviđanja ispisa, 2 dopunjavanja, 2 slaganja
+naredbi i 4 programska zadatka. Ukupno: 30 različitih zadataka.
+U katalogu je sada 135 provjera: 112 ranijih testova, 20 praktičnih zadataka
+koji se objavljuju pojedinačno i 3 nova testa po 10 zadataka.
+
+RAD UČENIKA
+Učenik rješava zadatak po zadatak, može se vraćati i pregledati sve odgovore.
+Skica se čuva u istom pregledniku na istom uređaju; nije automatski prenesena
+na drugi uređaj. Konačna predaja se čuva na serveru.
+Kod slaganja blokova može koristiti strelice gore/dolje ili prevlačenje.
+Program piše u Pythonu, slaže blokovima ovdje ili učitava svoj .py iz BlokBa.
+Dugme „Pretvori moj kod u blokove“ prevodi podržani vlastiti kod u blokove.
+Dva vidljiva primjera služe za probu. Može unijeti i vlastite ulazne brojeve.
+„Pregled i predaja“ prikazuje svih deset zadataka; „Predaj cijeli test i završi“
+šalje sve odgovore zajedno. Postoji jedna konačna predaja po dodijeljenom testu.
+Nastavnik za novi pokušaj može objaviti isti nivo za drugi datum.
+
+BODOVANJE
+Svaki zadatak nosi 10 bodova; cijeli test nosi 100 bodova.
+Predviđanje ispisa: 10 za potpuno tačan odgovor, inače 0.
+Dopunjavanje, slaganje i programiranje: 10 provjera na serveru, po 1 bod.
+Prihvaća se drugo ispravno rješenje koje zadovoljava navedene uslove.
+Zadaci drugog nivoa za pisanje programa zahtijevaju if, trećeg nivoa petlju.
+Nema negativnih bodova. Prazan ili neispravan program dobija 0 za taj zadatak.
+Ocjene: 1 ispod 50%; 2 od 50%; 3 od 65%; 4 od 80%; 5 od 90%.
+Nakon predaje učenik vidi bodove po zadatku, primjer rješenja, značku i diplomu.
+Nastavnik vidi sve predaje i može upisati komentar i nastavničku ocjenu.
+Diploma navodi škole, projekt Inovativni nastavnici – Step by Step,
+Elvira Čajića i Dinu Isanovića te digitalne oznake potpisa i pečat projekta.
+
+BLOKBA
+Službena preuzimanja: https://github.com/DinoIsanovic/BlokBa-app/releases
+Otvori BlokBa, složi blokove, sačuvaj dobiveni Python kao .py, pa učitaj .py
+u online zadatak. Stranica ne pokreće desktop BlokBa automatski.
+Ocjenjivanje koristi ograničeni školski režim: brojevi, input/print, varijable,
+aritmetika, poređenja, if/elif/else, for/range, while, break, continue,
+abs/min/max i logički operatori. Bez biblioteka, datoteka, mreže i lista.
+Uvlačenje: četiri razmaka. Decimalna tačka u kodu; ulaz može imati i zarez.
+Program ispisuje samo tražene brojeve. Preduge petlje se zaustavljaju.
+
+RJEŠENJA ZA NASTAVNIKE
+Poseban ZIP ELDI-33.33-RJESENJA-30-ZADATAKA.zip sadrži svih 30 rješenja,
+objašnjenja, .py programe i sve provjere. Čuvajte ga na svom računaru.
+Nemojte taj ZIP raspakivati u public_html — služi kao nastavnički priručnik.
+U nastavničkom panelu također postoji „Pregled zadataka i rješenja za nastavnika“.
+Učeniku se rješenja na platformi otkrivaju tek nakon njegove konačne predaje.
