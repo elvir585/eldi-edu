@@ -37,8 +37,10 @@ jobs:
           node --check website/eldi-edu/online/sections.js
           node scripts/build-section-bank.cjs
           node scripts/build-online119.cjs
+          node --check website/eldi-edu/online/algorithm-tools.js
           git diff --exit-code -- website/eldi-edu/online/section-tests.php
           php tests/school-runtime.php
+          node tests/algorithm-views.cjs
           python3 tests/online3333.py
       - name: Verify custom credentials through teacher and student screens
         run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/student-logins-web.cjs

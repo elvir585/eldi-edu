@@ -30,9 +30,19 @@ trait CompleteFeatures {
   $key=$this->sectionMetadata($a['id'])['bank']??'';$task=self::practicalCatalog()[$key]??null;if(!$task)throw new ClassroomError('Praktični zadatak nije pronađen.',404);return $task;
  }
  public function programSource(array $v):string {
-  if(($v['language']??'')==='python')return self::text($v['source']??'',3000);
+  if(in_array($v['language']??'',['python','blokba'],true))return self::text($v['source']??'',3000);
   if(($v['language']??'')==='blocks'&&is_array($v['workspace']??null))return SchoolRuntime::blocksSource($v['workspace']);
-  throw new ClassroomError('Izaberi Python ili blokove.');
+  throw new ClassroomError('Izaberi Python, blokove ili Python rješenje iz BlokBa.');
+ }
+ public function programViews(array $u,string $id,array $payload):array {
+  $a=$this->assignmentFor($u,$id);if($a['kind']!=='program')throw new ClassroomError('Izaberi praktični zadatak.');
+  $source=$this->programSource($payload);$runtime=new SchoolRuntime();return ['source'=>$source,'ast'=>$runtime->compile($source)];
+ }
+ public function runProgramInput(array $u,string $id,array $payload,mixed $input):array {
+  $view=$this->programViews($u,$id,$payload);
+  if(!is_array($input)||count($input)>30)throw new ClassroomError('Unesi najviše 30 brojeva, po jedan u svakom redu.');
+  $values=[];foreach($input as $value){if(!is_string($value)||strlen($value)>40)throw new ClassroomError('Ulaz treba biti broj.');$value=str_replace(',','.',trim($value));if(!preg_match('/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/D',$value)||!is_finite((float)$value)||abs((float)$value)>1e12)throw new ClassroomError('Koristi konačne brojeve do 10¹²; svaki broj u svom redu.');$values[]=$value;}
+  $runtime=new SchoolRuntime();return ['output'=>$runtime->run($view['ast'],$values),'input'=>$values];
  }
  private function programResults(array $payload,array $cases,bool $details):array {
   $source=$this->programSource($payload);$runtime=new SchoolRuntime();$ast=$runtime->compile($source);$passed=0;$results=[];

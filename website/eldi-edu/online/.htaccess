@@ -15,3 +15,7 @@ Options -Indexes
 <Files "classroom-119.php">
   Require all granted
 </Files>
+
+<Files "classroom-132.php">
+  Require all granted
+</Files>

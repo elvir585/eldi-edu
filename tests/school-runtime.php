@@ -21,4 +21,6 @@ $bad=$workspace;$bad['blocks']['blocks'][0]['type']='system';try{SchoolRuntime::
 $bad=$workspace;$bad['blocks']['blocks'][0]['fields']['NAME']="n\nprint(99)";try{SchoolRuntime::blocksSource($bad);throw new RuntimeException('Block injection accepted');}catch(ClassroomError){}
 $for=['blocks'=>['blocks'=>[['type'=>'task_set','fields'=>['NAME'=>'s','EXPR'=>'0'],'next'=>['block'=>['type'=>'task_for','fields'=>['NAME'=>'i','FROM'=>'1','TO'=>'6','STEP'=>'1'],'inputs'=>['DO'=>['block'=>['type'=>'task_set','fields'=>['NAME'=>'s','EXPR'=>'s+i']]]],'next'=>['block'=>['type'=>'task_print','fields'=>['EXPR'=>'s']]]]]]]]];
 check(runProgram(SchoolRuntime::blocksSource($for))===['15'],'Blocks loop failed');
-echo "School runtime: 70 reference cases; arithmetic, branching, nested loops, short circuit, budgets, unsupported syntax and block validation PASS\n";
+echo "School runtime: 200 reference cases; arithmetic, branching, nested loops, short circuit, budgets, unsupported syntax and block validation PASS\n";
+
+check(runProgram('a = float(input("Unesi # broj: "))'."\n".'print(a)', ['2.5'])===['2.5'], 'BlokBa input prompt rejected');

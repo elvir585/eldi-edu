@@ -67,6 +67,7 @@ final class SchoolRuntime {
   if(strlen($source)>12000)$this->fail('Program može imati najviše 12 KB.');$this->lines=[];$this->line=0;
   foreach(explode("\n",str_replace("\r",'',$source)) as $i=>$raw){
    if(str_contains($raw,"\t"))$this->fail('Red '.($i+1).': koristi četiri razmaka umjesto tabulatora.');
+   $raw=preg_replace('/\binput\(\s*(?:"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')\s*\)/', 'input()', $raw);
    $raw=explode('#',$raw,2)[0];if(trim($raw)==='')continue;
    $indent=strlen($raw)-strlen(ltrim($raw,' '));if($indent%4||$indent>64)$this->fail('Red '.($i+1).': uvlačenje je po četiri razmaka, do 16 nivoa.');
    $this->lines[]=['indent'=>$indent,'text'=>trim($raw),'line'=>$i+1];
@@ -142,11 +143,15 @@ final class SchoolRuntime {
     $pad=str_repeat('    ',$depth);$type=$b['type']??'';
     $body=fn($key)=>$walk($b['inputs'][$key]['block']??null,$depth+1)?:$pad."    pass\n";
     switch($type){
+     case 'task_read_real':$out.=$pad.$get('NAME')." = float(input())\n";break;
      case 'task_read':$out.=$pad.$get('NAME')." = int(input())\n";break;
      case 'task_set':$out.=$pad.$get('NAME').' = '.$get('EXPR')."\n";break;
      case 'task_print':$out.=$pad.'print('.$get('EXPR').")\n";break;
      case 'task_if':$out.=$pad.'if '.$get('EXPR').":\n".$body('DO').$pad."else:\n".$body('ELSE');break;
      case 'task_for':$out.=$pad.'for '.$get('NAME').' in range('.$get('FROM').', '.$get('TO').', '.$get('STEP')."):\n".$body('DO');break;
+     case 'task_break':$out.=$pad."break\n";break;
+     case 'task_continue':$out.=$pad."continue\n";break;
+     case 'task_pass':$out.=$pad."pass\n";break;
      case 'task_while':$out.=$pad.'while '.$get('EXPR').":\n".$body('DO');break;
      default:throw new ClassroomError('Nepodržan blok u praktičnoj provjeri.');
     }$b=$b['next']['block']??null;

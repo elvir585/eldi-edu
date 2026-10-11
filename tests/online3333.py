@@ -101,7 +101,7 @@ try:
  section_class=teacher.call('create_class',{'title':'Mladi matematičari QA'})['id']
  second_section=teacher.call('create_class',{'title':'Druga sekcija QA'})['id']
  catalog=teacher.call('section_catalog',{})['catalog']
- assert len(catalog)==119 and all(1<=len(t['questions'])<=20 for t in catalog.values())
+ assert len(catalog)==132 and all(1<=len(t['questions'])<=20 for t in catalog.values())
  assert sum(t['featured'] for t in catalog.values())==7
  assert all(len(t['questions'])==20 for t in catalog.values() if t['featured'])
  anonymous.call('section_catalog',{},401)
@@ -198,7 +198,7 @@ try:
  registered.call('project_save',{'revision':1,'profile':profile},409)
  # Practical grading executes submitted work against private cases on server.
  keys=[k for k,t in catalog.items() if t.get('practical')]
- assert len(keys)==7
+ assert len(keys)==20
  programs=teacher.call('publish_section',{'class_id':section_class,'event_date':event,'banks':keys})['assignments']
  for task in programs:
   ident,key=task['id'],task['level']
@@ -212,6 +212,17 @@ try:
   out=registered.call('submit',{'id':ident,'payload':payload})
   assert out['score']==100 and registered.call('certificate',{'submission_id':out['id']})['certificate']['grade']=='5'
   assert registered.call('submit',{'id':ident,'payload':{'language':'python','source':'print(0)'}})['id']==out['id']
+ real_id=next(t['id'] for t in programs if t['level']=='practice-real-sum')
+ bridge={'language':'blokba','source':'a = float(input("Unesi prvi broj: "))\nb = float(input("Drugi broj: "))\nprint(a + b)'}
+ assert pending.call('try_program',{'id':real_id,'payload':bridge})['passed']==2
+ assert pending.call('run_program',{'id':real_id,'payload':bridge,'input':['12,5','-3,2']})['output']==['9.3']
+ assert pending.call('program_views',{'id':real_id,'payload':bridge})['ast'][0][0]=='set'
+ a.call('program_views',{'id':real_id,'payload':bridge},403)
+ pending.call('run_program',{'id':real_id,'payload':bridge,'input':['NaN','2']},400)
+ pending.call('run_program',{'id':real_id,'payload':bridge,'input':['1']},400)
+ decimal_blocks={'blocks':{'blocks':[{'type':'task_read_real','fields':{'NAME':'a'},'next':{'block':{'type':'task_read_real','fields':{'NAME':'b'},'next':{'block':{'type':'task_print','fields':{'EXPR':'a + b'}}}}}}]}}
+ assert pending.call('try_program',{'id':real_id,'payload':{'language':'blocks','workspace':decimal_blocks}})['passed']==2
+ assert pending.call('submit',{'id':real_id,'payload':bridge})['score']==100
  first=programs[0]['id']
  pending.call('try_program',{'id':first,'payload':{'language':'python','source':'import os'}},400)
  loop=pending.call('try_program',{'id':first,'payload':{'language':'python','source':'while True:\n    pass'}})
@@ -226,7 +237,7 @@ try:
  b.call('submission',{'id':blocks['id']},403)
  assert pending.call('assignment',{'id':block_task})['submission']['payload']['source'].endswith('print(max(a, b))\n')
  print('Complete119: public registration, account isolation, CAS conflicts, limits, private cases, Python and block grading, forged-score protection PASS')
- print('Sections: 119 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
+ print('Sections: 132 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
  (ROOT/'.qa-online.json').write_text(json.dumps({'teacher':{'username':recover_data['username'],'password':recover_data['password']},'student':{'username':students[0]['username'],'password':'Student-QA-new-password'},'class':class1,'quiz':quiz,'project':project}))
  print('Online 33.33: MySQL/HTTP auth, custom logins, duplicate rollback, teacher recovery with key and CSRF, login lock clearing after recovery, session invalidation, preserved classes and work, grading, reset and deletion: PASS')
 finally:server.terminate();server.wait(timeout=10);log.close()

@@ -32,3 +32,6 @@ website/eldi-edu/ucionica/offline-files.json
 # Generated classroom deployment; rebuilt and tested in CI.
 website/eldi-edu/online/v119/
 website/eldi-edu/online/classroom-119.php
+
+website/eldi-edu/online/v132/
+website/eldi-edu/online/classroom-132.php
