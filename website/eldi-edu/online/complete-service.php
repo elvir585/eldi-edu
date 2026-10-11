@@ -8,7 +8,7 @@ trait CompleteFeatures {
   $this->run('INSERT INTO eldi3333_settings(name,value) VALUES(?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)',['complete_schema','119']);
  }
  public function publicSections():array {
-  return ['classes'=>$this->run('SELECT c.id,c.title FROM eldi3333_classes c JOIN eldi3333_invites i ON i.class_id=c.id WHERE i.enabled=1 ORDER BY c.title LIMIT 100')->fetchAll(),'schools'=>self::sectionSchools()];
+  return ['classes'=>$this->run("SELECT c.id,c.title FROM eldi3333_classes c JOIN eldi3333_invites i ON i.class_id=c.id WHERE i.enabled=1 AND NOT EXISTS(SELECT 1 FROM eldi3333_deleted_items d WHERE d.kind='class' AND d.item_id=c.id) ORDER BY c.title LIMIT 100")->fetchAll(),'schools'=>self::sectionSchools()];
  }
  public function projectAccess(array $u):void {
   if($u['role']==='student'&&!$this->run('SELECT user_id FROM eldi3333_enrollments WHERE user_id=? LIMIT 1',[$u['id']])->fetchColumn())throw new ClassroomError('Čuvanje na računu dostupno je nakon nastavnikovog odobrenja.',403);

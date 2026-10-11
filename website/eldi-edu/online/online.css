@@ -15,3 +15,5 @@
 .algorithm-flow.is-expanded{max-height:none}.algorithm-flow svg{margin:0 auto}#algorithm-flow-expand{margin-bottom:12px}
 
 .staff-list{display:grid;gap:14px}.staff-card{padding:16px;border:1px solid var(--line,#334155);border-radius:14px;overflow-wrap:anywhere}.staff-card h3{margin:0 0 6px}.staff-card .actions{margin-top:14px}.staff-card button{white-space:normal}
+
+.class-chip{display:flex;gap:6px;flex-wrap:wrap;max-width:100%;padding:5px;border:1px solid var(--line);border-radius:12px}.class-chip button{white-space:normal;overflow-wrap:anywhere}.deletion-dialog{color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;width:min(620px,calc(100% - 28px));max-height:90dvh;overflow:auto}.deletion-dialog::backdrop{background:rgba(0,10,20,.78)}.deletion-dialog h3{overflow-wrap:anywhere}.deletion-dialog .actions{justify-content:flex-end}#deletion-error{color:#ffb8b8}#open-trash{white-space:normal}@media(max-width:600px){.deletion-dialog{padding:19px}.deletion-dialog .actions button{flex:1}}

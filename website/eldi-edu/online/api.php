@@ -11,9 +11,9 @@ try {
  if(isset($_SESSION['last'])&&time()-$_SESSION['last']>7200){$_SESSION=[];session_regenerate_id(true);}$_SESSION['last']=time();$_SESSION['csrf']??=bin2hex(random_bytes(24));
  $path=getenv('ELDI3333_CONFIG')?:dirname(__DIR__,3).'/eldi3333-config.php';$configured=is_file($path);$action=$_GET['action']??'status';$app=null;
  if($configured){$config=require $path;if(!is_array($config)||!str_starts_with($config['dsn']??'','mysql:'))throw new ClassroomError('Provjerite privatnu MySQL konfiguraciju.',503);$app=new Classroom(new PDO($config['dsn'],$config['user'],$config['password']));}
- if($app&&$app->installed()){$app->upgradeSections();$app->upgradeComplete();$app->upgradeStaff();}
+ if($app&&$app->installed()){$app->upgradeSections();$app->upgradeComplete();$app->upgradeStaff();$app->upgradeCleanup();}
  if($app&&isset($_SESSION['user'])&&(!isset($_SESSION['auth_tag'])||!hash_equals($_SESSION['auth_tag'],$app->sessionTag($_SESSION['user'])))){unset($_SESSION['user'],$_SESSION['auth_tag']);session_regenerate_id(true);}
- if($action==='status'){$installed=$app?->installed()??false;$u=$installed&&isset($_SESSION['user'])?$app->user($_SESSION['user']):null;echo json_encode(['ok'=>true,'configured'=>$configured,'installed'=>$installed,'user'=>$u,'csrf'=>$_SESSION['csrf'],'version'=>'33.33.0','features'=>'complete-119','algorithms'=>'20-blokba-1','staff'=>'accounts-1','preview'=>isset($_SESSION['teacher_preview'])]);exit;}
+ if($action==='status'){$installed=$app?->installed()??false;$u=$installed&&isset($_SESSION['user'])?$app->user($_SESSION['user']):null;echo json_encode(['ok'=>true,'configured'=>$configured,'installed'=>$installed,'user'=>$u,'csrf'=>$_SESSION['csrf'],'version'=>'33.33.0','features'=>'complete-119','algorithms'=>'20-blokba-1','staff'=>'accounts-1','cleanup'=>'trash-1','preview'=>isset($_SESSION['teacher_preview'])]);exit;}
  if(!$app)throw new ClassroomError('Najprije postavite privatnu konfiguraciju iznad public_html. Upute su uz paket.',503);
  if(($_SERVER['REQUEST_METHOD']??'GET')!=='POST')throw new ClassroomError('Koristite POST zahtjev.',405);
  if(!hash_equals($_SESSION['csrf'],$_SERVER['HTTP_X_CSRF_TOKEN']??''))throw new ClassroomError('Sesija je istekla. Osvježite stranicu.',403);
@@ -42,6 +42,10 @@ try {
  elseif($action==='logout'){$_SESSION=[];session_regenerate_id(true);$result=[];}
  else{$u=$app->user($_SESSION['user']??'');$result=match($action){
  'dashboard'=>$app->dashboard($u),
+ 'deletion_preview'=>$app->deletionPreview($u,(string)($v['kind']??''),(string)($v['id']??'')),
+ 'move_to_trash'=>$app->moveToTrash($u,(string)($v['kind']??''),(string)($v['id']??''),(string)($v['snapshot']??'')),
+ 'trash_list'=>$app->trashList($u),
+ 'restore_item'=>$app->restoreItem($u,(string)($v['kind']??''),(string)($v['id']??'')),
  'staff_list'=>$app->staffList($u),
  'create_teacher'=>$app->createTeacher($u,$v),
  'set_teacher_role'=>$app->setTeacherRole($u,(string)($v['id']??''),$v['role']??null),

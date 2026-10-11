@@ -35,6 +35,7 @@ jobs:
           for file in website/eldi-edu/online/*.php; do php -l "$file"; done
           node --check website/eldi-edu/online/online.js
           node --check website/eldi-edu/online/staff.js
+          node --check website/eldi-edu/online/cleanup.js
           node --check website/eldi-edu/online/sections.js
           node scripts/build-section-bank.cjs
           node scripts/build-online119.cjs
@@ -48,6 +49,9 @@ jobs:
 
       - name: Verify teacher and administrator account screens
         run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/staff-web.cjs
+
+      - name: Verify class and assignment deletion and restore screens
+        run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/cleanup-web.cjs
 
       - name: Verify registration, section tests and certificates in Chromium
         run: NODE_PATH="$RUNNER_TEMP/eldi-login-qa/node_modules" node tests/sections-web.cjs

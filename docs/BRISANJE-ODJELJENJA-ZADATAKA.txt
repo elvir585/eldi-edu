@@ -1,0 +1,39 @@
+ELDI EDU 33.33 — BRISANJE ODJELJENJA I ZADATAKA
+
+POSTAVLJANJE DOPUNE
+1. U cPanelu otvori File Manager → public_html.
+2. Prenesi ZIP i raspakuj (Extract) u public_html uz zamjenu datoteka paketa.
+3. Otvori https://upinitk.com/eldi-edu/online/#nastavnik i pritisni Ctrl + F5.
+4. Prijavi se svojim postojećim podacima.
+Paket je dopuna postojeće aplikacije sa 132 provjere i 20 praktičnih zadataka.
+Uključuje i raniju dopunu za nastavnike i administratore.
+
+OBRIŠI ZADATAK
+Na kartici zadatka klikni „Obriši zadatak“. Isto dugme postoji kada otvoriš
+zadatak kroz „Predaje i pregled“. Pročitaj naziv i broj predaja, pa potvrdi.
+Zadatak, njegove predaje, ocjene i diplome nestaju iz aktivnog pregleda.
+
+OBRIŠI ODJELJENJE
+Pored naziva odjeljenja klikni „Obriši“. Dugme „Obriši odjeljenje“ postoji
+i unutar odjeljenja, uz izvoz arhive. Potvrda prikazuje broj učenika,
+povezanih zadataka i predaja. Brisanje uklanja odjeljenje i sve njegove
+zadatke iz aktivnog pregleda nastavnika i učenika. Registracija za to
+odjeljenje nije dostupna dok je obrisano.
+
+VRATI AKO POGRIJEŠIŠ
+Na nastavničkom pregledu klikni „Obrisane stavke“, zatim „Vrati odjeljenje“
+ili „Vrati zadatak“. Ovo je brisanje s mogućnošću vraćanja: podaci se čuvaju
+u bazi i ne brišu se trajno. Učenički računi i njihovi sačuvani projekti ostaju.
+Vraćanjem odjeljenja vraćaju se njegovi učenici, zadaci, rezultati i postojeći
+link za registraciju ako je bio uključen. Zadatak obrisan zasebno moraš vratiti
+zasebno, nakon vraćanja njegovog odjeljenja.
+
+PRAVILA
+Nastavnik može obrisati i vratiti samo svoja odjeljenja i zadatke.
+Učenici nemaju mogućnost brisanja odjeljenja ili zadataka.
+Ako u međuvremenu stigne nova predaja ili se promijeni broj zadataka/učenika,
+ponovo otvori potvrdu i provjeri osvježene brojeve prije brisanja.
+Provjeru sekcije obrisanu za određeni datum vrati iz Obrisanih stavki ili
+izaberi drugi datum za novu provjeru; postojeće predaje se ne poništavaju.
+Arhivu odjeljenja i rezultate CSV možeš izvesti prije brisanja kroz postojeća dugmad.
+Nema ponovne instalacije ili ručnih promjena baze i privatne konfiguracije.

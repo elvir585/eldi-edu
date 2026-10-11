@@ -7,7 +7,7 @@ config.write_text("<?php return ['dsn'=>'mysql:host=127.0.0.1;port=3306;dbname=e
 os.environ['ELDI3333_CONFIG']=str(config)
 sock=socket.socket();sock.bind(('127.0.0.1',0));port=sock.getsockname()[1];sock.close()
 log=open(ROOT/'.qa-php.log','w');server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(ROOT/'website')],stdout=log,stderr=log,env=os.environ)
-BASE=f'http://127.0.0.1:{port}/eldi-edu/online/classroom-staff.php?action='
+BASE=f'http://127.0.0.1:{port}/eldi-edu/online/classroom-cleanup.php?action='
 class Client:
  def __init__(self): self.opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()));self.csrf=''
  def call(self,action,data=None,expected=200,csrf=None):
@@ -288,6 +288,88 @@ try:
  assert pending.call('assignment',{'id':block_task})['submission']['payload']['source'].endswith('print(max(a, b))\n')
  print('Complete119: public registration, account isolation, CAS conflicts, limits, private cases, Python and block grading, forged-score protection PASS')
  print('Sections: 132 banks, approval, shared accounts, private answers, authoritative grades and awards, preview/return, and scoped removal: PASS')
+ # Recoverable removal of classes and assignments, with grades and accounts intact.
+ clean_class=teacher.call('create_class',{'title':'Odjeljenje za brisanje QA'})['id']
+ keep_class=teacher.call('create_class',{'title':'Odjeljenje koje ostaje QA'})['id']
+ clean_token=teacher.call('set_invite',{'class_id':clean_class,'enabled':True})['invite']['token']
+ keep_token=teacher.call('set_invite',{'class_id':keep_class,'enabled':True})['invite']['token']
+ clean_creds={'username':'cleanup.student.qa','password':'Cleanup-Student-QA-2026'}
+ join={'token':clean_token,'name':'Učenik brisanje QA','school':school,**clean_creds}
+ anonymous.call('register_student',join)
+ clean_student=Client();clean_student.call('status');clean_id=clean_student.call('login',clean_creds)['user']['id']
+ teacher.call('approve_student',{'class_id':clean_class,'student_id':clean_id,'approve':True})
+ anonymous.call('register_student',dict(join,token=keep_token))
+ teacher.call('approve_student',{'class_id':keep_class,'student_id':clean_id,'approve':True})
+ waiting_creds={'username':'cleanup.waiting.qa','password':'Cleanup-Waiting-QA-2026'}
+ anonymous.call('register_student',dict(join,**waiting_creds))
+ waiting=Client();waiting.call('status');waiting.call('login',waiting_creds)
+ teacher.call('preview_student',{'class_id':clean_class});teacher.call('return_teacher',{})
+ clean_projects={'name':'Sačuvani rad QA','studio33Work':{'title':'Rad ostaje'}}
+ clean_student.call('project_save',{'profile':clean_projects,'revision':0})
+ cloud_before=clean_student.call('project_load',{})
+ publications=teacher.call('publish_section',{'class_id':clean_class,'event_date':event,'banks':['math5','practice-sum']})['assignments']
+ clean_quiz,clean_program=[r['id'] for r in publications]
+ math_submission=clean_student.call('submit',{'id':clean_quiz,'payload':{'answers':[str(q['answer']) for q in catalog['math5']['questions']]}})
+ program_submission=clean_student.call('submit',{'id':clean_program,'payload':{'language':'python','source':'a = int(input())\nb = int(input())\nprint(a + b)'}})
+ cert_before=clean_student.call('certificate',{'submission_id':math_submission['id']})['certificate']
+ assert cert_before['grade']=='5' and program_submission['score']==100
+ kept_task=teacher.call('create_assignment',{'class_id':keep_class,'title':'Sačuvani zadatak','kind':'quiz','questions':[{'prompt':'3+4','answer':7,'points':10}]})['id']
+ kept_result=clean_student.call('submit',{'id':kept_task,'payload':{'answers':['7']}})
+ item={'kind':'assignment','id':clean_quiz}
+ preview=teacher.call('deletion_preview',item);assert preview['counts']['submissions']==1
+ anonymous.call('deletion_preview',item,401)
+ for client in [clean_student,colleague]:
+  client.call('deletion_preview',item,403)
+  client.call('move_to_trash',dict(item,snapshot=preview['snapshot']),403)
+  client.call('restore_item',item,403)
+ clean_student.call('trash_list',{},403)
+ teacher.call('move_to_trash',dict(item,snapshot=preview['snapshot']),403,csrf='bad-token')
+ teacher.call('move_to_trash',dict(item,snapshot='stale'),409)
+ teacher.call('deletion_preview',{'kind':'student','id':clean_id},400)
+ teacher.call('move_to_trash',dict(item,snapshot=preview['snapshot']))
+ assert clean_quiz not in [x['id'] for x in clean_student.call('dashboard',{})['assignments']]
+ clean_student.call('assignment',{'id':clean_quiz},404)
+ clean_student.call('submit',{'id':clean_quiz,'payload':{'answers':['0']}},404)
+ clean_student.call('certificate',{'submission_id':math_submission['id']},404)
+ teacher.call('publish_section',{'class_id':clean_class,'event_date':event,'banks':['math5']},409)
+ teacher.call('move_to_trash',dict(item,snapshot=preview['snapshot']),404)
+ teacher.call('restore_item',item)
+ assert clean_student.call('certificate',{'submission_id':math_submission['id']})['certificate']==cert_before
+ teacher.call('restore_item',item,404)
+ preview=teacher.call('deletion_preview',item);teacher.call('move_to_trash',dict(item,snapshot=preview['snapshot']))
+ class_item={'kind':'class','id':clean_class}
+ class_preview=teacher.call('deletion_preview',class_item);assert class_preview['counts']=={'assignments':2,'submissions':2,'students':2}
+ extra_task=teacher.call('create_assignment',{'class_id':clean_class,'title':'Novi zadatak poslije pregleda','kind':'project'})['id']
+ teacher.call('move_to_trash',dict(class_item,snapshot=class_preview['snapshot']),409)
+ class_preview=teacher.call('deletion_preview',class_item)
+ teacher.call('move_to_trash',dict(class_item,snapshot=class_preview['snapshot']))
+ for client in [teacher,clean_student]:assert clean_class not in [x['id'] for x in client.call('dashboard',{})['classes']]
+ assert kept_task in [x['id'] for x in clean_student.call('dashboard',{})['assignments']]
+ assert clean_student.call('assignment',{'id':kept_task})['submission']['id']==kept_result['id']
+ assert clean_student.call('project_load',{})==cloud_before
+ assert clean_student.call('status')['user']['id']==clean_id
+ assert waiting.call('dashboard',{})['join_requests']==[]
+ anonymous.call('invite_info',{'token':clean_token},404)
+ assert clean_class not in [x['id'] for x in anonymous.call('public_sections',{})['classes']]
+ anonymous.call('register_student',join,404)
+ anonymous.call('register_student',dict(join,token='',class_id=clean_class),404)
+ clean_student.call('assignment',{'id':clean_program},404)
+ clean_student.call('try_program',{'id':clean_program,'payload':{'language':'python','source':'print(5)'}},404)
+ teacher.call('roster',{'class_id':clean_class},404)
+ teacher.call('create_assignment',{'class_id':clean_class,'title':'Zabranjeno','kind':'project'},404)
+ assert clean_class not in [x['id'] for x in colleague.call('trash_list',{})['items']]
+ trash=teacher.call('trash_list',{})['items'];assert next(x for x in trash if x['id']==clean_quiz)['parent_deleted']==1
+ teacher.call('restore_item',item,409)
+ teacher.call('restore_item',class_item)
+ assert clean_class in [x['id'] for x in clean_student.call('dashboard',{})['classes']]
+ assert clean_quiz not in [x['id'] for x in clean_student.call('dashboard',{})['assignments']]
+ assert clean_student.call('assignment',{'id':clean_program})['submission']['score']==100
+ assert anonymous.call('invite_info',{'token':clean_token})['class']['id']==clean_class
+ assert waiting.call('dashboard',{})['join_requests'][0]['state']=='pending'
+ teacher.call('restore_item',item)
+ assert clean_student.call('certificate',{'submission_id':math_submission['id']})['certificate']==cert_before
+ assert teacher.call('trash_list',{})['items']==[]
+ print('Cleanup: confirmation snapshots, CSRF, ownership, hidden tasks and classes, blocked invites, preserved accounts/cloud/grades, separate task restoration and restored certificates: PASS')
  (ROOT/'.qa-online.json').write_text(json.dumps({'teacher':{'username':recover_data['username'],'password':recover_data['password']},'student':{'username':students[0]['username'],'password':'Student-QA-new-password'},'class':class1,'quiz':quiz,'project':project}))
  print('Online 33.33: MySQL/HTTP auth, custom logins, duplicate rollback, teacher recovery with key and CSRF, login lock clearing after recovery, session invalidation, preserved classes and work, grading, reset and deletion: PASS')
 finally:server.terminate();server.wait(timeout=10);log.close()

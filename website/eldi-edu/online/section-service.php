@@ -26,12 +26,12 @@ trait SectionFeatures {
  }
  public function inviteInfo(string $token):array {
   if(!preg_match('/^[a-f0-9]{48}$/D',$token))throw new ClassroomError('Otvori važeći link za registraciju koji ti je dao nastavnik.',404);
-  $c=$this->run('SELECT c.id,c.title FROM eldi3333_invites i JOIN eldi3333_classes c ON c.id=i.class_id WHERE i.token=? AND i.enabled=1',[$token])->fetch();
+  $c=$this->run("SELECT c.id,c.title FROM eldi3333_invites i JOIN eldi3333_classes c ON c.id=i.class_id WHERE i.token=? AND i.enabled=1 AND NOT EXISTS(SELECT 1 FROM eldi3333_deleted_items d WHERE d.kind='class' AND d.item_id=c.id)",[$token])->fetch();
   if(!$c)throw new ClassroomError('Link nije važeći ili je nastavnik zatvorio registraciju.',404);
   return ['class'=>$c,'schools'=>self::sectionSchools()];
  }
  public function registerStudent(array $v,string $bucket):array {
-  $this->throttle($bucket);if(!empty($v['token'])){$info=$this->inviteInfo((string)$v['token']);$class=$info['class']['id'];}else{$class=(string)($v['class_id']??'');if(!$this->run('SELECT class_id FROM eldi3333_invites WHERE class_id=? AND enabled=1',[$class])->fetchColumn())throw new ClassroomError('Nastavnik još nije otvorio registraciju za ovu sekciju.',404);}
+  $this->throttle($bucket);if(!empty($v['token'])){$info=$this->inviteInfo((string)$v['token']);$class=$info['class']['id'];}else{$class=(string)($v['class_id']??'');if(!$this->run("SELECT i.class_id FROM eldi3333_invites i JOIN eldi3333_classes c ON c.id=i.class_id WHERE i.class_id=? AND i.enabled=1 AND NOT EXISTS(SELECT 1 FROM eldi3333_deleted_items d WHERE d.kind='class' AND d.item_id=c.id)",[$class])->fetchColumn())throw new ClassroomError('Nastavnik još nije otvorio registraciju za ovu sekciju.',404);}
   $username=strtolower(self::text($v['username']??'',60));
   if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$username))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');
   $password=(string)($v['password']??'');$hash=self::password($password);
@@ -62,7 +62,7 @@ trait SectionFeatures {
  }
  public function joinStatus(array $u):array {
   if($u['role']!=='student')return [];
-  return $this->run('SELECT c.title,r.state FROM eldi3333_join_requests r JOIN eldi3333_classes c ON c.id=r.class_id WHERE r.user_id=? AND r.state<>?',[$u['id'],'approved'])->fetchAll();
+  return $this->run("SELECT c.title,r.state FROM eldi3333_join_requests r JOIN eldi3333_classes c ON c.id=r.class_id WHERE r.user_id=? AND r.state<>? AND NOT EXISTS(SELECT 1 FROM eldi3333_deleted_items d WHERE d.kind='class' AND d.item_id=c.id)",[$u['id'],'approved'])->fetchAll();
  }
  public function demoStudent(array $u,string $class):array {
   $this->teacher($u);$this->classFor($u,$class);
@@ -88,7 +88,7 @@ trait SectionFeatures {
   try{
    foreach($levels as $level){
     $existing=$this->run('SELECT assignment_id FROM eldi3333_section_tests WHERE class_id=? AND bank_key=? AND event_date=?',[$class,$level,$event])->fetchColumn();
-    if($existing){$created[]=['id'=>$existing,'level'=>$level,'existing'=>true];continue;}
+    if($existing){if($this->isDeleted('assignment',$existing))throw new ClassroomError('Ta provjera za izabrani datum nalazi se u Obrisanim stavkama. Vratite je ili izaberite drugi datum.',409);$created[]=['id'=>$existing,'level'=>$level,'existing'=>true];continue;}
     $test=$catalog[$level];$meta=['bank'=>$level,'level'=>$test['grade'],'subject'=>$test['subject'],'test_title'=>$test['title'],'event_date'=>$event,'project'=>'Inovativni nastavnici – Step by Step','schools'=>self::sectionSchools(),'mentors'=>['Dino Isanović','Elvir Čajić'],'section'=>'Mladi matematičari'];
     if(!empty($test['practical'])){$id=self::id();$this->run('INSERT INTO eldi3333_assignments VALUES(?,?,?,?,?,?,?,?,?)',[$id,$class,self::text('Sekcija · '.$test['title'].' · '.$day->format('d.m.Y.'),150),$test['intro'].' Riješi zadatak blokovima, Python školskim režimom ili učitaj podržani Python kod iz BlokBa. Probaj dva prikazana primjera prije konačne predaje. Ocjena se računa iz 10 provjera na serveru; svaka nosi 10 bodova. Jedna konačna predaja.','program','[]',$due,0,time()]);$a=['id'=>$id];}
     else $a=$this->createAssignment($u,['class_id'=>$class,'kind'=>'quiz','title'=>'Sekcija · '.$test['title'].' · '.$day->format('d.m.Y.'),'instructions'=>$test['intro']."\n".count($test['questions'])." zadataka · ".array_sum(array_column($test['questions'],'points'))." bodova · preporučeno vrijeme 45 minuta. Vrijeme nije automatski ograničeno. Svaki tačan odgovor donosi 5 bodova; nema negativnih bodova.\nUpiši samo broj ili razlomak, bez mjerne jedinice. Ocjena: manje od 50% = 1; 50–64% = 2; 65–79% = 3; 80–89% = 4; 90–100% = 5.\nNakon konačne predaje dobijaš rezultat, značku, diplomu o učešću i objašnjenja korak po korak.",'questions'=>$test['questions'],'due_at'=>$due]);
