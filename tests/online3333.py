@@ -7,7 +7,7 @@ config.write_text("<?php return ['dsn'=>'mysql:host=127.0.0.1;port=3306;dbname=e
 os.environ['ELDI3333_CONFIG']=str(config)
 sock=socket.socket();sock.bind(('127.0.0.1',0));port=sock.getsockname()[1];sock.close()
 log=open(ROOT/'.qa-php.log','w');server=subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(ROOT/'website')],stdout=log,stderr=log,env=os.environ)
-BASE=f'http://127.0.0.1:{port}/eldi-edu/online/classroom-119.php?action='
+BASE=f'http://127.0.0.1:{port}/eldi-edu/online/classroom-staff.php?action='
 class Client:
  def __init__(self): self.opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()));self.csrf=''
  def call(self,action,data=None,expected=200,csrf=None):
@@ -75,6 +75,56 @@ try:
  a.call('password',{'old':reset['password'],'password':'Student-QA-new-password'});assert a.call('status')['user']
  anonymous=Client();anonymous.call('status');anonymous.call('dashboard',{},401)
  teacher.call('remove_student',{'class_id':class2,'student_id':outsider['id']});assert other.call('status')['user'] is None
+ # Teacher account management: migration, roles, ownership and session invalidation.
+ owner=teacher.call('status')['user'];assert owner['is_owner'] and owner['is_admin']
+ # Simulate upgrading the earlier single-teacher installation without changing users.
+ subprocess.run(['php','-r',"$c=require '.qa-config.php';$d=new PDO($c['dsn'],$c['user'],$c['password']);$d->exec(\"DELETE FROM eldi3333_settings WHERE name='staff_owner'\");"],cwd=ROOT,check=True)
+ assert teacher.call('status')['user']==owner
+ staff_data={'name':'Kolega QA','username':'kolega.qa','password':'Colleague-QA-2026-password','role':'teacher'}
+ anonymous.call('staff_list',{},401)
+ a.call('staff_list',{},403)
+ a.call('create_teacher',staff_data,403)
+ teacher.call('create_teacher',staff_data,403,csrf='incorrect')
+ for patch in [{'username':'invalid space'},{'password':'short'},{'password':123456789012},{'name':''},{'role':'owner'},{'role':True}]:
+  teacher.call('create_teacher',dict(staff_data,**patch),400)
+ staff_user=teacher.call('create_teacher',staff_data)['teacher']
+ assert not staff_user['is_admin'] and not staff_user['is_owner'] and 'password' not in staff_user and 'password_hash' not in staff_user
+ teacher.call('create_teacher',staff_data,409)
+ teacher.call('create_teacher',dict(staff_data,username=students[0]['username']),409)
+ colleague=Client();colleague.call('status');colleague.call('login',{'username':staff_data['username'],'password':staff_data['password']})
+ assert colleague.call('dashboard',{})['classes']==[]
+ colleague.call('staff_list',{},403)
+ colleague.call('create_teacher',dict(staff_data,username='forbidden.teacher.qa'),403)
+ colleague.call('roster',{'class_id':class1},403)
+ colleague.call('assignment',{'id':quiz},403)
+ own_class=colleague.call('create_class',{'title':'Odjeljenje drugog nastavnika'})['id']
+ teacher.call('roster',{'class_id':own_class},403)
+ role_data={'id':staff_user['id'],'role':'admin'}
+ a.call('set_teacher_role',role_data,403)
+ colleague.call('set_teacher_role',role_data,403)
+ assert teacher.call('set_teacher_role',role_data)['teacher']['is_admin']
+ assert colleague.call('status')['user']['is_admin']
+ coadmin=teacher.call('create_teacher',dict(staff_data,name='Drugi administrator',username='coadmin.qa',role='admin'))['teacher']
+ assert coadmin['is_admin'] and not coadmin['is_owner']
+ listed=colleague.call('staff_list',{})['staff'];assert len(listed)==3
+ assert all('password' not in row and 'password_hash' not in row for row in listed)
+ colleague.call('set_teacher_role',{'id':owner['id'],'role':'teacher'},403)
+ colleague.call('set_teacher_role',{'id':staff_user['id'],'role':'teacher'},403)
+ teacher.call('set_teacher_role',{'id':students[0]['id'],'role':'admin'},400)
+ teacher.call('reset_teacher_password',{'id':owner['id'],'password':'Protected-QA-2026-password'},403)
+ colleague.call('reset_teacher_password',{'id':owner['id'],'password':'Protected-QA-2026-password'},403)
+ teacher.call('set_teacher_role',{'id':staff_user['id'],'role':'teacher'})
+ assert not colleague.call('status')['user']['is_admin']
+ colleague.call('staff_list',{},403)
+ colleague.call('reset_teacher_password',{'id':coadmin['id'],'password':'Forbidden-QA-2026-password'},403)
+ teacher.call('reset_teacher_password',{'id':staff_user['id'],'password':'short'},400)
+ teacher.call('reset_teacher_password',{'id':students[0]['id'],'password':'Wrong-Target-QA-2026-password'},400)
+ teacher.call('reset_teacher_password',{'id':staff_user['id'],'password':'Reset-Colleague-QA-2026-password'})
+ assert colleague.call('status')['user'] is None
+ colleague.call('login',{'username':staff_data['username'],'password':staff_data['password']},401)
+ colleague.call('login',{'username':staff_data['username'],'password':'Reset-Colleague-QA-2026-password'})
+ assert colleague.call('dashboard',{})['classes'][0]['id']==own_class
+ print('Staff accounts: legacy owner migration, creation, roles, CSRF, duplicate rejection, ownership isolation, protected owner, immediate revocation and password reset: PASS')
  recovery=Client();recovery.call('status')
  recover_data={'token':'ci-only-install-key-not-for-production-3333','username':'nastavnik.obnovljen.qa','password':'Recovered-Teacher-QA-2026'}
  teacher_before=teacher.call('status')['user'];classes_before=teacher.call('dashboard',{})['classes']

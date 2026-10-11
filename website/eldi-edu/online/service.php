@@ -3,8 +3,9 @@ declare(strict_types=1);
 final class ClassroomError extends RuntimeException { public function __construct(string $message, public int $status=400){parent::__construct($message);} }
 require_once __DIR__.'/section-service.php';
 require_once __DIR__.'/complete-service.php';
+require_once __DIR__.'/staff-service.php';
 final class Classroom {
- use SectionFeatures, CompleteFeatures;
+ use SectionFeatures, CompleteFeatures, StaffFeatures;
  public function __construct(public PDO $db){$db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);$db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);$db->setAttribute(PDO::ATTR_EMULATE_PREPARES,false);}
  public function run(string $sql,array $params=[]):PDOStatement{$q=$this->db->prepare($sql);$q->execute($params);return $q;}
  public function schema():void{
@@ -23,18 +24,17 @@ final class Classroom {
  public static function text(mixed $v,int $limit=100,bool $required=true):string{if(!is_string($v))throw new ClassroomError('Očekivan je tekst.');$v=trim($v);if(strlen($v)>$limit*4||($required&&$v===''))throw new ClassroomError('Nedostaje podatak ili je tekst predug.');return $v;}
  public static function password(string $p):string{if(strlen($p)<12||strlen($p)>128)throw new ClassroomError('Lozinka mora imati 12–128 znakova.');return password_hash($p,PASSWORD_DEFAULT);}
  public static function number(mixed $v):?float{if(!is_scalar($v)||strlen((string)$v)>80)return null;$s=str_replace([',','−'],['.','-'],trim((string)$v));$part='[+-]?(?:\d+(?:\.\d*)?|\.\d+)';if(preg_match('~^('.$part.')\s*/\s*('.$part.')$~D',$s,$m))return (float)$m[2]==0.0?null:(float)$m[1]/(float)$m[2];if(!preg_match('~^'.$part.'$~D',$s))return null;$n=(float)$s;return is_finite($n)?$n:null;}
- public function install(string $username,string $name,string $password):void{if($this->installed())throw new ClassroomError('Instalacija je već završena.',409);$username=strtolower(self::text($username,60));if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$username))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');$hash=self::password($password);$this->schema();$this->db->beginTransaction();try{$this->run('INSERT INTO eldi3333_settings(name,value) VALUES(?,?)',['installed',(string)time()]);$this->run('INSERT INTO eldi3333_users VALUES(?,?,?,?,?,?)',[self::id(),$username,self::text($name),$hash,'teacher',time()]);$this->db->commit();}catch(Throwable $e){$this->db->rollBack();throw $e;}}
+ public function install(string $username,string $name,string $password):void{if($this->installed())throw new ClassroomError('Instalacija je već završena.',409);$username=strtolower(self::text($username,60));if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$username))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');$hash=self::password($password);$this->schema();$this->db->beginTransaction();try{$this->run('INSERT INTO eldi3333_settings(name,value) VALUES(?,?)',['installed',(string)time()]);$id=self::id();$this->run('INSERT INTO eldi3333_users VALUES(?,?,?,?,?,?)',[$id,$username,self::text($name),$hash,'teacher',time()]);$this->run('INSERT INTO eldi3333_settings(name,value) VALUES(?,?)',['staff_owner',$id]);$this->db->commit();}catch(Throwable $e){$this->db->rollBack();throw $e;}}
  public function throttle(string $bucket):void{$this->run('DELETE FROM eldi3333_limits WHERE until_at < ?',[time()]);$v=$this->run('SELECT * FROM eldi3333_limits WHERE bucket=?',[$bucket])->fetch();if($v&&$v['attempts']>=15)throw new ClassroomError('Previše pokušaja. Sačekajte 15 minuta.',429);if($v)$this->run('UPDATE eldi3333_limits SET attempts=attempts+1 WHERE bucket=?',[$bucket]);else $this->run('INSERT INTO eldi3333_limits VALUES(?,?,?)',[$bucket,1,time()+900]);}
- public function login(string $username,string $password,string $bucket):array{$this->throttle($bucket);$user=$this->run('SELECT * FROM eldi3333_users WHERE username=?',[strtolower(trim($username))])->fetch();if(!$user||!password_verify($password,$user['password_hash']))throw new ClassroomError('Korisničko ime ili lozinka nisu tačni.',401);$this->run('DELETE FROM eldi3333_limits WHERE bucket=?',[$bucket]);unset($user['password_hash']);return $user;}
+ public function login(string $username,string $password,string $bucket):array{$this->throttle($bucket);$user=$this->run('SELECT * FROM eldi3333_users WHERE username=?',[strtolower(trim($username))])->fetch();if(!$user||!password_verify($password,$user['password_hash']))throw new ClassroomError('Korisničko ime ili lozinka nisu tačni.',401);$this->run('DELETE FROM eldi3333_limits WHERE bucket=?',[$bucket]);return $this->user($user['id']);}
  public function recoverTeacher(string $token,string $expected,string $username,string $password,string $recoveryBucket,string $loginBucket):array{
   $this->throttle($recoveryBucket);
   if(strlen($expected)<24||str_contains($expected,'ZAMIJENITE')||!hash_equals($expected,$token))throw new ClassroomError('Instalacijski ključ nije tačan ili nije podešen.',403);
   $username=strtolower(self::text($username,60));
   if(!preg_match('/^[a-z0-9._-]{3,60}$/D',$username))throw new ClassroomError('Korisničko ime: 3–60 slova a–z, cifara, tačka, crtica.');
   $hash=self::password($password);
-  $teachers=$this->run('SELECT id FROM eldi3333_users WHERE role=? ORDER BY created_at LIMIT 2',['teacher'])->fetchAll();
-  if(count($teachers)!==1)throw new ClassroomError('Obnova očekuje jedan nastavnički račun. Provjerite račune kroz hosting.',409);
-  $id=$teachers[0]['id'];
+  $this->upgradeStaff();$id=$this->staffOwner();
+  if($id===''||!$this->run("SELECT id FROM eldi3333_users WHERE id=? AND role='teacher'",[$id])->fetchColumn())throw new ClassroomError('Glavni administrator nije određen. Provjerite postojeće račune kroz hosting.',409);
   if($this->run('SELECT id FROM eldi3333_users WHERE username=? AND id<>?',[$username,$id])->fetchColumn())throw new ClassroomError('To korisničko ime već pripada drugom računu. Izaberite drugo.',409);
   $this->db->beginTransaction();
   try{
@@ -44,7 +44,7 @@ final class Classroom {
   }catch(Throwable $e){$this->db->rollBack();if($e instanceof PDOException&&(string)$e->getCode()==='23000')throw new ClassroomError('Korisničko ime već postoji. Izaberite drugo.',409);throw $e;}
   return ['username'=>$username];
  }
- public function user(string $id):array{$u=$this->run('SELECT id,username,display_name,role FROM eldi3333_users WHERE id=?',[$id])->fetch();if(!$u)throw new ClassroomError('Prijavite se ponovo.',401);return $u;}
+ public function user(string $id):array{$u=$this->run('SELECT id,username,display_name,role FROM eldi3333_users WHERE id=?',[$id])->fetch();if(!$u)throw new ClassroomError('Prijavite se ponovo.',401);return $this->staffIdentity($u);}
  public function sessionTag(string $id):string{return hash('sha256',(string)$this->run('SELECT password_hash FROM eldi3333_users WHERE id=?',[$id])->fetchColumn());}
  public function teacher(array $u):void{if($u['role']!=='teacher')throw new ClassroomError('Ova radnja je dostupna nastavniku.',403);}
  public function classFor(array $u,string $id):array{$c=$this->run('SELECT * FROM eldi3333_classes WHERE id=?',[$id])->fetch();if(!$c)throw new ClassroomError('Odjeljenje nije pronađeno.',404);if($u['role']==='teacher'){if($c['owner_id']!==$u['id'])throw new ClassroomError('Nemate pristup ovom odjeljenju.',403);}elseif(!$this->run('SELECT user_id FROM eldi3333_enrollments WHERE class_id=? AND user_id=?',[$id,$u['id']])->fetch())throw new ClassroomError('Nemate pristup ovom odjeljenju.',403);return $c;}

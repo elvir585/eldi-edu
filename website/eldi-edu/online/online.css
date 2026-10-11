@@ -13,3 +13,5 @@
 @media(max-width:640px){.program-choice,.algorithm-heading{display:block}.program-choice>button{margin-top:12px;width:100%}.algorithm-panel,.blokba-guide{padding:14px}.algorithm-heading>button{margin-bottom:14px}.algorithm-tabs button{flex:1;padding:10px 8px;font-size:.9rem}.algorithm-panel .actions{align-items:stretch}.algorithm-panel .actions label{flex-basis:100%;width:100%}.program-result-table td,.program-result-table th{padding:10px 7px;font-size:.87rem}.program-result-table td{overflow-wrap:anywhere}.program-example{padding:12px}}
 
 .algorithm-flow.is-expanded{max-height:none}.algorithm-flow svg{margin:0 auto}#algorithm-flow-expand{margin-bottom:12px}
+
+.staff-list{display:grid;gap:14px}.staff-card{padding:16px;border:1px solid var(--line,#334155);border-radius:14px;overflow-wrap:anywhere}.staff-card h3{margin:0 0 6px}.staff-card .actions{margin-top:14px}.staff-card button{white-space:normal}

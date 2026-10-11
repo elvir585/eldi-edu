@@ -1,5 +1,5 @@
 Options -Indexes
-<FilesMatch "^(config\.example|service|section-service|section-tests|complete-service|school-runtime|practical-tasks)\.php$">
+<FilesMatch "^(config\.example|service|section-service|section-tests|complete-service|school-runtime|practical-tasks|staff-service)\.php$">
   Require all denied
 </FilesMatch>
 <IfModule mod_headers.c>
@@ -17,5 +17,9 @@ Options -Indexes
 </Files>
 
 <Files "classroom-132.php">
+  Require all granted
+</Files>
+
+<Files "classroom-staff.php">
   Require all granted
 </Files>

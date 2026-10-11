@@ -1,0 +1,36 @@
+ELDI EDU 33.33 — NASTAVNICI I ADMINISTRATORI
+
+Ovo je nadogradnja već postavljenog paketa sa 132 provjere i 20 praktičnih zadataka.
+
+POSTAVLJANJE
+1. U cPanelu otvori File Manager → public_html.
+2. Prenesi ZIP i izaberi Extract u public_html, uz zamjenu datoteka paketa.
+3. Otvori https://upinitk.com/eldi-edu/online/#nastavnik i pritisni Ctrl + F5.
+4. Prijavi se svojim postojećim nastavničkim podacima.
+5. Klikni „Upravljaj nastavnicima“ u odjeljku „Nastavnici i administratori“.
+
+DODAVANJE KOLEGE
+Unesi ime, korisničko ime i lozinku, ponovi lozinku i izaberi ulogu:
+• Nastavnik — vodi svoja odjeljenja, učenike, zadatke i ocjene.
+• Administrator + nastavnik — uz svoje odjeljenje upravlja i nastavničkim računima.
+Klikni „Kreiraj nastavnički račun“.
+Kolega se prijavljuje na istom linku kroz „Administrator / nastavnik“.
+Lozinka ima najmanje 12 znakova. Nema unaprijed zadanih zajedničkih lozinki.
+Kolegi daj podatke koje si odabrao. Lozinke se naknadno ne prikazuju u spisku.
+
+POSTOJEĆI RAČUNI
+U spisku možeš dodijeliti ili ukloniti administratorska prava drugom nastavniku.
+Dugme „Nova lozinka“ postavlja novu lozinku i prekida njegove prethodne prijave.
+Svako svoju lozinku može promijeniti kroz „Moj račun“.
+Početni račun ostaje glavni administrator; drugi mu ne mogu ukloniti prava ili
+promijeniti lozinku kroz ovaj odjeljak. Obnova instalacijskim ključem i dalje
+obnavlja samo glavni administratorski račun, i kada ima više nastavnika.
+Administratorska uloga ne daje automatski pristup tuđim odjeljenjima i radovima.
+Svaki nastavnik ima svoje odjeljenje; dijeljenje odjeljenja nije dio ove dopune.
+
+OČUVANJE PODATAKA
+Nema ponovne instalacije niti brisanja baze. Postojeći učenici, lozinke, zadaci,
+predaje i ocjene ostaju sačuvani. Paket ne sadrži privatnu konfiguraciju baze.
+Kod nadogradnje starog izdanja postojeći jedini nastavnik postaje glavni admin.
+Ako je na drugoj instalaciji ranije ručno uneseno više nastavnika, vlasnik se
+ne pogađa automatski; tada treba provjeriti vlasništvo prije dodjele prava.

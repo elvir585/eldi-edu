@@ -22,7 +22,7 @@ function previewHeader(){
 function enhanceDashboard(){
  if(user.role==='teacher'&&data.classes.length){
   const section=document.createElement('section');section.className='panel section-banner';
-  section.innerHTML=`<p class="eyebrow">INOVATIVNI NASTAVNICI · STEP BY STEP</p><h2>Sekcija „Mladi matematičari“</h2><p>119 provjera: 112 testova matematike i informatike te 7 praktičnih programa za Python i blokove. Do 20 zadataka, automatska ocjena, značka i diploma nakon predaje.</p><div class="actions"><button id="section-setup" class="primary">Pripremi testove sekcije</button><button id="section-students">Učenici i registracija</button></div>`;
+  section.innerHTML=`<p class="eyebrow">INOVATIVNI NASTAVNICI · STEP BY STEP</p><h2>Sekcija „Mladi matematičari“</h2><p>132 provjere: 112 testova matematike i informatike te 20 praktičnih zadataka za Python, blokove i BlokBa. Do 20 zadataka, automatska ocjena, značka i diploma nakon predaje.</p><div class="actions"><button id="section-setup" class="primary">Pripremi testove sekcije</button><button id="section-students">Učenici i registracija</button></div>`;
   app.querySelector('.heading').after(section);$('section-setup').onclick=wrap(()=>sectionSetup(data.classes[0].id));$('section-students').onclick=wrap(()=>roster(data.classes[0].id));
  }
  if(user.role==='student'){
