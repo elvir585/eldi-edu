@@ -1,0 +1,63 @@
+ELDI EDU 33.33 — ALGORITMI, BLOKOVI I BLOKBA
+11. oktobar 2026.
+
+POSTAVLJANJE
+1. Prenesite kompletni ZIP u cPanel → File Manager → public_html.
+2. Extract direktno u /public_html. Potvrdite zamjenu datoteka iz paketa.
+3. Otvorite https://upinitk.com/eldi-edu/online/ i osvježite Ctrl+F5.
+4. Prijavite se nastavničkim računom → otvorite sekciju/odjeljenje →
+   Pripremi testove sekcije. Vidjet ćete 20 praktičnih zadataka.
+5. Označite željene zadatke, izaberite datum i kliknite Objavi izabrane testove.
+   Učenici koji imaju odobren pristup sekciji vide objavljene zadatke.
+
+Ne pokrećite novu instalaciju i ne brišite public_html. Privatna konfiguracija,
+korisnici, ocjene, diplome i ranije predaje nisu u ZIP-u i ostaju na serveru.
+Ovo je kompletni web paket s prethodnim radionicama, potpisima i pečatom diplome.
+Nakon provjere uklonite ZIP iz javne mape. Sačuvajte svoju kopiju.
+
+ŠTA JE NOVO U ISTOM IZBORU TESTOVA
+20 praktičnih zadataka, ukupno 132 provjere zajedno sa 112 testova znanja.
+Ranijih 7 zadataka ostaje. Dodano je 13: zbir realnih brojeva, razlika,
+proizvod, količnik, prosjek tri broja, popust, temperatura, udaljenost,
+površina trougla, najmanji od tri broja, uslov trougla, NZD i prost broj.
+Svaki praktični zadatak je zasebna provjera od 100 bodova (10 ulaza).
+Dva primjera učenik vidi prije predaje; svih 10 provjerava server.
+Možete objaviti do 30 različitih provjera u jednom koraku.
+
+KAKO RADI UČENIK
+- Pišem Python: piše program i može pretvoriti podržani kod u blokove.
+- Slažem blokove ovdje: unosi cijele ili realne brojeve, slaže računanje,
+  uslove, petlje i ispis. Sve blokove povezuje u jedan program.
+- Riješi pomoću BlokBa: složi zadatak u instaliranom BlokBa, sačuvaj .py,
+  pa ovdje učitaj datoteku ili zalijepi kod. Stranica ne pokreće BlokBa
+  automatski i ne uvozi njen interni format blokovskog projekta.
+- Prikazi istog algoritma: pseudokod, dijagram toka i programski kod.
+- Python, C++, JavaScript (Node.js) i Java mogu se pregledati i preuzeti.
+  Java se preuzima kao Main.java. Na hostingu se ocjenjuje brojčani
+  Python školski režim; ovdje se ne pokreću C++/Java/Node kompajleri.
+- Probaj svoje brojeve: svaki broj u svom redu. U ovom ulaznom polju
+  prihvataju se decimalni zarez i tačka. U programskom kodu koristi tačku.
+- Pokreni probne primjere, zatim Predaj i ocijeni. Jedna konačna predaja.
+  Nastavnik vidi rezultat, a učenik može otvoriti značku i diplomu.
+
+OPSEG PROGRAMA ZA OCJENJIVANJE
+Brojčane promjenljive, + - * / // % **, poređenja, and/or/not,
+int(input()), float(input()), print(), abs/min/max, if/elif/else,
+for/range, while, break/continue/pass. Bez biblioteka, mreže, datoteka,
+lista, teksta i korisničkih funkcija. Najviše 12 KB, 200 naredbi,
+150 blokova, 16 nivoa blokova, 40000 koraka po ulazu i brojevi do 10^12.
+Poruke u input("Unesi broj") prihvataju se radi BlokBa prijenosa; u
+provjeri se zanemaruju. U print() trebaju biti samo traženi brojevi.
+Za neispravno rješenje ili dijeljenje nulom prikazuje se greška.
+Dijagram i pseudokod opisuju učenikov program, ne otkrivaju rješenje zadatka.
+Izvoz C++/Java prikazuje brojčane algoritme; za logičku vrijednost spremljenu
+u promjenljivu traži upotrebu broja 0/1, uz dostupan Python prikaz.
+Decimalna tolerancija: max(1, abs(očekivano)) * 10^-9.
+
+Skice praktičnih zadataka čuvaju se u tom pregledniku za tog korisnika
+(odvojeno od čuvanja projekata radionice na računu). Prije prelaska na
+novi uređaj preuzmi kod. Konačne predaje čuvaju se na serveru.
+
+BlokBa je zasebna aplikacija autora. Koristi se službeni .py izvoz,
+prema README dokumentaciji https://github.com/DinoIsanovic/BlokBa-app
+provjerenoj 11.10.2026. Njena aplikacija nije prepakovana niti izmijenjena.
